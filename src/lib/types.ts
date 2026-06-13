@@ -117,6 +117,36 @@ export type IndexCandlePatternsResponse = {
   durationMs: number;
 };
 
+export type CandlePatternItem = {
+  id: number;
+  symbol: string;
+  timeframe: string;
+  openTimeMs: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  patternType: string;
+  patternCategory: string;
+  trendDirection: string;
+  createdAtUtc: string;
+};
+
+export type CandlePatternListResponse = {
+  requestId: string;
+  symbol: string;
+  timeframe: string;
+  fromMs?: number;
+  toMs?: number;
+  category?: string;
+  patternType?: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  items: CandlePatternItem[];
+};
+
 export const WINDOW_SIZES = [5, 10, 15, 20, 25] as const;
 
 export type SequenceRuleCondition = {

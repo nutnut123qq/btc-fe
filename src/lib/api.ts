@@ -151,6 +151,31 @@ export async function indexCandlePatterns(payload: {
   return getJson(res) as Promise<import("./types").IndexCandlePatternsResponse>;
 }
 
+export async function getCandlePatternsByType(payload: {
+  symbol?: string;
+  timeframe?: string;
+  patternType: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const {
+    symbol = "BTCUSDT",
+    timeframe = "1h",
+    patternType,
+    page = 1,
+    pageSize = 50,
+  } = payload;
+  const params = new URLSearchParams({
+    symbol,
+    timeframe,
+    patternType,
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  const res = await fetch(`${API_BASE}/api/market/candle-patterns?${params}`);
+  return getJson(res) as Promise<import("./types").CandlePatternListResponse>;
+}
+
 export async function getBitcoinAnalysis() {
   const res = await fetch(`${API_BASE}/api/analysis/bitcoin`);
   const text = await res.text();
