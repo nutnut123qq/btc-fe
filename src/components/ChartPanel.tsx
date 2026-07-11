@@ -18,6 +18,7 @@ import {
 } from "@/lib/api";
 import { BtcCandlestickChart } from "./BtcCandlestickChart";
 import { ema, rsi } from "@/lib/indicators";
+import { intervalToMs } from "@/lib/timeframe";
 
 const TIMEFRAMES = [
   { label: "M1", value: "1m" },
@@ -175,31 +176,10 @@ export function ChartPanel() {
     }
   };
 
-  const resolveIntervalMs = (tf: string) => {
-    switch (tf) {
-      case "1m":
-        return 60_000;
-      case "5m":
-        return 300_000;
-      case "15m":
-        return 900_000;
-      case "30m":
-        return 1_800_000;
-      case "1h":
-        return 3_600_000;
-      case "4h":
-        return 14_400_000;
-      case "1d":
-        return 86_400_000;
-      default:
-        return 900_000;
-    }
-  };
-
   const patternWindowFor = (item: CandlePatternItem) => {
     const bars =
       item.patternCategory === "Triple" ? 3 : item.patternCategory === "Double" ? 2 : 1;
-    const intervalMs = resolveIntervalMs(item.timeframe);
+    const intervalMs = intervalToMs(item.timeframe);
     const startTimeMs = item.openTimeMs;
     const endTimeMs = startTimeMs + (bars - 1) * intervalMs;
     return { startTimeMs, endTimeMs };
