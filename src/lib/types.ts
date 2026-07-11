@@ -189,3 +189,41 @@ export type SequenceRuleSignal = {
   message: string;
   createdAtUtc: string;
 };
+
+// --- Sequence / structure analysis (api/market/{market-structure,sequence-scenarios,validate-candles}) ---
+export type MarketStructureResponse = {
+  symbol: string;
+  interval: string;
+  currentTrend: string;
+  summaryText: string;
+  swings: Array<{ index: number; timeMs: number; price: number; type: string; label: string }>;
+  events: Array<{ timeMs: number; type: string; message: string; price: number }>;
+};
+
+export type SequenceScenario = {
+  scenario: string;
+  name: string;
+  description: string;
+  strength: number;
+  suggestion: string;
+  details: string[];
+};
+
+export type SequenceScenariosResponse = {
+  symbol: string;
+  timeframe: string;
+  barsAnalyzed: number;
+  summaryText: string;
+  scenarios: SequenceScenario[];
+};
+
+export type ValidateCandlesResponse = {
+  symbol: string;
+  interval: string;
+  limit: number;
+  totalBars: number;
+  validBars: number;
+  isValid: boolean;
+  summaryText: string;
+  issues: Array<{ barIndex: number; code: string; message: string }>;
+};

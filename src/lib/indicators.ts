@@ -2,16 +2,6 @@ import { KlineOHLC } from "./types";
 
 export type IndicatorPoint = { time: number; value: number };
 
-export function sma(data: KlineOHLC[], period: number): IndicatorPoint[] {
-  const out: IndicatorPoint[] = [];
-  for (let i = period - 1; i < data.length; i++) {
-    let sum = 0;
-    for (let j = 0; j < period; j++) sum += data[i - j].close;
-    out.push({ time: Math.floor(data[i].openTimeMs / 1000), value: sum / period });
-  }
-  return out;
-}
-
 export function ema(data: KlineOHLC[], period: number): IndicatorPoint[] {
   const out: IndicatorPoint[] = [];
   const k = 2 / (period + 1);
@@ -58,58 +48,6 @@ function rsiValue(avgGain: number, avgLoss: number) {
   if (avgLoss === 0) return 100;
   const rs = avgGain / avgLoss;
   return 100 - 100 / (1 + rs);
-}
-
-export function macd(
-  data: KlineOHLC[],
-  fast = 12,
-  slow = 26,
-  signal = 9
-): { macd: IndicatorPoint[]; signal: IndicatorPoint[]; histogram: IndicatorPoint[] } {
-  const emaFast = pureEmaCloses(data.map((d) => d.close), fast);
-  const emaSlow = pureEmaCloses(data.map((d) => d.close), slow);
-  const macdLine: IndicatorPoint[] = [];
-  for (let i = 0; i < data.length; i++) {
-    if (emaFast[i] == null || emaSlow[i] == null) continue;
-    macdLine.push({ time: Math.floor(data[i].openTimeMs / 1000), value: emaFast[i]! - emaSlow[i]! });
-  }
-  const signalValues = pureEma(macdLine.map((d) => d.value), signal);
-  const signalOut: IndicatorPoint[] = [];
-  const histogramOut: IndicatorPoint[] = [];
-  let si = 0;
-  for (let i = 0; i < macdLine.length; i++) {
-    if (si < signalValues.length && signalValues[si] != null) {
-      const s = signalValues[si]!;
-      signalOut.push({ time: macdLine[i].time, value: s });
-      histogramOut.push({ time: macdLine[i].time, value: macdLine[i].value - s });
-      si++;
-    }
-  }
-  return { macd: macdLine, signal: signalOut, histogram: histogramOut };
-}
-
-function pureEmaCloses(values: number[], period: number): (number | null)[] {
-  const out: (number | null)[] = Array(values.length).fill(null);
-  const k = 2 / (period + 1);
-  let prev: number | null = null;
-  for (let i = 0; i < values.length; i++) {
-    if (prev == null) {
-      if (i >= period - 1) {
-        let sum = 0;
-        for (let j = 0; j < period; j++) sum += values[i - j];
-        prev = sum / period;
-        out[i] = prev;
-      }
-    } else {
-      prev = values[i] * k + prev * (1 - k);
-      out[i] = prev;
-    }
-  }
-  return out;
-}
-
-function pureEma(values: number[], period: number): (number | null)[] {
-  return pureEmaCloses(values, period);
 }
 
 export function bollinger(

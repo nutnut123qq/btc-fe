@@ -226,3 +226,22 @@ export async function clearDiscoveredRules() {
   const res = await fetch(`${API_BASE}/api/discovery/clear`, { method: "POST" });
   return getJson(res);
 }
+
+// --- Sequence / structure analysis ---
+export async function getMarketStructure(symbol = "BTCUSDT", interval = "1h", limit = 200) {
+  const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/api/market/market-structure?${params}`);
+  return getJson(res) as Promise<import("./types").MarketStructureResponse>;
+}
+
+export async function getSequenceScenarios(symbol = "BTCUSDT", interval = "1h", limit = 50) {
+  const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/api/market/sequence-scenarios?${params}`);
+  return getJson(res) as Promise<import("./types").SequenceScenariosResponse>;
+}
+
+export async function validateCandles(symbol = "BTCUSDT", interval = "1h", limit = 100) {
+  const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/api/market/validate-candles?${params}`);
+  return getJson(res) as Promise<import("./types").ValidateCandlesResponse>;
+}
