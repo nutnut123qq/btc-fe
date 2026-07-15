@@ -245,3 +245,47 @@ export async function validateCandles(symbol = "BTCUSDT", interval = "1h", limit
   const res = await fetch(`${API_BASE}/api/market/validate-candles?${params}`);
   return getJson(res) as Promise<import("./types").ValidateCandlesResponse>;
 }
+
+// --- Prediction / Backtest ---
+
+export async function getLatestPrediction(payload: {
+  symbol?: string;
+  timeframe?: string;
+  windowSize?: number;
+  horizon?: string;
+  modelName?: string;
+}) {
+  const { symbol = "BTCUSDT", timeframe = "1h", windowSize = 5, horizon = "1h", modelName } = payload;
+  const params = new URLSearchParams({
+    symbol,
+    timeframe,
+    windowSize: String(windowSize),
+    horizon,
+  });
+  if (modelName) params.set("modelName", modelName);
+  const res = await fetch(`${API_BASE}/api/prediction/latest?${params}`);
+  return getJson(res) as Promise<import("./types").PredictionResult>;
+}
+
+export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = "1h", take = 100) {
+  const params = new URLSearchParams({ symbol, timeframe, take: String(take) });
+  const res = await fetch(`${API_BASE}/api/prediction/history?${params}`);
+  return getJson(res) as Promise<{ symbol: string; timeframe: string; count: number; items: import("./types").ModelPredictionItem[] }>;
+}
+
+export async function getAvailableModels() {
+  const res = await fetch(`${API_BASE}/api/prediction/models`);
+  return getJson(res) as Promise<{ models: import("./types").AvailableModel[] }>;
+}
+
+export async function getBacktestRuns(symbol = "BTCUSDT", timeframe?: string, take = 50) {
+  const params = new URLSearchParams({ symbol, take: String(take) });
+  if (timeframe) params.set("timeframe", timeframe);
+  const res = await fetch(`${API_BASE}/api/backtest/runs?${params}`);
+  return getJson(res) as Promise<{ symbol: string; timeframe?: string; count: number; items: import("./types").BacktestRunSummary[] }>;
+}
+
+export async function getBacktestRunDetail(id: number) {
+  const res = await fetch(`${API_BASE}/api/backtest/runs/${id}`);
+  return getJson(res) as Promise<import("./types").BacktestRunSummary & { trades: import("./types").BacktestTradeItem[]; metricsJson: string; equityCurveJson: string }>;
+}

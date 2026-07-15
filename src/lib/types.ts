@@ -149,6 +149,86 @@ export type CandlePatternListResponse = {
 
 export const WINDOW_SIZES = [5, 10, 15, 20, 25] as const;
 
+export type PredictionResult = {
+  requestId: string;
+  symbol: string;
+  timeframe: string;
+  windowSize: number;
+  horizon: string;
+  windowStartMs: number;
+  windowEndMs: number;
+  prediction: {
+    label: number;
+    confidence: number;
+    prob_down: number;
+    prob_sideways: number;
+    prob_up: number;
+    model_version: string;
+    inference_ms: number;
+  };
+};
+
+export type ModelPredictionItem = {
+  id: number;
+  symbol: string;
+  timeframe: string;
+  windowSize: number;
+  horizon: string;
+  predictedLabel: number;
+  probDown: number;
+  probSideways: number;
+  probUp: number;
+  targetReturn?: number | null;
+  modelVersion: string;
+  windowEndMs: number;
+  createdAtUtc: string;
+};
+
+export type AvailableModel = {
+  file: string;
+  symbol: string;
+  timeframe: string;
+  window_size: number;
+  horizon: string;
+  model_name: string;
+  metrics: {
+    accuracy?: number;
+    f1_weighted?: number;
+  };
+};
+
+export type BacktestRunSummary = {
+  id: number;
+  symbol: string;
+  timeframe: string;
+  windowSize: number;
+  horizon: string;
+  modelName: string;
+  startTimeMs: number;
+  endTimeMs: number;
+  totalTrades: number;
+  winRate: number;
+  totalReturnPct: number;
+  buyHoldReturnPct: number;
+  maxDrawdownPct: number;
+  sharpeRatio: number;
+  profitFactor: number;
+  finalEquity: number;
+  createdAtUtc: string;
+};
+
+export type BacktestTradeItem = {
+  id: number;
+  entryTimeMs: number;
+  exitTimeMs: number;
+  side: string;
+  entryPrice: number;
+  exitPrice: number;
+  pnlPct: number;
+  confidence: number;
+  trueLabel: number;
+};
+
 export type SequenceRuleCondition = {
   type: string;
   direction?: string;

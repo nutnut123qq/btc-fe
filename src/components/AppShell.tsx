@@ -9,6 +9,8 @@ import {
   LineChart,
   Bot,
   Layers,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { MarketScreen } from "./MarketScreen";
 import { NewsScreen } from "./NewsScreen";
@@ -16,6 +18,8 @@ import { AiAnalysisScreen } from "./AiAnalysisScreen";
 import { AlertSettingsScreen } from "./AlertSettingsScreen";
 import { AlertsDrawer } from "./AlertsDrawer";
 import { DiscoveryScreen } from "./DiscoveryScreen";
+import { PredictionScreen } from "./PredictionScreen";
+import { BacktestScreen } from "./BacktestScreen";
 import { getUnreadCount } from "@/lib/api";
 
 const TABS = [
@@ -23,6 +27,8 @@ const TABS = [
   { key: "news", label: "Tin tức", icon: Newspaper },
   { key: "ai", label: "AI", icon: Bot },
   { key: "rules", label: "Rules nến", icon: Layers },
+  { key: "predict", label: "Dự đoán", icon: TrendingUp },
+  { key: "backtest", label: "Backtest", icon: BarChart3 },
   { key: "settings", label: "Cảnh báo", icon: Settings },
 ] as const;
 
@@ -86,6 +92,12 @@ export function AppShell() {
         </div>
         <div className={activeTab === "rules" ? "" : "hidden"}>
           <DiscoveryScreen />
+        </div>
+        <div className={activeTab === "predict" ? "" : "hidden"}>
+          <PredictionScreen />
+        </div>
+        <div className={activeTab === "backtest" ? "" : "hidden"}>
+          <BacktestScreen />
         </div>
         <div className={activeTab === "settings" ? "" : "hidden"}>
           <AlertSettingsScreen />
