@@ -289,3 +289,53 @@ export async function getBacktestRunDetail(id: number) {
   const res = await fetch(`${API_BASE}/api/backtest/runs/${id}`);
   return getJson(res) as Promise<import("./types").BacktestRunSummary & { trades: import("./types").BacktestTradeItem[]; metricsJson: string; equityCurveJson: string }>;
 }
+
+// --- Paper Trading ---
+export async function getPaperTrades(params?: {
+  symbol?: string;
+  timeframe?: string;
+  status?: string;
+  side?: string;
+  take?: number;
+  page?: number;
+}) {
+  const qs = new URLSearchParams();
+  if (params?.symbol) qs.set("symbol", params.symbol);
+  if (params?.timeframe) qs.set("timeframe", params.timeframe);
+  if (params?.status) qs.set("status", params.status);
+  if (params?.side) qs.set("side", params.side);
+  if (params?.take) qs.set("take", String(params.take));
+  if (params?.page) qs.set("page", String(params.page));
+  const res = await fetch(`${API_BASE}/api/paper-trades?${qs}`);
+  return getJson(res) as Promise<{ symbol: string; count: number; items: import("./types").PaperTradeItem[] }>;
+}
+
+export async function getPaperTradeSummary(symbol = "BTCUSDT", timeframe?: string) {
+  const qs = new URLSearchParams({ symbol });
+  if (timeframe) qs.set("timeframe", timeframe);
+  const res = await fetch(`${API_BASE}/api/paper-trades/summary?${qs}`);
+  return getJson(res) as Promise<import("./types").PaperTradeSummary>;
+}
+
+export async function getPaperTradeEquityCurve(symbol = "BTCUSDT", timeframe?: string) {
+  const qs = new URLSearchParams({ symbol });
+  if (timeframe) qs.set("timeframe", timeframe);
+  const res = await fetch(`${API_BASE}/api/paper-trades/equity-curve?${qs}`);
+  return getJson(res) as Promise<{ symbol: string; points: import("./types").EquityCurvePoint[] }>;
+}
+
+export async function getOpenPaperTrades(symbol = "BTCUSDT") {
+  const res = await fetch(`${API_BASE}/api/paper-trades/open?symbol=${encodeURIComponent(symbol)}`);
+  return getJson(res) as Promise<{ symbol: string; count: number; items: import("./types").PaperTradeItem[] }>;
+}
+
+// --- Telegram ---
+export async function testTelegram() {
+  const res = await fetch(`${API_BASE}/api/telegram/test`, { method: "POST" });
+  return getJson(res) as Promise<{ success: boolean; message: string }>;
+}
+
+export async function getTelegramStatus() {
+  const res = await fetch(`${API_BASE}/api/telegram/status`);
+  return getJson(res) as Promise<{ enabled: boolean; configured: boolean }>;
+}

@@ -20,6 +20,7 @@ import { AlertsDrawer } from "./AlertsDrawer";
 import { DiscoveryScreen } from "./DiscoveryScreen";
 import { PredictionScreen } from "./PredictionScreen";
 import { BacktestScreen } from "./BacktestScreen";
+import { PaperTradeScreen } from "./PaperTradeScreen";
 import { getUnreadCount } from "@/lib/api";
 
 const TABS = [
@@ -28,6 +29,7 @@ const TABS = [
   { key: "ai", label: "AI", icon: Bot },
   { key: "rules", label: "Rules nến", icon: Layers },
   { key: "predict", label: "Dự đoán", icon: TrendingUp },
+  { key: "paper", label: "Paper", icon: LineChart },
   { key: "backtest", label: "Backtest", icon: BarChart3 },
   { key: "settings", label: "Cảnh báo", icon: Settings },
 ] as const;
@@ -95,6 +97,9 @@ export function AppShell() {
         </div>
         <div className={activeTab === "predict" ? "" : "hidden"}>
           <PredictionScreen />
+        </div>
+        <div className={activeTab === "paper" ? "" : "hidden"}>
+          <PaperTradeScreen />
         </div>
         <div className={activeTab === "backtest" ? "" : "hidden"}>
           <BacktestScreen />

@@ -307,3 +307,46 @@ export type ValidateCandlesResponse = {
   summaryText: string;
   issues: Array<{ barIndex: number; code: string; message: string }>;
 };
+
+export type PaperTradeItem = {
+  id: number;
+  symbol: string;
+  timeframe: string;
+  windowEndMs: number;
+  entryTimeMs: number;
+  exitTimeMs: number;
+  side: string;
+  confidence: number | null;
+  probDown: number | null;
+  probSideways: number | null;
+  probUp: number | null;
+  entryPrice: number | null;
+  exitPrice: number | null;
+  netReturn: number | null;
+  status: string;
+  modelVersion: string | null;
+  createdAtUtc: string;
+  closedAtUtc: string | null;
+};
+
+export type PaperTradeSummary = {
+  symbol: string;
+  timeframe: string | null;
+  totalTrades: number;
+  openTrades: number;
+  closedTrades: number;
+  winRate: number;
+  totalNetReturnPct: number;
+  avgReturnPct: number;
+  maxDrawdownPct: number;
+  bestTradePct: number;
+  worstTradePct: number;
+  longCount: number;
+  shortCount: number;
+};
+
+export type EquityCurvePoint = {
+  timeMs: number;
+  cumulativeReturnPct: number;
+  tradeCount: number;
+};

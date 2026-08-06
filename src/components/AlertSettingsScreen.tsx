@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Settings, RefreshCw } from "lucide-react";
 import { AlertSettingsDto, KLINE_OPTIONS } from "@/lib/types";
 import { getAlertSettings, putAlertSettings } from "@/lib/api";
+import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
 
 const ALERT_USER_ID = "default";
 
@@ -205,6 +206,10 @@ export function AlertSettingsScreen() {
           </button>
         </div>
       )}
+
+      <hr className="border-gray-800 my-6" />
+
+      <TelegramSettingsPanel />
     </div>
   );
 }
