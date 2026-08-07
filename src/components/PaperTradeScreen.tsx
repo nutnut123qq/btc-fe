@@ -15,6 +15,7 @@ function formatTime(ms: number) {
 }
 
 export function PaperTradeScreen() {
+  const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
   const [openTrades, setOpenTrades] = useState<PaperTradeItem[]>([]);
   const [closedTrades, setClosedTrades] = useState<PaperTradeItem[]>([]);
@@ -26,15 +27,16 @@ export function PaperTradeScreen() {
   const chartRef = useRef<IChartApi | null>(null);
   const lineSeriesRef = useRef<any>(null);
 
-  const loadAll = async () => {
+  const loadAll = async (tf = selectedTf) => {
     setLoading(true);
     setError("");
     try {
+      const timeframeParam = tf === "all" ? undefined : tf;
       const [sumRes, openRes, closedRes, eqRes] = await Promise.all([
-        getPaperTradeSummary("BTCUSDT"),
+        getPaperTradeSummary("BTCUSDT", timeframeParam),
         getOpenPaperTrades("BTCUSDT"),
-        getPaperTrades({ symbol: "BTCUSDT", status: "closed", take: 100 }),
-        getPaperTradeEquityCurve("BTCUSDT")
+        getPaperTrades({ symbol: "BTCUSDT", timeframe: timeframeParam, status: "closed", take: 100 }),
+        getPaperTradeEquityCurve("BTCUSDT", timeframeParam)
       ]);
       setSummary(sumRes);
       setOpenTrades(openRes.items ?? []);
@@ -48,8 +50,8 @@ export function PaperTradeScreen() {
   };
 
   useEffect(() => {
-    void loadAll();
-  }, []);
+    void loadAll(selectedTf);
+  }, [selectedTf]);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -112,7 +114,7 @@ export function PaperTradeScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <LineChart className="text-teal-400" />
@@ -120,14 +122,38 @@ export function PaperTradeScreen() {
           </h2>
           <p className="text-xs text-gray-500">Theo dõi lệnh giao dịch mô phỏng realtime</p>
         </div>
-        <button
-          onClick={() => void loadAll()}
-          disabled={loading}
-          className="text-xs text-gray-400 hover:text-gray-200 inline-flex items-center gap-1 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          Làm mới
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 font-medium mr-1">Khung thời gian:</span>
+            {[
+              { id: "all", label: "Tất cả" },
+              { id: "4h", label: "4h" },
+              { id: "1h", label: "1h" },
+              { id: "30m", label: "30m" },
+            ].map((tf) => (
+              <button
+                key={tf.id}
+                onClick={() => setSelectedTf(tf.id)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedTf === tf.id
+                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
+                    : "bg-gray-900/60 text-gray-400 hover:text-gray-200 border border-gray-800"
+                }`}
+              >
+                {tf.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => void loadAll(selectedTf)}
+            disabled={loading}
+            className="text-xs text-gray-400 hover:text-gray-200 inline-flex items-center gap-1 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Làm mới
+          </button>
+        </div>
       </div>
 
       {error && (
