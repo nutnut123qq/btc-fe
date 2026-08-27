@@ -180,7 +180,7 @@ export function BinanceTradingScreen() {
     try {
       const rawKlines = await getBtcKlines({ symbol: sym, interval: tf, limit: 180 });
       if (Array.isArray(rawKlines)) {
-        const mapped: KlineOHLC[] = rawKlines.map((k: any) => ({
+        const mapped: KlineOHLC[] = rawKlines.map((k: KlineOHLC) => ({
           openTimeMs: k.openTimeMs,
           open: Number(k.open),
           high: Number(k.high),
@@ -220,8 +220,8 @@ export function BinanceTradingScreen() {
   }, [selectedSymbol, selectedTf]);
 
   useEffect(() => {
-    void loadChartData(selectedSymbol, selectedTf);
-  }, [loadChartData, selectedSymbol, selectedTf]);
+    void loadChartData();
+  }, [loadChartData]);
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-3 p-1 sm:p-2">

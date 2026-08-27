@@ -27,20 +27,33 @@ export function AiChatWidget() {
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      scrollToBottom();
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup in-flight stream on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleSend = async (customPrompt?: string) => {
     const textToSend = customPrompt || inputPrompt;
     if (!textToSend.trim() || loading) return;
+
+    // Abort previous in-flight stream if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     const userMsg: AiChatMessage = {
       id: `user-${Date.now()}`,
@@ -67,6 +80,7 @@ export function AiChatWidget() {
         symbol: "BTCUSDT",
         timeframe: "1h",
         prompt: textToSend,
+        signal: abortController.signal,
         onToken: (token) => {
           setMessages((prev) =>
             prev.map((m) => (m.id === aiMsgId ? { ...m, text: m.text + token } : m))

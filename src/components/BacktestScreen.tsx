@@ -65,7 +65,7 @@ export function BacktestScreen() {
 
   useEffect(() => {
     void loadRuns();
-  }, [loadRuns, selectedSymbol]);
+  }, [loadRuns]);
 
   const runEnsBacktest = async () => {
     setEnsLoading(true);

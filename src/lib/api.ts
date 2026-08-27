@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5197";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
 async function getJson(res: Response) {
   if (!res.ok) {
@@ -655,6 +655,7 @@ export async function streamAiChat({
   symbol = "BTCUSDT",
   timeframe = "1h",
   prompt = "",
+  signal,
   onToken,
   onComplete,
   onError,
@@ -662,6 +663,7 @@ export async function streamAiChat({
   symbol?: string;
   timeframe?: string;
   prompt?: string;
+  signal?: AbortSignal;
   onToken: (token: string) => void;
   onComplete: (evidenceTags?: string[]) => void;
   onError?: (err: Error) => void;
@@ -671,6 +673,7 @@ export async function streamAiChat({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ symbol, timeframe, prompt }),
+      signal,
     });
 
     if (!res.ok) {
@@ -685,39 +688,52 @@ export async function streamAiChat({
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        if (signal?.aborted) {
+          reader.cancel().catch(() => {});
+          break;
+        }
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+        const { value, done } = await reader.read();
+        if (done) break;
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith("data:")) {
-          const jsonStr = trimmed.substring(5).trim();
-          if (!jsonStr) continue;
-          try {
-            const data = JSON.parse(jsonStr);
-            if (data.token) {
-              onToken(data.token);
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("data:")) {
+            const jsonStr = trimmed.substring(5).trim();
+            if (!jsonStr) continue;
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.token) {
+                onToken(data.token);
+              }
+              if (data.done) {
+                const tags = data.evidence_tags || data.evidenceTags;
+                onComplete(tags);
+                return;
+              }
+            } catch {
+              // Raw text fallback if not JSON
+              onToken(jsonStr);
             }
-            if (data.done) {
-              const tags = data.evidence_tags || data.evidenceTags;
-              onComplete(tags);
-              return;
-            }
-          } catch {
-            // Raw text fallback if not JSON
-            onToken(jsonStr);
           }
         }
       }
+    } finally {
+      reader.releaseLock();
     }
 
     onComplete();
   } catch (err: unknown) {
+    if (signal?.aborted || (err instanceof DOMException && err.name === "AbortError")) {
+      // Graceful stream abort
+      return;
+    }
     const errorObj = err instanceof Error ? err : new Error(String(err));
     if (onError) onError(errorObj);
     else throw errorObj;
