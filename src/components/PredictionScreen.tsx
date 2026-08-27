@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Clock } from "lucide-react";
-import { getLatestPrediction, getPredictionHistory, getAvailableModels } from "@/lib/api";
-import type { PredictionResult, ModelPredictionItem, AvailableModel } from "@/lib/types";
+import { getLatestPrediction, getPredictionHistory, getAvailableModels, auditPredictions, getPredictionAccuracy } from "@/lib/api";
+import type { PredictionResult, ModelPredictionItem, AvailableModel, PredictionAccuracySummaryDto } from "@/lib/types";
 import { WINDOW_SIZES } from "@/lib/types";
+import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
 
+const SYMBOL_OPTIONS = [
+  { value: "BTCUSDT", label: "BTC/USDT" },
+  { value: "ETHUSDT", label: "ETH/USDT" },
+  { value: "SOLUSDT", label: "SOL/USDT" },
+];
 const TIMEFRAME_OPTIONS = ["15m", "30m", "1h", "4h", "1d"];
 const HORIZON_OPTIONS = ["1h", "4h", "1d"];
 
@@ -26,7 +32,7 @@ function formatTime(ms: number) {
 }
 
 export function PredictionScreen() {
-  const [symbol] = useState("BTCUSDT");
+  const [symbol, setSymbol] = useState("BTCUSDT");
   const [timeframe, setTimeframe] = useState("1h");
   const [windowSize, setWindowSize] = useState(5);
   const [horizon, setHorizon] = useState("1h");
@@ -34,7 +40,9 @@ export function PredictionScreen() {
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [history, setHistory] = useState<ModelPredictionItem[]>([]);
+  const [accuracy, setAccuracy] = useState<PredictionAccuracySummaryDto | null>(null);
   const [loading, setLoading] = useState(false);
+  const [auditing, setAuditing] = useState(false);
   const [error, setError] = useState("");
 
   const loadModels = async () => {
@@ -58,19 +66,43 @@ export function PredictionScreen() {
         modelName: modelName || undefined,
       });
       setPrediction(result);
-    } catch (e: any) {
-      setError(e?.message ?? "Prediction failed");
+      await loadHistory();
+      await loadAccuracy();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Prediction failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       const data = await getPredictionHistory(symbol, timeframe, 50);
       setHistory(data.items ?? []);
     } catch (e) {
       console.error(e);
+    }
+  }, [symbol, timeframe]);
+
+  const loadAccuracy = useCallback(async () => {
+    try {
+      const data = await getPredictionAccuracy(symbol, timeframe);
+      setAccuracy(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [symbol, timeframe]);
+
+  const handleAudit = async () => {
+    setAuditing(true);
+    try {
+      await auditPredictions(symbol, timeframe);
+      await loadHistory();
+      await loadAccuracy();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Audit failed");
+    } finally {
+      setAuditing(false);
     }
   };
 
@@ -80,19 +112,34 @@ export function PredictionScreen() {
 
   useEffect(() => {
     void loadHistory();
-  }, [timeframe, symbol]);
+    void loadAccuracy();
+  }, [loadHistory, loadAccuracy]);
 
   const availableModelNames = Array.from(new Set(models.map((m) => m.model_name))).filter(Boolean);
 
   return (
     <div className="space-y-4">
+      <EnsembleDashboardWidget symbol={symbol} timeframe={timeframe} />
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-teal-400" />
           Dự đoán hướng giá ML
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Cặp coin</label>
+            <select
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-teal-400 font-bold"
+            >
+              {SYMBOL_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="text-xs text-gray-400 block mb-1">Timeframe</label>
             <select
@@ -218,6 +265,51 @@ export function PredictionScreen() {
         )}
       </div>
 
+      {/* Prediction Audit Accuracy Card */}
+      <div className="bg-gray-900 border border-teal-500/30 rounded-xl p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 pb-3 border-b border-gray-800">
+          <div>
+            <h3 className="text-md font-bold text-gray-100 flex items-center gap-2">
+              📊 Audit & Đánh Giá Độ Chính Xác ML ({timeframe})
+            </h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Đánh giá thực nghiệm lại toàn bộ các dự đoán ML với biến động giá nến sau mốc Horizon
+            </p>
+          </div>
+          <button
+            onClick={() => void handleAudit()}
+            disabled={auditing}
+            className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${auditing ? "animate-spin" : ""}`} />
+            {auditing ? "Đang Audit..." : "Chạy Audit Kiểm Định Nến"}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 text-center">
+            <div className="text-[10px] text-gray-400 font-medium uppercase">Tổng số dự đoán</div>
+            <div className="text-xl font-bold text-gray-100 mt-0.5">{accuracy?.totalPredictions ?? 0}</div>
+          </div>
+          <div className="bg-gray-950 p-2.5 rounded-lg border border-emerald-500/30 text-center">
+            <div className="text-[10px] text-emerald-400 font-medium uppercase">Đúng (T)</div>
+            <div className="text-xl font-bold text-emerald-400 mt-0.5">{accuracy?.trueCount ?? 0}</div>
+          </div>
+          <div className="bg-gray-950 p-2.5 rounded-lg border border-rose-500/30 text-center">
+            <div className="text-[10px] text-rose-400 font-medium uppercase">Sai (F)</div>
+            <div className="text-xl font-bold text-rose-400 mt-0.5">{accuracy?.falseCount ?? 0}</div>
+          </div>
+          <div className="bg-gray-950 p-2.5 rounded-lg border border-amber-500/30 text-center">
+            <div className="text-[10px] text-amber-400 font-medium uppercase">Đang chờ (N)</div>
+            <div className="text-xl font-bold text-amber-400 mt-0.5">{accuracy?.pendingCount ?? 0}</div>
+          </div>
+          <div className="bg-gray-950 p-2.5 rounded-lg border border-teal-500/30 text-center col-span-2 sm:col-span-1">
+            <div className="text-[10px] text-teal-400 font-medium uppercase">Win Rate Thực Tế</div>
+            <div className="text-xl font-bold text-teal-300 mt-0.5">{accuracy?.winRatePct ?? 0}%</div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-400" />
@@ -233,6 +325,7 @@ export function PredictionScreen() {
                 <th className="text-right py-2 px-2">P(Giảm)</th>
                 <th className="text-right py-2 px-2">P(Ngang)</th>
                 <th className="text-right py-2 px-2">P(Tăng)</th>
+                <th className="text-center py-2 px-2">Kết quả Audit</th>
                 <th className="text-left py-2 px-2">Model</th>
               </tr>
             </thead>
@@ -247,12 +340,29 @@ export function PredictionScreen() {
                   <td className="py-2 px-2 text-right text-rose-400">{(item.probDown * 100).toFixed(1)}%</td>
                   <td className="py-2 px-2 text-right text-amber-400">{(item.probSideways * 100).toFixed(1)}%</td>
                   <td className="py-2 px-2 text-right text-emerald-400">{(item.probUp * 100).toFixed(1)}%</td>
+                  <td className="py-2 px-2 text-center">
+                    {item.isCorrect === true && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                        T (ĐÚNG)
+                      </span>
+                    )}
+                    {item.isCorrect === false && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/40">
+                        F (SAI)
+                      </span>
+                    )}
+                    {item.isCorrect == null && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                        N (CHỜ)
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 px-2 text-gray-400">{item.modelVersion}</td>
                 </tr>
               ))}
               {history.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-4 text-center text-gray-500">Chưa có dự đoán nào</td>
+                  <td colSpan={8} className="py-4 text-center text-gray-500">Chưa có dự đoán nào</td>
                 </tr>
               )}
             </tbody>

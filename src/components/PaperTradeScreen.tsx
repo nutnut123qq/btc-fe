@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { LineChart, RefreshCw, Activity, ArrowUpRight, ArrowDownRight, LayoutList } from "lucide-react";
-import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades } from "@/lib/api";
+import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades, evaluateEnsemblePaperTrade } from "@/lib/api";
 import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
-import { createChart, LineSeries, ColorType, type IChartApi } from "lightweight-charts";
+import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
 function formatPct(v: number) {
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
@@ -14,7 +14,15 @@ function formatTime(ms: number) {
   return new Date(ms).toLocaleString("vi-VN", { hour12: false });
 }
 
+const SYMBOL_OPTIONS = [
+  { id: "all", label: "Tất cả cặp" },
+  { id: "BTCUSDT", label: "BTC/USDT" },
+  { id: "ETHUSDT", label: "ETH/USDT" },
+  { id: "SOLUSDT", label: "SOL/USDT" },
+];
+
 export function PaperTradeScreen() {
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("all");
   const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
   const [openTrades, setOpenTrades] = useState<PaperTradeItem[]>([]);
@@ -25,33 +33,47 @@ export function PaperTradeScreen() {
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const lineSeriesRef = useRef<any>(null);
+  const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
-  const loadAll = async (tf = selectedTf) => {
+  const loadAll = useCallback(async (sym = selectedSymbol, tf = selectedTf) => {
     setLoading(true);
     setError("");
     try {
+      const symbolParam = sym === "all" ? undefined : sym;
       const timeframeParam = tf === "all" ? undefined : tf;
       const [sumRes, openRes, closedRes, eqRes] = await Promise.all([
-        getPaperTradeSummary("BTCUSDT", timeframeParam),
-        getOpenPaperTrades("BTCUSDT"),
-        getPaperTrades({ symbol: "BTCUSDT", timeframe: timeframeParam, status: "closed", take: 100 }),
-        getPaperTradeEquityCurve("BTCUSDT", timeframeParam)
+        getPaperTradeSummary(symbolParam ?? "BTCUSDT", timeframeParam),
+        getOpenPaperTrades(symbolParam ?? "BTCUSDT"),
+        getPaperTrades({ symbol: symbolParam, timeframe: timeframeParam, status: "closed", take: 100 }),
+        getPaperTradeEquityCurve(symbolParam ?? "BTCUSDT", timeframeParam)
       ]);
       setSummary(sumRes);
       setOpenTrades(openRes.items ?? []);
       setClosedTrades(closedRes.items ?? []);
       setEquityPoints(eqRes.points ?? []);
-    } catch (e: any) {
-      setError(e?.message ?? "Tải dữ liệu paper trading thất bại");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Tải dữ liệu paper trading thất bại");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedSymbol, selectedTf]);
+
+  const handleEvaluateEnsemble = async () => {
+    setLoading(true);
+    try {
+      const sym = selectedSymbol === "all" ? "BTCUSDT" : selectedSymbol;
+      await evaluateEnsemblePaperTrade(sym, selectedTf === "all" ? "1h" : selectedTf);
+      await loadAll(selectedSymbol, selectedTf);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Lỗi đánh giá Ensemble Auto-Trade");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    void loadAll(selectedTf);
-  }, [selectedTf]);
+    void loadAll(selectedSymbol, selectedTf);
+  }, [loadAll, selectedSymbol, selectedTf]);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -98,7 +120,7 @@ export function PaperTradeScreen() {
   useEffect(() => {
     if (lineSeriesRef.current && equityPoints.length > 0) {
       const data = equityPoints.map(p => ({
-        time: (p.timeMs / 1000) as any,
+        time: Math.floor(p.timeMs / 1000) as UTCTimestamp,
         value: p.cumulativeReturnPct
       })).sort((a, b) => (a.time as number) - (b.time as number));
       
@@ -123,9 +145,26 @@ export function PaperTradeScreen() {
           <p className="text-xs text-gray-500">Theo dõi lệnh giao dịch mô phỏng realtime</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 font-medium mr-1">Khung thời gian:</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+            <span className="text-xs font-semibold text-gray-400 px-1">Cặp coin:</span>
+            {SYMBOL_OPTIONS.map((sym) => (
+              <button
+                key={sym.id}
+                onClick={() => setSelectedSymbol(sym.id)}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                  selectedSymbol === sym.id
+                    ? "bg-teal-500 text-gray-950 shadow"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                {sym.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+            <span className="text-xs text-gray-400 font-medium px-1">Khung:</span>
             {[
               { id: "all", label: "Tất cả" },
               { id: "4h", label: "4h" },
@@ -137,8 +176,8 @@ export function PaperTradeScreen() {
                 onClick={() => setSelectedTf(tf.id)}
                 className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all ${
                   selectedTf === tf.id
-                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
-                    : "bg-gray-900/60 text-gray-400 hover:text-gray-200 border border-gray-800"
+                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold"
+                    : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 {tf.label}
@@ -146,9 +185,9 @@ export function PaperTradeScreen() {
             ))}
           </div>
           <button
-            onClick={() => void loadAll(selectedTf)}
+            onClick={() => void loadAll(selectedSymbol, selectedTf)}
             disabled={loading}
-            className="text-xs text-gray-400 hover:text-gray-200 inline-flex items-center gap-1 disabled:opacity-50"
+            className="text-xs text-gray-400 hover:text-gray-200 inline-flex items-center gap-1 bg-gray-900/80 px-3 py-2 rounded-xl border border-gray-800 disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Làm mới
@@ -161,6 +200,21 @@ export function PaperTradeScreen() {
           {error}
         </div>
       )}
+
+      {/* Ensemble Banner */}
+      <div className="bg-teal-950/30 border border-teal-900/50 rounded-2xl p-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-teal-400">Ensemble Auto-Trade Evaluation</h3>
+          <p className="text-xs text-gray-400 mt-1">Đánh giá lại toàn bộ lệnh paper trade và chạy sinh tín hiệu mới bằng Ensemble logic.</p>
+        </div>
+        <button
+          onClick={() => void handleEvaluateEnsemble()}
+          disabled={loading}
+          className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+        >
+          {loading ? "Running..." : "Evaluate Now"}
+        </button>
+      </div>
 
       {/* Summary Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -228,9 +282,10 @@ export function PaperTradeScreen() {
                 <tr>
                   <th className="text-left py-2 px-2">Hướng</th>
                   <th className="text-right py-2 px-2">Giá vào</th>
+                  <th className="text-right py-2 px-2">Mục tiêu (SL/TP)</th>
                   <th className="text-right py-2 px-2">Confidence</th>
+                  <th className="text-left py-2 px-2">Tags / Model</th>
                   <th className="text-left py-2 px-2">Thời gian vào</th>
-                  <th className="text-left py-2 px-2">Kỳ vọng ra</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,9 +298,21 @@ export function PaperTradeScreen() {
                       </span>
                     </td>
                     <td className="py-2 px-2 text-right">{t.entryPrice?.toLocaleString() ?? "-"}</td>
+                    <td className="py-2 px-2 text-right">
+                      {t.stopLossPrice && <span className="text-rose-400 text-xs mr-2">SL: {t.stopLossPrice.toLocaleString()}</span>}
+                      {t.takeProfitPrice && <span className="text-emerald-400 text-xs">TP: {t.takeProfitPrice.toLocaleString()}</span>}
+                      {(!t.stopLossPrice && !t.takeProfitPrice) && <span className="text-gray-500 text-xs">-</span>}
+                    </td>
                     <td className="py-2 px-2 text-right text-gray-300">{t.confidence ? (t.confidence * 100).toFixed(0) + "%" : "-"}</td>
+                    <td className="py-2 px-2">
+                      <div className="flex flex-wrap gap-1">
+                        {t.tags?.map(tag => (
+                          <span key={tag} className="px-1.5 py-0.5 bg-gray-800 text-gray-300 rounded text-[10px]">{tag}</span>
+                        ))}
+                        {(!t.tags || t.tags.length === 0) && <span className="text-xs text-gray-500">{t.modelVersion ?? "-"}</span>}
+                      </div>
+                    </td>
                     <td className="py-2 px-2 text-gray-400">{formatTime(t.entryTimeMs)}</td>
-                    <td className="py-2 px-2 text-gray-400">{formatTime(t.windowEndMs)}</td>
                   </tr>
                 ))}
               </tbody>

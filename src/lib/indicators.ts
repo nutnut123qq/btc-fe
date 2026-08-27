@@ -72,3 +72,58 @@ export function bollinger(
   }
   return { middle, upper, lower };
 }
+
+export function convertToHeikinAshi(data: KlineOHLC[]): KlineOHLC[] {
+  if (!data || data.length === 0) return [];
+  const result: KlineOHLC[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    const orig = data[i];
+    const haClose = (orig.open + orig.high + orig.low + orig.close) / 4;
+
+    let haOpen = (orig.open + orig.close) / 2;
+    if (i > 0) {
+      haOpen = (result[i - 1].open + result[i - 1].close) / 2;
+    }
+
+    const haHigh = Math.max(orig.high, haOpen, haClose);
+    const haLow = Math.min(orig.low, haOpen, haClose);
+
+    result.push({
+      ...orig,
+      open: haOpen,
+      high: haHigh,
+      low: haLow,
+      close: haClose,
+    });
+  }
+
+  return result;
+}
+
+export type FibLevel = { ratio: number; price: number; label: string; isGoldenPocket?: boolean };
+
+export function calculateFibonacciLevels(data: KlineOHLC[]): FibLevel[] {
+  if (!data || data.length === 0) return [];
+  let maxHigh = -Infinity;
+  let minLow = Infinity;
+
+  for (const d of data) {
+    if (d.high > maxHigh) maxHigh = d.high;
+    if (d.low < minLow) minLow = d.low;
+  }
+
+  const diff = maxHigh - minLow;
+  if (diff <= 0) return [];
+
+  return [
+    { ratio: 1.0, price: maxHigh, label: "Fib 1.000 (Top)" },
+    { ratio: 0.786, price: minLow + diff * 0.786, label: "Fib 0.786" },
+    { ratio: 0.65, price: minLow + diff * 0.65, label: "Fib 0.650 (GP Top)", isGoldenPocket: true },
+    { ratio: 0.618, price: minLow + diff * 0.618, label: "Fib 0.618 (GP Bottom)", isGoldenPocket: true },
+    { ratio: 0.5, price: minLow + diff * 0.5, label: "Fib 0.500 (Mid)" },
+    { ratio: 0.382, price: minLow + diff * 0.382, label: "Fib 0.382" },
+    { ratio: 0.236, price: minLow + diff * 0.236, label: "Fib 0.236" },
+    { ratio: 0.0, price: minLow, label: "Fib 0.000 (Bottom)" },
+  ];
+}

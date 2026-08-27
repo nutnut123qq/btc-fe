@@ -5,6 +5,8 @@ import { Settings, RefreshCw } from "lucide-react";
 import { AlertSettingsDto, KLINE_OPTIONS } from "@/lib/types";
 import { getAlertSettings, putAlertSettings } from "@/lib/api";
 import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
+import { DataManagementPanel } from "./DataManagementPanel";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const ALERT_USER_ID = "default";
 
@@ -210,6 +212,12 @@ export function AlertSettingsScreen() {
       <hr className="border-gray-800 my-6" />
 
       <TelegramSettingsPanel />
+
+      <hr className="border-gray-800 my-6" />
+
+      <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
+        <DataManagementPanel />
+      </ErrorBoundary>
     </div>
   );
 }

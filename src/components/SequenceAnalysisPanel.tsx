@@ -25,7 +25,7 @@ function TrendBadge({ trend }: { trend: string }) {
   );
 }
 
-export function SequenceAnalysisPanel() {
+export function SequenceAnalysisPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
   const [timeframe, setTimeframe] = useState<string>("1h");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,9 +38,9 @@ export function SequenceAnalysisPanel() {
     setError(null);
     try {
       const [ms, sc, val] = await Promise.all([
-        getMarketStructure("BTCUSDT", tf, 200),
-        getSequenceScenarios("BTCUSDT", tf, 50),
-        validateCandles("BTCUSDT", tf, 200),
+        getMarketStructure(symbol, tf, 200),
+        getSequenceScenarios(symbol, tf, 50),
+        validateCandles(symbol, tf, 200),
       ]);
       setStructure(ms);
       setScenarios(sc);
@@ -50,11 +50,11 @@ export function SequenceAnalysisPanel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [symbol]);
 
   useEffect(() => {
     void load(timeframe);
-  }, [timeframe, load]);
+  }, [symbol, timeframe, load]);
 
   return (
     <div className="space-y-3 border border-gray-800 rounded-xl p-4 bg-gray-900/40">

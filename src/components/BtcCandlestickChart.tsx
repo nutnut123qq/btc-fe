@@ -12,13 +12,17 @@ import {
   type IChartApi,
   type UTCTimestamp,
 } from "lightweight-charts";
-import { KlineOHLC } from "@/lib/types";
-import { ema, bollinger } from "@/lib/indicators";
+import { KlineOHLC, VolumeProfileDto, SmartMoneyStructureDto, CandlePatternItem } from "@/lib/types";
+import { ema, bollinger, calculateFibonacciLevels } from "@/lib/indicators";
 
 type Props = {
   data: KlineOHLC[];
   height?: number;
   highlightWindow?: { startTimeMs: number; endTimeMs: number } | null;
+  volumeProfile?: VolumeProfileDto | null;
+  smartMoney?: SmartMoneyStructureDto[] | null;
+  patterns?: CandlePatternItem[] | null;
+  showFibonacci?: boolean;
 };
 
 function estimateBarSeconds(data: KlineOHLC[]): number {
@@ -32,7 +36,7 @@ function estimateBarSeconds(data: KlineOHLC[]): number {
   return count > 0 ? Math.round(total / count) : 60;
 }
 
-export function BtcCandlestickChart({ data, height = 440, highlightWindow }: Props) {
+export function BtcCandlestickChart({ data, height = 440, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
@@ -145,14 +149,136 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow }: Pro
       lowerSeries.setData(bb.lower.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
     }
 
-    // Highlight markers (gold circles) for pattern window — matching Flutter behavior
+    // Volume Profile POC / VAH / VAL PriceLines
+    if (volumeProfile) {
+      if (volumeProfile.pocPrice > 0) {
+        candleSeries.createPriceLine({
+          price: volumeProfile.pocPrice,
+          color: "#eab308", // Amber / Gold
+          lineWidth: 2,
+          lineStyle: 2, // Dashed
+          axisLabelVisible: true,
+          title: "VPVR POC",
+        });
+      }
+      if (volumeProfile.vahPrice > 0) {
+        candleSeries.createPriceLine({
+          price: volumeProfile.vahPrice,
+          color: "#f43f5e", // Rose / Red
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: true,
+          title: "VAH",
+        });
+      }
+      if (volumeProfile.valPrice > 0) {
+        candleSeries.createPriceLine({
+          price: volumeProfile.valPrice,
+          color: "#10b981", // Emerald / Green
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: true,
+          title: "VAL",
+        });
+      }
+    }
+
+    // Active FVG Price Lines
+    if (smartMoney && smartMoney.length > 0) {
+      smartMoney
+        .filter((smc) => smc.eventType.startsWith("FVG") && !smc.isMitigated && smc.highPrice && smc.lowPrice)
+        .slice(0, 5)
+        .forEach((fvg) => {
+          const isBull = fvg.eventType.includes("BULL");
+          candleSeries.createPriceLine({
+            price: fvg.highPrice!,
+            color: isBull ? "#34d399" : "#f87171",
+            lineWidth: 1,
+            lineStyle: 3, // Dotted
+            axisLabelVisible: false,
+            title: `FVG High`,
+          });
+          candleSeries.createPriceLine({
+            price: fvg.lowPrice!,
+            color: isBull ? "#34d399" : "#f87171",
+            lineWidth: 1,
+            lineStyle: 3,
+            axisLabelVisible: false,
+            title: `FVG Low`,
+          });
+        });
+    }
+
+    // Auto Fibonacci Retracement Levels & Golden Pocket
+    if (showFibonacci) {
+      const fibs = calculateFibonacciLevels(data);
+      fibs.forEach((fib) => {
+        const isGP = fib.isGoldenPocket;
+        candleSeries.createPriceLine({
+          price: fib.price,
+          color: isGP ? "#fbbf24" : fib.ratio === 0.5 ? "#2dd4bf" : "#6b7280",
+          lineWidth: isGP ? 2 : 1,
+          lineStyle: isGP ? 0 : 2,
+          axisLabelVisible: true,
+          title: fib.label,
+        });
+      });
+    }
+
+    // Combined Markers (Candle Patterns + Smart Money + Highlight Window)
     const markers: Array<{
       time: UTCTimestamp;
       position: "belowBar" | "aboveBar" | "inBar";
       color: string;
       shape: "circle" | "square" | "arrowUp" | "arrowDown";
       size: number;
+      text?: string;
     }> = [];
+
+    // 1. Candle Patterns Markers
+    if (patterns && patterns.length > 0) {
+      patterns.forEach((p) => {
+        const timeSec = Math.floor(p.openTimeMs / 1000) as UTCTimestamp;
+        const isBullish = p.trendDirection === "Uptrend" || p.patternType.includes("Bullish") || p.patternType === "Hammer" || p.patternType === "MorningStar";
+        markers.push({
+          time: timeSec,
+          position: isBullish ? "belowBar" : "aboveBar",
+          color: isBullish ? "#34d399" : "#f87171",
+          shape: isBullish ? "arrowUp" : "arrowDown",
+          size: 1,
+          text: `${p.patternType}`,
+        });
+      });
+    }
+
+    // 2. Smart Money Concepts Markers
+    if (smartMoney && smartMoney.length > 0) {
+      smartMoney.forEach((smc) => {
+        const timeSec = Math.floor(smc.timeMs / 1000) as UTCTimestamp;
+        const isBull = smc.eventType.includes("BULL");
+        if (smc.eventType.includes("FVG") || smc.eventType.includes("BOS") || smc.eventType.includes("CHOCH")) {
+          markers.push({
+            time: timeSec,
+            position: isBull ? "belowBar" : "aboveBar",
+            color: isBull ? "#60a5fa" : "#c084fc",
+            shape: isBull ? "arrowUp" : "arrowDown",
+            size: 1,
+            text: smc.eventType.replace("_", " "),
+          });
+        } else if (smc.eventType === "SWING_HIGH" || smc.eventType === "SWING_LOW") {
+          markers.push({
+            time: timeSec,
+            position: smc.eventType === "SWING_HIGH" ? "aboveBar" : "belowBar",
+            color: "#fbbf24",
+            shape: "square",
+            size: 1,
+            text: smc.eventType === "SWING_HIGH" ? "SH" : "SL",
+          });
+        }
+      });
+    }
+
+    // 3. Highlight Window Markers
     if (highlightWindow) {
       data.forEach((r) => {
         if (r.openTimeMs >= highlightWindow.startTimeMs && r.openTimeMs <= highlightWindow.endTimeMs) {
@@ -166,9 +292,15 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow }: Pro
         }
       });
     }
-    // lightweight-charts v5: use createSeriesMarkers primitive
-    if (markers.length > 0) {
-      createSeriesMarkers(candleSeries, markers);
+
+    // Sort markers chronologically (required by lightweight-charts)
+    markers.sort((a, b) => (a.time as number) - (b.time as number));
+
+    // Dedup markers at exact same timestamp
+    const uniqueMarkers = markers.filter((m, i, arr) => i === 0 || m.time !== arr[i - 1].time || m.text !== arr[i - 1].text);
+
+    if (uniqueMarkers.length > 0) {
+      createSeriesMarkers(candleSeries, uniqueMarkers);
     }
 
     // Visible range: zoom to highlight window with padding (like Flutter's kHighlightVisiblePadBars = 12)
@@ -189,7 +321,7 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow }: Pro
       chart.remove();
       chartRef.current = null;
     };
-  }, [data, height, highlightWindow]);
+  }, [data, height, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci]);
 
   if (data.length === 0) return null;
 

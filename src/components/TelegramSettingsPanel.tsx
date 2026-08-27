@@ -35,8 +35,8 @@ export function TelegramSettingsPanel() {
     try {
       const res = await testTelegram();
       setTestResult(res);
-    } catch (e: any) {
-      setTestResult({ success: false, message: e?.message ?? "Test failed" });
+    } catch (e: unknown) {
+      setTestResult({ success: false, message: e instanceof Error ? e.message : "Test failed" });
     } finally {
       setTesting(false);
     }

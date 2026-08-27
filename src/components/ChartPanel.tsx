@@ -8,6 +8,8 @@ import {
   PatternSearchItem,
   CandlePatternItem,
   CandlePatternListResponse,
+  VolumeProfileDto,
+  SmartMoneyStructureDto,
 } from "@/lib/types";
 import {
   getBtcKlines,
@@ -15,9 +17,11 @@ import {
   getCandlesAround,
   indexCandlePatterns,
   getCandlePatternsByType,
+  getVolumeProfile,
+  getSmartMoneyStructures,
 } from "@/lib/api";
 import { BtcCandlestickChart } from "./BtcCandlestickChart";
-import { ema, rsi } from "@/lib/indicators";
+import { ema, rsi, convertToHeikinAshi } from "@/lib/indicators";
 import { intervalToMs } from "@/lib/timeframe";
 
 const TIMEFRAMES = [
@@ -66,7 +70,7 @@ const PATTERN_TYPES = [
   { label: "Three Inside Down", value: "ThreeInsideDown" },
 ] as const;
 
-export function ChartPanel() {
+export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
   const [candles, setCandles] = useState<KlineOHLC[]>([]);
   const [timeframe, setTimeframe] = useState<string>("15m");
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "jumping">("idle");
@@ -91,6 +95,16 @@ export function ChartPanel() {
   const [patternSearchResults, setPatternSearchResults] = useState<CandlePatternItem[]>([]);
   const [patternSearchMeta, setPatternSearchMeta] = useState<CandlePatternListResponse | null>(null);
 
+  const [volumeProfile, setVolumeProfile] = useState<VolumeProfileDto | null>(null);
+  const [smartMoney, setSmartMoney] = useState<SmartMoneyStructureDto[] | null>(null);
+  const [detectedPatterns, setDetectedPatterns] = useState<CandlePatternItem[] | null>(null);
+
+  const [showPatterns, setShowPatterns] = useState(true);
+  const [showSmc, setShowSmc] = useState(true);
+  const [showVpvr, setShowVpvr] = useState(true);
+  const [showHeikinAshi, setShowHeikinAshi] = useState(false);
+  const [showFibonacci, setShowFibonacci] = useState(false);
+
   const opTokenRef = useRef(0);
 
   const load = async (tf: string, limit = 1000) => {
@@ -99,11 +113,18 @@ export function ChartPanel() {
     setErrorMsg(null);
     const start = performance.now();
     try {
-      const rows: KlineOHLC[] = await getBtcKlines({ interval: tf, limit });
+      const rows: KlineOHLC[] = await getBtcKlines({ symbol, interval: tf, limit });
       if (opTokenRef.current !== token) return;
       setCandles(rows);
       setLatencyMs(Math.round(performance.now() - start));
       setStatus("idle");
+
+      // Fetch overlays in background
+      getVolumeProfile(symbol, tf).then(setVolumeProfile).catch(() => {});
+      getSmartMoneyStructures(symbol, tf).then(setSmartMoney).catch(() => {});
+      getCandlePatternsByType({ symbol, timeframe: tf, patternType: "Hammer", pageSize: 50 })
+        .then((res) => setDetectedPatterns(res.items ?? []))
+        .catch(() => {});
     } catch (e) {
       if (opTokenRef.current !== token) return;
       setErrorMsg(e instanceof Error ? e.message : "Chart load failed");
@@ -113,7 +134,7 @@ export function ChartPanel() {
 
   useEffect(() => {
     void load(timeframe);
-  }, [timeframe]);
+  }, [symbol, timeframe]);
 
   const runPatternSearch = async () => {
     if (candles.length === 0) return;
@@ -121,7 +142,7 @@ export function ChartPanel() {
     setSearchError(null);
     try {
       const result: PatternSearchResponse = await searchPatterns({
-        symbol: "BTCUSDT",
+        symbol,
         timeframe,
         featureType: selectedFeature,
         lookbackBars: 3000,
@@ -144,7 +165,7 @@ export function ChartPanel() {
     setIndexResult(null);
     try {
       const result = await indexCandlePatterns({
-        symbol: "BTCUSDT",
+        symbol,
         timeframe,
         lookbackBars: 500,
       });
@@ -161,7 +182,7 @@ export function ChartPanel() {
     setPatternSearchError(null);
     try {
       const result: CandlePatternListResponse = await getCandlePatternsByType({
-        symbol: "BTCUSDT",
+        symbol,
         timeframe,
         patternType: selectedPatternType,
         page: 1,
@@ -283,6 +304,50 @@ export function ChartPanel() {
           <Database className="w-3 h-3" />
           {indexing ? "Indexing…" : "Index patterns"}
         </button>
+
+        {/* Overlay Layer Toggles */}
+        <div className="flex items-center gap-1.5 ml-auto border-l border-gray-800 pl-3">
+          <button
+            onClick={() => setShowHeikinAshi((v) => !v)}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+              showHeikinAshi ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+            }`}
+          >
+            Nến Heikin-Ashi
+          </button>
+          <button
+            onClick={() => setShowFibonacci((v) => !v)}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+              showFibonacci ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+            }`}
+          >
+            Fibonacci (GP)
+          </button>
+          <button
+            onClick={() => setShowPatterns((v) => !v)}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+            }`}
+          >
+            Mẫu nến
+          </button>
+          <button
+            onClick={() => setShowSmc((v) => !v)}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+              showSmc ? "bg-purple-500/20 text-purple-300 border-purple-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+            }`}
+          >
+            SMC / FVG
+          </button>
+          <button
+            onClick={() => setShowVpvr((v) => !v)}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+              showVpvr ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+            }`}
+          >
+            VPVR
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -364,7 +429,15 @@ export function ChartPanel() {
           </div>
         )}
         {status !== "loading" && status !== "error" && candles.length > 0 && (
-          <BtcCandlestickChart data={candles} height={440} highlightWindow={highlightWindow} />
+          <BtcCandlestickChart
+            data={showHeikinAshi ? convertToHeikinAshi(candles) : candles}
+            height={440}
+            highlightWindow={highlightWindow}
+            volumeProfile={showVpvr ? volumeProfile : null}
+            smartMoney={showSmc ? smartMoney : null}
+            patterns={showPatterns ? detectedPatterns : null}
+            showFibonacci={showFibonacci}
+          />
         )}
         {status !== "loading" && status !== "error" && candles.length === 0 && (
           <div className="h-[440px] flex items-center justify-center text-gray-500">Không có dữ liệu nến.</div>
@@ -377,7 +450,7 @@ export function ChartPanel() {
           <div className="space-y-2">
             <p className="text-sm text-teal-400">Đang tìm cửa sổ tương tự…</p>
             <p className="text-xs text-gray-500">
-              feature={selectedFeature} · {timeframe} · BTCUSDT
+              feature={selectedFeature} · {timeframe} · {symbol}
             </p>
             <div className="h-2 bg-gray-800 rounded overflow-hidden">
               <div className="h-full bg-teal-600 animate-pulse w-2/3" />

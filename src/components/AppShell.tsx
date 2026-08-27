@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Activity,
   Bell,
@@ -11,6 +11,8 @@ import {
   Layers,
   TrendingUp,
   BarChart3,
+  Shapes,
+  ListOrdered,
 } from "lucide-react";
 import { MarketScreen } from "./MarketScreen";
 import { NewsScreen } from "./NewsScreen";
@@ -21,15 +23,21 @@ import { DiscoveryScreen } from "./DiscoveryScreen";
 import { PredictionScreen } from "./PredictionScreen";
 import { BacktestScreen } from "./BacktestScreen";
 import { PaperTradeScreen } from "./PaperTradeScreen";
+import { BinanceTradeHistoryScreen } from "./BinanceTradeHistoryScreen";
+import { ArchetypeScreen } from "./ArchetypeScreen";
+import { AiChatWidget } from "./AiChatWidget";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { getUnreadCount } from "@/lib/api";
 
 const TABS = [
   { key: "market", label: "Thị trường", icon: LineChart },
+  { key: "archetype", label: "Mẫu nến", icon: Shapes },
   { key: "news", label: "Tin tức", icon: Newspaper },
   { key: "ai", label: "AI", icon: Bot },
   { key: "rules", label: "Rules nến", icon: Layers },
   { key: "predict", label: "Dự đoán", icon: TrendingUp },
   { key: "paper", label: "Paper", icon: LineChart },
+  { key: "binanceHistory", label: "Lịch sử Binance", icon: ListOrdered },
   { key: "backtest", label: "Backtest", icon: BarChart3 },
   { key: "settings", label: "Cảnh báo", icon: Settings },
 ] as const;
@@ -40,24 +48,46 @@ const ALERT_USER_ID = "default";
 
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<TabKey>("market");
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["market"]));
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
 
-  const pollUnread = async () => {
+  const handleTabChange = (key: TabKey) => {
+    setActiveTab(key);
+    setVisitedTabs((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  };
+
+  const pollUnread = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      return;
+    }
     try {
       const n = await getUnreadCount(ALERT_USER_ID);
       setUnread(n);
     } catch {}
-  };
+  }, []);
 
   useEffect(() => {
-    const t1 = setTimeout(() => void pollUnread(), 0);
-    const t = setInterval(() => void pollUnread(), 15000);
-    return () => {
-      clearTimeout(t1);
-      clearInterval(t);
+    void pollUnread();
+    const interval = setInterval(() => void pollUnread(), 15000);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void pollUnread();
+      }
     };
-  }, []);
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [pollUnread]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
@@ -83,30 +113,76 @@ export function AppShell() {
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-4">
-        <div className={activeTab === "market" ? "" : "hidden"}>
-          <MarketScreen />
-        </div>
-        <div className={activeTab === "news" ? "" : "hidden"}>
-          <NewsScreen />
-        </div>
-        <div className={activeTab === "ai" ? "" : "hidden"}>
-          <AiAnalysisScreen />
-        </div>
-        <div className={activeTab === "rules" ? "" : "hidden"}>
-          <DiscoveryScreen />
-        </div>
-        <div className={activeTab === "predict" ? "" : "hidden"}>
-          <PredictionScreen />
-        </div>
-        <div className={activeTab === "paper" ? "" : "hidden"}>
-          <PaperTradeScreen />
-        </div>
-        <div className={activeTab === "backtest" ? "" : "hidden"}>
-          <BacktestScreen />
-        </div>
-        <div className={activeTab === "settings" ? "" : "hidden"}>
-          <AlertSettingsScreen />
-        </div>
+        {visitedTabs.has("market") && (
+          <div className={activeTab === "market" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Thị trường">
+              <MarketScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("archetype") && (
+          <div className={activeTab === "archetype" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Mẫu nến">
+              <ArchetypeScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("news") && (
+          <div className={activeTab === "news" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Tin tức">
+              <NewsScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("ai") && (
+          <div className={activeTab === "ai" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab AI">
+              <AiAnalysisScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("rules") && (
+          <div className={activeTab === "rules" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Rules nến">
+              <DiscoveryScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("predict") && (
+          <div className={activeTab === "predict" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Dự đoán">
+              <PredictionScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("paper") && (
+          <div className={activeTab === "paper" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Paper Trading">
+              <PaperTradeScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("binanceHistory") && (
+          <div className={activeTab === "binanceHistory" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Lịch sử Binance">
+              <BinanceTradeHistoryScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("backtest") && (
+          <div className={activeTab === "backtest" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Backtest">
+              <BacktestScreen />
+            </ErrorBoundary>
+          </div>
+        )}
+        {visitedTabs.has("settings") && (
+          <div className={activeTab === "settings" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Cảnh báo">
+              <AlertSettingsScreen />
+            </ErrorBoundary>
+          </div>
+        )}
       </main>
 
       <nav className="border-t border-gray-800 bg-gray-950 sticky bottom-0 z-40">
@@ -117,7 +193,7 @@ export function AppShell() {
             return (
               <button
                 key={t.key}
-                onClick={() => setActiveTab(t.key)}
+                onClick={() => handleTabChange(t.key)}
                 className={`flex flex-col items-center gap-0.5 py-2 px-4 flex-1 transition-colors ${
                   active ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
                 }`}
@@ -131,6 +207,7 @@ export function AppShell() {
       </nav>
 
       <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
+      <AiChatWidget />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Bot, RefreshCw, TrendingUp, TrendingDown, ChevronDown, ChevronRight } from "lucide-react";
 import { AnalysisResult } from "@/lib/types";
 import { getBitcoinAnalysis } from "@/lib/api";
+import { SentimentBadge } from "./SentimentBadge";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 function Accordion({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -21,7 +23,14 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
   );
 }
 
+const SYMBOL_OPTIONS = [
+  { value: "BTCUSDT", label: "BTC/USDT" },
+  { value: "ETHUSDT", label: "ETH/USDT" },
+  { value: "SOLUSDT", label: "SOL/USDT" },
+];
+
 export function AiAnalysisScreen() {
+  const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalysisResult | null>(null);
@@ -31,7 +40,7 @@ export function AiAnalysisScreen() {
     setError(null);
     setData(null);
     try {
-      const result = await getBitcoinAnalysis();
+      const result = await getBitcoinAnalysis(selectedSymbol);
       setData(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
@@ -42,15 +51,36 @@ export function AiAnalysisScreen() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Bot className="text-teal-400" />
-          Phân tích AI
+          Phân tích AI Đa Tác Tử (LangGraph Multi-Agent)
         </h2>
+
+        <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800 self-start sm:self-auto">
+          <span className="text-xs font-semibold text-gray-400 px-1">Coin:</span>
+          {SYMBOL_OPTIONS.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => setSelectedSymbol(s.value)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                selectedSymbol === s.value
+                  ? "bg-teal-500 text-gray-950 shadow"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
+        <SentimentBadge symbol={selectedSymbol} />
+      </ErrorBoundary>
+
       <p className="text-sm text-gray-400">
-        Phân tích dùng tin RAG và dữ liệu Binance từ backend.
+        Phân tích đa góc nhìn (News Agent, Tech Agent, Bull/Bear Researchers, Trader, Risk Judge) cho {selectedSymbol.replace("USDT", "/USDT")}.
       </p>
 
       <button
