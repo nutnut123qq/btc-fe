@@ -141,12 +141,7 @@ export function MarketScreen() {
           </div>
 
           <ErrorBoundary fallbackTitle="Lỗi tải Bản đồ Thanh lý">
-            <LiquidationHeatmapWidget
-              key={selectedSymbol}
-              symbol={selectedSymbol}
-              timeframe="1h"
-              onSymbolChange={(s) => setSelectedSymbol(s)}
-            />
+            <LiquidationHeatmapWidget symbol={selectedSymbol} timeframe="1h" onSymbolChange={(s) => setSelectedSymbol(s)} />
           </ErrorBoundary>
 
           <ErrorBoundary fallbackTitle="Lỗi tải biểu đồ kỹ thuật">
@@ -161,3 +156,4 @@ export function MarketScreen() {
     </div>
   );
 }
+

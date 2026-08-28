@@ -14,6 +14,13 @@ type Props = {
 export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
   const [trades, setTrades] = useState<MarketTrade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prevSymbol, setPrevSymbol] = useState(symbol);
+
+  if (prevSymbol !== symbol) {
+    setPrevSymbol(symbol);
+    setTrades([]);
+    setLoading(true);
+  }
 
   // Initial REST fetch
   useEffect(() => {

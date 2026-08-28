@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getArchetypes,
   getArchetypeDetail,
@@ -57,11 +57,12 @@ export function ArchetypeScreen() {
   const [rankingsTf, setRankingsTf] = useState("1h");
   const [rankingsWs, setRankingsWs] = useState(15);
   const [rankingsHorizon, setRankingsHorizon] = useState("4h");
-  const rankingsSort = "winRate";
+  const [rankingsSort, setRankingsSort] = useState("winRate");
   const [rankings, setRankings] = useState<ArchetypeRankingDto[]>([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
 
   // Detail Modal State
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<ArchetypeDetailDto | null>(null);
   const [occurrences, setOccurrences] = useState<ArchetypeOccurrenceDto[]>([]);
 
@@ -81,7 +82,7 @@ export function ArchetypeScreen() {
   const [nextPred, setNextPred] = useState<TransitionPredictionDto | null>(null);
   const [seqPred, setSeqPred] = useState<SequencePredictionDto | null>(null);
 
-  const loadGallery = useCallback(async () => {
+  const loadGallery = async () => {
     setGalleryLoading(true);
     try {
       const res = await getArchetypes({
@@ -97,9 +98,9 @@ export function ArchetypeScreen() {
     } finally {
       setGalleryLoading(false);
     }
-  }, [selectedSymbol, galleryTf, galleryWs, gallerySort]);
+  };
 
-  const loadMatch = useCallback(async () => {
+  const loadMatch = async () => {
     setMatchLoading(true);
     try {
       const res = await matchMultiWindow(selectedSymbol, matchTf);
@@ -109,9 +110,9 @@ export function ArchetypeScreen() {
     } finally {
       setMatchLoading(false);
     }
-  }, [selectedSymbol, matchTf]);
+  };
 
-  const loadRankings = useCallback(async () => {
+  const loadRankings = async () => {
     setRankingsLoading(true);
     try {
       const res = await getArchetypeRankings({
@@ -127,9 +128,10 @@ export function ArchetypeScreen() {
     } finally {
       setRankingsLoading(false);
     }
-  }, [selectedSymbol, rankingsTf, rankingsWs, rankingsHorizon, rankingsSort]);
+  };
 
   const loadDetail = async (id: number) => {
+    setSelectedId(id);
     try {
       const [resDetail, resOcc] = await Promise.all([
         getArchetypeDetail(id),
@@ -142,7 +144,7 @@ export function ArchetypeScreen() {
     }
   };
 
-  const loadMatrix = useCallback(async () => {
+  const loadMatrix = async () => {
     setTransLoading(true);
     try {
       const res = await getTransitionMatrix({ symbol: selectedSymbol, timeframe: transTf, windowSize: transWs });
@@ -154,7 +156,7 @@ export function ArchetypeScreen() {
     } finally {
       setTransLoading(false);
     }
-  }, [selectedSymbol, transTf, transWs]);
+  };
 
   const loadTransitionsForArc = async (id: number) => {
     setSelectedArcForTrans(id);
@@ -169,7 +171,7 @@ export function ArchetypeScreen() {
     }
   };
 
-  const loadPredictions = useCallback(async () => {
+  const loadPredictions = async () => {
     setPredictLoading(true);
     try {
       const [nextRes, seqRes] = await Promise.all([
@@ -183,27 +185,27 @@ export function ArchetypeScreen() {
     } finally {
       setPredictLoading(false);
     }
-  }, [selectedSymbol, predictTf, predictWs]);
+  };
 
   useEffect(() => {
     if (activeSubTab === "gallery") void loadGallery();
-  }, [activeSubTab, loadGallery]);
+  }, [activeSubTab, selectedSymbol, galleryTf, galleryWs, gallerySort]);
 
   useEffect(() => {
     if (activeSubTab === "match") void loadMatch();
-  }, [activeSubTab, loadMatch]);
+  }, [activeSubTab, selectedSymbol, matchTf]);
 
   useEffect(() => {
     if (activeSubTab === "rankings") void loadRankings();
-  }, [activeSubTab, loadRankings]);
+  }, [activeSubTab, selectedSymbol, rankingsTf, rankingsWs, rankingsHorizon, rankingsSort]);
 
   useEffect(() => {
     if (activeSubTab === "transitions") void loadMatrix();
-  }, [activeSubTab, loadMatrix]);
+  }, [activeSubTab, selectedSymbol, transTf, transWs]);
 
   useEffect(() => {
     if (activeSubTab === "predict") void loadPredictions();
-  }, [activeSubTab, loadPredictions]);
+  }, [activeSubTab, selectedSymbol, predictTf, predictWs]);
 
   return (
     <div className="space-y-4">
@@ -328,6 +330,7 @@ export function ArchetypeScreen() {
         detail={detail}
         occurrences={occurrences}
         onClose={() => {
+          setSelectedId(null);
           setDetail(null);
         }}
       />

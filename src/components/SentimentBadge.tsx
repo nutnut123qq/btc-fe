@@ -7,6 +7,7 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
+  Info,
   ChevronDown,
   ChevronUp,
   Newspaper,
@@ -116,11 +117,11 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         </span>
         <button
           onClick={() => void handleRefresh()}
-          disabled={loading || refreshing}
+          disabled={refreshing}
           className="text-gray-500 hover:text-gray-300 ml-1 transition-colors disabled:opacity-50"
           title="Làm mới điểm tâm lý"
         >
-          <RefreshCw className={`w-3 h-3 ${loading || refreshing ? "animate-spin text-teal-400" : ""}`} />
+          <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin text-teal-400" : ""}`} />
         </button>
       </div>
     );
@@ -155,11 +156,11 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
           <button
             onClick={() => void handleRefresh()}
-            disabled={loading || refreshing}
+            disabled={refreshing}
             className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             title="Tính toán lại Snapshot Tâm lý"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading || refreshing ? "animate-spin text-teal-400" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-teal-400" : ""}`} />
           </button>
         </div>
       </div>

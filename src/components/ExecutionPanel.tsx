@@ -2,13 +2,17 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
+  Wallet,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
   Zap,
+  ShieldAlert,
   Radio,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
+  Layers,
   Activity,
   Trash2,
 } from "lucide-react";

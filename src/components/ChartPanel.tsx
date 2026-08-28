@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, RefreshCw, Database, CandlestickChart } from "lucide-react";
 import {
   KlineOHLC,
@@ -107,7 +107,7 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   const opTokenRef = useRef(0);
 
-  const load = useCallback(async (tf: string, limit = 1000) => {
+  const load = async (tf: string, limit = 1000) => {
     const token = ++opTokenRef.current;
     setStatus("loading");
     setErrorMsg(null);
@@ -130,11 +130,11 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
       setErrorMsg(e instanceof Error ? e.message : "Chart load failed");
       setStatus("error");
     }
-  }, [symbol]);
+  };
 
   useEffect(() => {
     void load(timeframe);
-  }, [load, timeframe]);
+  }, [symbol, timeframe]);
 
   const runPatternSearch = async () => {
     if (candles.length === 0) return;
