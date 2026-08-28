@@ -19,15 +19,23 @@ export function LiquidationHeatmapWidget({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"heatmap" | "targets">("heatmap");
+  const [prevParams, setPrevParams] = useState({ symbol, timeframe });
+
+  if (prevParams.symbol !== symbol || prevParams.timeframe !== timeframe) {
+    setPrevParams({ symbol, timeframe });
+    setLoading(true);
+    setError("");
+  }
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    setError("");
 
     getLiquidationSnapshot(symbol, timeframe)
       .then((res) => {
-        if (isMounted) setData(res);
+        if (isMounted) {
+          setData(res);
+          setError("");
+        }
       })
       .catch((err: unknown) => {
         if (isMounted) {

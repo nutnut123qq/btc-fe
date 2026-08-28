@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef, memo } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import { OrderBookDepth } from "@/lib/types";
 import { getOrderBookDepth } from "@/lib/api";
 import { Layers, RefreshCw } from "lucide-react";
@@ -13,15 +13,16 @@ type Props = {
 export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   const [depth, setDepth] = useState<OrderBookDepth | null>(null);
   const [loading, setLoading] = useState(true);
-  const prevSymbolRef = useRef(symbol);
+  const [prevSymbol, setPrevSymbol] = useState(symbol);
+
+  if (prevSymbol !== symbol) {
+    setPrevSymbol(symbol);
+    setDepth(null);
+    setLoading(true);
+  }
 
   useEffect(() => {
     let isMounted = true;
-    if (prevSymbolRef.current !== symbol) {
-      setDepth(null);
-      setLoading(true);
-      prevSymbolRef.current = symbol;
-    }
 
     const fetchDepth = async () => {
       try {

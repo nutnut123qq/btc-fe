@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, memo, useCallback } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { MarketTrade } from "@/lib/types";
 import { getMarketTrades } from "@/lib/api";
 import { subscribeBinanceTrade, BinanceLiveTrade } from "@/lib/binanceWs";
@@ -14,16 +14,17 @@ type Props = {
 export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
   const [trades, setTrades] = useState<MarketTrade[]>([]);
   const [loading, setLoading] = useState(true);
-  const prevSymbolRef = useRef(symbol);
+  const [prevSymbol, setPrevSymbol] = useState(symbol);
+
+  if (prevSymbol !== symbol) {
+    setPrevSymbol(symbol);
+    setTrades([]);
+    setLoading(true);
+  }
 
   // Initial REST fetch
   useEffect(() => {
     let isMounted = true;
-    if (prevSymbolRef.current !== symbol) {
-      setTrades([]);
-      setLoading(true);
-      prevSymbolRef.current = symbol;
-    }
 
     const fetchTrades = async () => {
       try {

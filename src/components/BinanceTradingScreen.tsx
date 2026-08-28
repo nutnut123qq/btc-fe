@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   KlineOHLC,
   MarketTicker,
-  MarketTrade,
   VolumeProfileDto,
   SmartMoneyStructureDto,
   PaperTradeItem,
@@ -13,11 +12,9 @@ import {
 import {
   getMarketTickers,
   getBtcKlines,
-  getMarketTrades,
   getVolumeProfile,
   getSmartMoneyStructures,
   getOpenPaperTrades,
-  getPaperTrades,
   getPaperTradeSummary,
 } from "@/lib/api";
 import dynamic from "next/dynamic";
@@ -64,14 +61,8 @@ import {
   Layers,
   ArrowDownUp,
   BrainCircuit,
-  Maximize2,
   RefreshCw,
-  Eye,
   Activity,
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  ShieldAlert,
   Flame,
   Zap,
 } from "lucide-react";
@@ -96,7 +87,7 @@ export function BinanceTradingScreen() {
   const [klines, setKlines] = useState<KlineOHLC[]>([]);
   const [loadingKlines, setLoadingKlines] = useState<boolean>(true);
   const [selectorOpen, setSelectorOpen] = useState<boolean>(false);
-  const [showWatchlistSidebar, setShowWatchlistSidebar] = useState<boolean>(true);
+  const showWatchlistSidebar = true;
 
   // Indicators toggle
   const [showFibonacci, setShowFibonacci] = useState<boolean>(false);
@@ -114,7 +105,6 @@ export function BinanceTradingScreen() {
   // Paper trade state for bottom panel
   const [paperSummary, setPaperSummary] = useState<PaperTradeSummary | null>(null);
   const [openPaperTrades, setOpenPaperTrades] = useState<PaperTradeItem[]>([]);
-  const [closedPaperTrades, setClosedPaperTrades] = useState<PaperTradeItem[]>([]);
 
   // Active Ticker
   const activeTicker = tickers.find(
@@ -203,14 +193,12 @@ export function BinanceTradingScreen() {
 
       // Load paper trades
       try {
-        const [pSum, pOpen, pClosed] = await Promise.allSettled([
+        const [pSum, pOpen] = await Promise.allSettled([
           getPaperTradeSummary(sym, tf),
           getOpenPaperTrades(sym),
-          getPaperTrades({ symbol: sym, timeframe: tf, status: "closed", take: 20 }),
         ]);
         if (pSum.status === "fulfilled") setPaperSummary(pSum.value);
         if (pOpen.status === "fulfilled") setOpenPaperTrades(pOpen.value?.items ?? []);
-        if (pClosed.status === "fulfilled") setClosedPaperTrades(pClosed.value?.items ?? []);
       } catch {}
     } catch (err) {
       console.error("Failed to load chart data", err);

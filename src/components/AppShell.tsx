@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   Bell,
@@ -62,32 +62,37 @@ export function AppShell() {
     });
   };
 
-  const pollUnread = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
-      return;
-    }
-    try {
-      const n = await getUnreadCount(ALERT_USER_ID);
-      setUnread(n);
-    } catch {}
-  }, []);
-
   useEffect(() => {
-    void pollUnread();
-    const interval = setInterval(() => void pollUnread(), 15000);
+    let isMounted = true;
+
+    const fetchUnread = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      try {
+        const n = await getUnreadCount(ALERT_USER_ID);
+        if (isMounted) {
+          setUnread(n);
+        }
+      } catch {}
+    };
+
+    void fetchUnread();
+    const interval = setInterval(() => void fetchUnread(), 15000);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        void pollUnread();
+        void fetchUnread();
       }
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
+      isMounted = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [pollUnread]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
