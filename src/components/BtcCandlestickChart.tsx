@@ -296,11 +296,21 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     // Sort markers chronologically (required by lightweight-charts)
     markers.sort((a, b) => (a.time as number) - (b.time as number));
 
-    // Dedup markers at exact same timestamp
-    const uniqueMarkers = markers.filter((m, i, arr) => i === 0 || m.time !== arr[i - 1].time || m.text !== arr[i - 1].text);
+    // Combine markers at the exact same timestamp and position to prevent UI spam
+    const combinedMarkers: typeof markers = [];
+    markers.forEach((m) => {
+      const last = combinedMarkers[combinedMarkers.length - 1];
+      if (last && last.time === m.time && last.position === m.position) {
+        if (m.text && !last.text?.includes(m.text)) {
+          last.text = last.text ? `${last.text} | ${m.text}` : m.text;
+        }
+      } else {
+        combinedMarkers.push({ ...m });
+      }
+    });
 
-    if (uniqueMarkers.length > 0) {
-      createSeriesMarkers(candleSeries, uniqueMarkers);
+    if (combinedMarkers.length > 0) {
+      createSeriesMarkers(candleSeries, combinedMarkers);
     }
 
     // Visible range: zoom to highlight window with padding (like Flutter's kHighlightVisiblePadBars = 12)

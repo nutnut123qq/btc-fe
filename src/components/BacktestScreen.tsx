@@ -348,7 +348,14 @@ export function BacktestScreen() {
               </button>
             </div>
 
-            {ensError && <div className="mt-4 text-sm text-rose-400">{ensError}</div>}
+            {ensError && ensError.includes("INSUFFICIENT_POINT_IN_TIME_DATA") ? (
+              <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm">
+                <p className="font-bold mb-1">Chưa hỗ trợ Ensemble Backtest trung thực</p>
+                <p>Hệ thống hiện thiếu dữ liệu dự đoán point-in-time lịch sử (không bị look-ahead bias). Việc dùng mô hình hiện tại để dự đoán ngược quá khứ sẽ gây sai số và làm kết quả Buy & Hold đẹp một cách giả tạo. Vui lòng thu thập đủ log dự đoán real-time trước khi backtest.</p>
+              </div>
+            ) : ensError ? (
+              <div className="mt-4 text-sm text-rose-400">{ensError}</div>
+            ) : null}
           </div>
 
           {optResult && (

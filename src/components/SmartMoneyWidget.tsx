@@ -26,9 +26,13 @@ export function SmartMoneyWidget({ symbol = "BTCUSDT", timeframe = "1h" }) {
     };
   }, [symbol, timeframe]);
 
+  const [visibleCount, setVisibleCount] = useState(10);
+
   if (loading) return <div className="p-4 rounded-lg bg-gray-800 animate-pulse text-gray-400">Loading Smart Money Data...</div>;
   if (error) return <div className="p-4 rounded-lg bg-red-900/50 text-red-400 border border-red-500/50">{error}</div>;
-  if (!structures.length) return null;
+  if (!structures.length) return <div className="p-4 rounded-lg bg-gray-800 text-gray-400 border border-gray-700">No Smart Money structures found.</div>;
+
+  const visibleStructures = structures.slice(0, visibleCount);
 
   return (
     <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 space-y-4">
@@ -43,7 +47,7 @@ export function SmartMoneyWidget({ symbol = "BTCUSDT", timeframe = "1h" }) {
       </div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-        {structures.map((st) => {
+        {visibleStructures.map((st) => {
           const isBull = st.eventType.includes("BULL");
           const isBear = st.eventType.includes("BEAR");
           const colorClass = isBull ? "text-green-400 bg-green-500/10 border-green-500/20" : isBear ? "text-red-400 bg-red-500/10 border-red-500/20" : "text-gray-300 bg-gray-800 border-gray-700";
@@ -73,6 +77,14 @@ export function SmartMoneyWidget({ symbol = "BTCUSDT", timeframe = "1h" }) {
             </div>
           );
         })}
+        {visibleCount < structures.length && (
+          <button
+            onClick={() => setVisibleCount(c => c + 10)}
+            className="w-full py-2 mt-2 text-xs font-semibold text-gray-400 bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+          >
+            Show More ({structures.length - visibleCount} remaining)
+          </button>
+        )}
       </div>
     </div>
   );

@@ -115,7 +115,7 @@ export function ArchetypeDetailModal({
                       out.avgReturnPct > 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
-                    {(out.avgReturnPct * 100).toFixed(2)}%
+                    {(out.avgReturnPct).toFixed(2)}%
                   </div>
                   <div className="text-center text-gray-500 text-xs">Lợi nhuận TB</div>
                 </div>
@@ -164,7 +164,7 @@ export function ArchetypeDetailModal({
                         }`}
                       >
                         {occ.targetReturn
-                          ? (occ.targetReturn * 100).toFixed(2) + "%"
+                          ? (occ.targetReturn).toFixed(2) + "%"
                           : "-"}
                       </td>
                     </tr>

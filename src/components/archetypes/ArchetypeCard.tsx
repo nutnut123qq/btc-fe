@@ -58,7 +58,7 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
                   : "text-rose-400"
               }
             >
-              {(arc.bestOutcome.avgReturnPct * 100).toFixed(2)}%
+              {(arc.bestOutcome.avgReturnPct).toFixed(2)}%
             </span>
           </div>
         </div>
