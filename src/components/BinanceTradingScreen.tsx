@@ -402,7 +402,7 @@ export function BinanceTradingScreen() {
                     <p>Các giao dịch vừa được khớp lệnh trên sàn Binance:</p>
                     <span className="text-[11px] text-teal-400">Cập nhật tự động 2s</span>
                   </div>
-                  <MarketTradesWidget symbol={selectedSymbol} limit={30} />
+                  <MarketTradesWidget key={`bottom-trades-${selectedSymbol}`} symbol={selectedSymbol} limit={30} />
                 </div>
               )}
 
@@ -532,6 +532,7 @@ export function BinanceTradingScreen() {
                 <div className="space-y-2">
                   <ErrorBoundary fallbackTitle="Lỗi tải Bản đồ Thanh lý">
                     <LiquidationHeatmapWidget
+                      key={`${selectedSymbol}-${selectedTf}`}
                       symbol={selectedSymbol}
                       timeframe={selectedTf}
                       onSymbolChange={(s) => setSelectedSymbol(s)}
@@ -602,11 +603,11 @@ export function BinanceTradingScreen() {
           {/* Right Tab Content */}
           <div className="h-[600px]">
             {rightTab === "trades" && (
-              <MarketTradesWidget symbol={selectedSymbol} limit={35} />
+              <MarketTradesWidget key={`right-trades-${selectedSymbol}`} symbol={selectedSymbol} limit={35} />
             )}
 
             {rightTab === "depth" && (
-              <OrderBookWidget symbol={selectedSymbol} limit={11} />
+              <OrderBookWidget key={selectedSymbol} symbol={selectedSymbol} limit={11} />
             )}
 
             {rightTab === "ai" && (

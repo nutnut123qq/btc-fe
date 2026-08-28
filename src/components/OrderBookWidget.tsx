@@ -13,13 +13,6 @@ type Props = {
 export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   const [depth, setDepth] = useState<OrderBookDepth | null>(null);
   const [loading, setLoading] = useState(true);
-  const [prevSymbol, setPrevSymbol] = useState(symbol);
-
-  if (prevSymbol !== symbol) {
-    setPrevSymbol(symbol);
-    setDepth(null);
-    setLoading(true);
-  }
 
   useEffect(() => {
     let isMounted = true;

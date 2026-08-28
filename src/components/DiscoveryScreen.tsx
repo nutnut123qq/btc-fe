@@ -17,7 +17,7 @@ const SYMBOL_OPTIONS = [
 
 export function DiscoveryScreen() {
   const [symbol, setSymbol] = useState("BTCUSDT");
-  const [timeframe, setTimeframe] = useState("1h");
+  const timeframe = "1h";
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
   const [loading, setLoading] = useState(false);
