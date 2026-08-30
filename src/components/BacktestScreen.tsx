@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { BarChart3, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import { getBacktestRuns, getBacktestRunDetail, runEnsembleBacktest, optimizeEnsembleWeights } from "@/lib/api";
+import { getSessionKey } from "@/lib/sessionAuth";
 import type { BacktestRunSummary, BacktestTradeItem, WeightOptimizationResultDto, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -17,6 +18,7 @@ function formatTime(ms: number) {
 const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 
 export function BacktestScreen() {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
   const [activeTab, setActiveTab] = useState<"ml" | "ensemble">("ml");
   const [runs, setRuns] = useState<BacktestRunSummary[]>([]);
@@ -334,14 +336,14 @@ export function BacktestScreen() {
             <div className="flex gap-2">
               <button
                 onClick={() => void runEnsBacktest()}
-                disabled={ensLoading}
+                disabled={ensLoading || !adminUnlocked}
                 className="px-4 py-2 bg-teal-500/20 text-teal-400 border border-teal-500/40 rounded-lg text-sm font-medium hover:bg-teal-500/30 disabled:opacity-50"
               >
                 {ensLoading ? "Running..." : "Run Ensemble Backtest"}
               </button>
               <button
                 onClick={() => void handleOptimize()}
-                disabled={ensLoading}
+                disabled={ensLoading || !adminUnlocked}
                 className="px-4 py-2 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-lg text-sm font-medium hover:bg-amber-500/30 disabled:opacity-50"
               >
                 Optimize Weights

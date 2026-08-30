@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, RefreshCw, Database, CandlestickChart } from "lucide-react";
 import {
   KlineOHLC,
@@ -23,6 +23,7 @@ import {
 import { BtcCandlestickChart } from "./BtcCandlestickChart";
 import { ema, rsi, convertToHeikinAshi } from "@/lib/indicators";
 import { intervalToMs } from "@/lib/timeframe";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 const TIMEFRAMES = [
   { label: "M1", value: "1m" },
@@ -71,6 +72,7 @@ const PATTERN_TYPES = [
 ] as const;
 
 export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [candles, setCandles] = useState<KlineOHLC[]>([]);
   const [timeframe, setTimeframe] = useState<string>("15m");
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "jumping">("idle");
@@ -107,7 +109,7 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   const opTokenRef = useRef(0);
 
-  const load = async (tf: string, limit = 1000) => {
+  const load = useCallback(async (tf: string, limit = 1000) => {
     const token = ++opTokenRef.current;
     setStatus("loading");
     setErrorMsg(null);
@@ -130,11 +132,11 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
       setErrorMsg(e instanceof Error ? e.message : "Chart load failed");
       setStatus("error");
     }
-  };
+  }, [symbol]);
 
   useEffect(() => {
     void load(timeframe);
-  }, [symbol, timeframe]);
+  }, [load, timeframe]);
 
   const runPatternSearch = async () => {
     if (candles.length === 0) return;
@@ -298,7 +300,7 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
         <button
           onClick={() => void runIndexPatterns()}
-          disabled={indexing}
+          disabled={indexing || !adminUnlocked}
           className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50"
         >
           <Database className="w-3 h-3" />

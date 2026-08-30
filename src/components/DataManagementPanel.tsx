@@ -5,41 +5,31 @@ import {
   Database,
   RefreshCw,
   Play,
-  CheckCircle2,
-  AlertTriangle,
   Flame,
   Layers,
   BarChart3,
   Search,
   Cpu,
   FileSearch,
-  TrendingUp,
 } from "lucide-react";
 import {
   getDataAudit,
   backfillKlines,
-  getPatternIndexStatus,
-  rebuildPatternIndex,
   warmupPatternIndex,
   indexTechnicalIndicators,
   rebuildMlDatasetFromIndexer,
-  indexVolumeStats,
-  getVolumeStats,
-  buildTransitionMatrix,
   getRagNewsContext,
   getTechSummary,
 } from "@/lib/api";
 import type {
   DataAuditResponse,
-  PatternIndexStatusDto,
   BackfillStartInfo,
 } from "@/lib/types";
 
-export function DataManagementPanel() {
+export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?: boolean }) {
   const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
   const [selectedTf, setSelectedTf] = useState("1h");
   const [auditData, setAuditData] = useState<DataAuditResponse | null>(null);
-  const [patternStatus, setPatternStatus] = useState<PatternIndexStatusDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -52,31 +42,25 @@ export function DataManagementPanel() {
   const loadAudit = useCallback(async () => {
     setLoading(true);
     try {
-      const [auditRes, patternRes] = await Promise.allSettled([
-        getDataAudit(selectedSymbol),
-        getPatternIndexStatus({ symbol: selectedSymbol, timeframe: selectedTf, featureType: "all", windowSize: 10 }),
-      ]);
-
-      if (auditRes.status === "fulfilled") setAuditData(auditRes.value);
-      if (patternRes.status === "fulfilled") setPatternStatus(patternRes.value);
+      setAuditData(await getDataAudit(selectedSymbol));
     } catch (err) {
       console.error("Failed to load data audit", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedSymbol, selectedTf]);
+  }, [selectedSymbol]);
 
   useEffect(() => {
     void loadAudit();
   }, [loadAudit]);
 
-  const handleBackfill = async (fillGaps = false) => {
+  const handleBackfill = async (fillGaps = false, timeframe = selectedTf) => {
     setActionLoading(true);
     setMessage(null);
     try {
       const res: BackfillStartInfo = await backfillKlines({
         symbol: selectedSymbol,
-        timeframe: selectedTf === "all" ? undefined : selectedTf,
+        timeframe: timeframe === "all" ? undefined : timeframe,
         fillGaps,
         requestsPerMinuteLimit: 300,
         wait: false,
@@ -99,7 +83,7 @@ export function DataManagementPanel() {
     setActionLoading(true);
     setMessage(null);
     try {
-      const res = await indexTechnicalIndicators(selectedSymbol, selectedTf);
+      await indexTechnicalIndicators(selectedSymbol, selectedTf);
       setMessage({ type: "success", text: `✅ Đã re-index Technical Indicators cho ${selectedSymbol} (${selectedTf})` });
     } catch (err: unknown) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Re-index Technical thất bại" });
@@ -112,7 +96,7 @@ export function DataManagementPanel() {
     setActionLoading(true);
     setMessage(null);
     try {
-      const res = await rebuildMlDatasetFromIndexer(selectedSymbol, selectedTf);
+      await rebuildMlDatasetFromIndexer(selectedSymbol, selectedTf);
       setMessage({ type: "success", text: `✅ Đã rebuild ML Feature Dataset cho ${selectedSymbol} (${selectedTf})` });
     } catch (err: unknown) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Rebuild ML Dataset thất bại" });
@@ -125,24 +109,11 @@ export function DataManagementPanel() {
     setActionLoading(true);
     setMessage(null);
     try {
-      const res = await warmupPatternIndex({ symbol: selectedSymbol, timeframe: selectedTf, lookbackBars: 3000 });
+      await warmupPatternIndex({ symbol: selectedSymbol, timeframe: selectedTf, lookbackBars: 3000 });
       setMessage({ type: "success", text: `✅ Đã warmup Pattern Vector Index cho ${selectedSymbol} (${selectedTf})` });
       await loadAudit();
     } catch (err: unknown) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Warmup thất bại" });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleIndexVolume = async () => {
-    setActionLoading(true);
-    setMessage(null);
-    try {
-      const res = await indexVolumeStats(selectedSymbol, selectedTf, 2000);
-      setMessage({ type: "success", text: `✅ Đã index Volume Anomaly Stats cho ${selectedSymbol} (${selectedTf})` });
-    } catch (err: unknown) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Index volume stats thất bại" });
     } finally {
       setActionLoading(false);
     }
@@ -285,9 +256,9 @@ export function DataManagementPanel() {
                       <button
                         onClick={() => {
                           setSelectedTf(tf.timeframe);
-                          void handleBackfill(true);
+                          void handleBackfill(true, tf.timeframe);
                         }}
-                        disabled={actionLoading}
+                        disabled={actionLoading || !adminUnlocked}
                         className="px-2 py-0.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 rounded text-[10px] font-semibold transition-colors"
                       >
                         Lấp gaps
@@ -316,7 +287,7 @@ export function DataManagementPanel() {
           {/* Backfill Full */}
           <button
             onClick={() => void handleBackfill(false)}
-            disabled={actionLoading}
+            disabled={actionLoading || !adminUnlocked}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-teal-300 flex items-center gap-1">
@@ -328,7 +299,7 @@ export function DataManagementPanel() {
           {/* Technical Indicators */}
           <button
             onClick={() => void handleReindexTech()}
-            disabled={actionLoading}
+            disabled={actionLoading || !adminUnlocked}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-indigo-300 flex items-center gap-1">
@@ -340,7 +311,7 @@ export function DataManagementPanel() {
           {/* ML Features */}
           <button
             onClick={() => void handleReindexMl()}
-            disabled={actionLoading}
+            disabled={actionLoading || !adminUnlocked}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-purple-300 flex items-center gap-1">
@@ -352,7 +323,7 @@ export function DataManagementPanel() {
           {/* Warmup Pattern Index */}
           <button
             onClick={() => void handleWarmupPatternIndex()}
-            disabled={actionLoading}
+            disabled={actionLoading || !adminUnlocked}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-amber-300 flex items-center gap-1">

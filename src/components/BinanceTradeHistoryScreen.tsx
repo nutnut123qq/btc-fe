@@ -11,13 +11,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  CheckCircle2,
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Layers,
   Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import { getPortfolioSummary, getMultiAssetPaperTrades } from "@/lib/api";
 import { subscribeBinanceTickers, type BinanceLiveTicker } from "@/lib/binanceWs";
@@ -597,7 +595,6 @@ export function BinanceTradeHistoryScreen() {
                   const isOpen = trade.status.toLowerCase() === "open";
                   const netPct = trade.netReturnPct ?? (trade.netReturn ? trade.netReturn * 100 : null);
                   const isProfitable = (netPct ?? 0) > 0;
-                  const coin = trade.symbol.replace("USDT", "");
 
                   return (
                     <tr

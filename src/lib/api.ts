@@ -1,4 +1,9 @@
+import { requireArray, requireArrayField, requireRecord } from "./apiContract";
+import { authenticatedFetch } from "./sessionAuth";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
+const adminFetch = authenticatedFetch.bind(null, "admin");
+const executionFetch = authenticatedFetch.bind(null, "execution");
 
 async function getJson(res: Response) {
   if (!res.ok) {
@@ -107,7 +112,7 @@ export async function getAlertSettings(userId: string) {
 }
 
 export async function putAlertSettings(userId: string, body: import("./types").AlertSettingsDto) {
-  const res = await fetch(`${API_BASE}/api/alert-settings?userId=${encodeURIComponent(userId)}`, {
+  const res = await adminFetch(`${API_BASE}/api/alert-settings?userId=${encodeURIComponent(userId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -129,26 +134,26 @@ export async function getUnreadCount(userId: string) {
 }
 
 export async function markAlertRead(id: string) {
-  const res = await fetch(`${API_BASE}/api/alerts/${id}/read`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/alerts/${id}/read`, { method: "POST" });
   if (!res.ok) throw new Error("Mark read failed");
 }
 
 export async function markAllAlertsRead(userId: string) {
-  const res = await fetch(`${API_BASE}/api/alerts/read-all?userId=${encodeURIComponent(userId)}`, {
+  const res = await adminFetch(`${API_BASE}/api/alerts/read-all?userId=${encodeURIComponent(userId)}`, {
     method: "POST",
   });
   if (!res.ok) throw new Error("Mark all read failed");
 }
 
 export async function deleteAlert(id: string, userId: string) {
-  const res = await fetch(`${API_BASE}/api/alerts/${id}?userId=${encodeURIComponent(userId)}`, {
+  const res = await adminFetch(`${API_BASE}/api/alerts/${id}?userId=${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Delete failed");
 }
 
 export async function deleteAllAlerts(userId: string) {
-  const res = await fetch(`${API_BASE}/api/alerts?userId=${encodeURIComponent(userId)}`, {
+  const res = await adminFetch(`${API_BASE}/api/alerts?userId=${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Delete all failed");
@@ -165,7 +170,7 @@ export async function indexCandlePatterns(payload: {
     timeframe,
     lookbackBars: String(lookbackBars),
   });
-  const res = await fetch(`${API_BASE}/api/market/candle-patterns/index?${params}`, {
+  const res = await adminFetch(`${API_BASE}/api/market/candle-patterns/index?${params}`, {
     method: "POST",
   });
   return getJson(res) as Promise<import("./types").IndexCandlePatternsResponse>;
@@ -207,7 +212,7 @@ export async function getBitcoinAnalysis(symbol = "BTCUSDT") {
 // --- Sequence Rules / Discovery ---
 export async function evaluateSequenceRules(symbol = "BTCUSDT", timeframe = "1h", limit = 50) {
   const params = new URLSearchParams({ symbol, timeframe, limit: String(limit) });
-  const res = await fetch(`${API_BASE}/api/discovery/evaluate?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/discovery/evaluate?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -231,7 +236,7 @@ export async function runDiscovery(
     minAvgReturnPct: String(minAvgReturnPct),
     saveToDb: String(saveToDb),
   });
-  const res = await fetch(`${API_BASE}/api/discovery/run?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/discovery/run?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -244,7 +249,7 @@ export async function getDiscoveredRules(params?: { symbol?: string; timeframe?:
 }
 
 export async function clearDiscoveredRules() {
-  const res = await fetch(`${API_BASE}/api/discovery/clear`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/discovery/clear`, { method: "POST" });
   return getJson(res);
 }
 
@@ -291,17 +296,21 @@ export async function getLatestPrediction(payload: {
 export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = "1h", take = 100) {
   const params = new URLSearchParams({ symbol, timeframe, take: String(take) });
   const res = await fetch(`${API_BASE}/api/prediction/history?${params}`);
-  return getJson(res) as Promise<{ symbol: string; timeframe: string; count: number; items: import("./types").ModelPredictionItem[] }>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ModelPredictionItem>(data, "items", "prediction history");
+  return { ...record, items } as { symbol: string; timeframe: string; count: number; items: import("./types").ModelPredictionItem[] };
 }
 
 export async function getAvailableModels() {
   const res = await fetch(`${API_BASE}/api/prediction/models`);
-  return getJson(res) as Promise<{ models: import("./types").AvailableModel[] }>;
+  const data: unknown = await getJson(res);
+  const { items } = requireArrayField<import("./types").AvailableModel>(data, "models", "prediction models");
+  return { models: items };
 }
 
 export async function auditPredictions(symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ symbol, timeframe });
-  const res = await fetch(`${API_BASE}/api/prediction/audit?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/prediction/audit?${params}`, { method: "POST" });
   return getJson(res) as Promise<{ symbol: string; timeframe: string; totalPending: number; evaluatedCount: number; message: string }>;
 }
 
@@ -343,15 +352,17 @@ export async function getPaperTrades(params?: {
   return getJson(res) as Promise<{ symbol: string; count: number; items: import("./types").PaperTradeItem[] }>;
 }
 
-export async function getPaperTradeSummary(symbol = "BTCUSDT", timeframe?: string) {
-  const qs = new URLSearchParams({ symbol });
+export async function getPaperTradeSummary(symbol?: string, timeframe?: string) {
+  const qs = new URLSearchParams();
+  if (symbol) qs.set("symbol", symbol);
   if (timeframe) qs.set("timeframe", timeframe);
   const res = await fetch(`${API_BASE}/api/paper-trades/summary?${qs}`);
   return getJson(res) as Promise<import("./types").PaperTradeSummary>;
 }
 
-export async function getPaperTradeEquityCurve(symbol = "BTCUSDT", timeframe?: string) {
-  const qs = new URLSearchParams({ symbol });
+export async function getPaperTradeEquityCurve(symbol?: string, timeframe?: string) {
+  const qs = new URLSearchParams();
+  if (symbol) qs.set("symbol", symbol);
   if (timeframe) qs.set("timeframe", timeframe);
   const res = await fetch(`${API_BASE}/api/paper-trades/equity-curve?${qs}`);
   return getJson(res) as Promise<{ symbol: string; points: import("./types").EquityCurvePoint[] }>;
@@ -378,14 +389,18 @@ export async function getMultiAssetPaperTrades(
   return getJson(res) as Promise<import("./types").PaginatedPaperTrades>;
 }
 
-export async function getOpenPaperTrades(symbol = "BTCUSDT") {
-  const res = await fetch(`${API_BASE}/api/paper-trades/open?symbol=${encodeURIComponent(symbol)}`);
-  return getJson(res) as Promise<{ symbol: string; count: number; items: import("./types").PaperTradeItem[] }>;
+export async function getOpenPaperTrades(symbol?: string) {
+  const qs = new URLSearchParams();
+  if (symbol) qs.set("symbol", symbol);
+  const res = await fetch(`${API_BASE}/api/paper-trades/open?${qs}`);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").PaperTradeItem>(data, "items", "open paper trades");
+  return { ...record, items } as { symbol: string; count: number; items: import("./types").PaperTradeItem[] };
 }
 
 // --- Telegram ---
 export async function testTelegram() {
-  const res = await fetch(`${API_BASE}/api/telegram/test`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/telegram/test`, { method: "POST" });
   return getJson(res) as Promise<{ success: boolean; message: string }>;
 }
 
@@ -540,7 +555,7 @@ export async function getRegimeSummary(symbol = "BTCUSDT", timeframe = "1h") {
 
 export async function buildRegimes(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 2000) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
-  const res = await fetch(`${API_BASE}/api/regime/build?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/regime/build?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -549,18 +564,24 @@ export async function buildRegimes(symbol = "BTCUSDT", timeframe = "1h", lookbac
 export async function getConfluenceCurrent(symbol = "BTCUSDT") {
   const params = new URLSearchParams({ symbol });
   const res = await fetch(`${API_BASE}/api/confluence/current?${params}`);
-  return getJson(res) as Promise<import("./types").ConfluenceSnapshotDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").TimeframeAlignmentItem>(data, "timeframeAlignments", "confluence");
+  return { ...record, timeframeAlignments: items } as import("./types").ConfluenceSnapshotDto;
 }
 
 export async function getConfluenceHistory(symbol = "BTCUSDT", limit = 50) {
   const params = new URLSearchParams({ symbol, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/confluence/history?${params}`);
-  return getJson(res) as Promise<import("./types").ConfluenceSnapshotDto[]>;
+  const data: unknown = await getJson(res);
+  return requireArray<unknown>(data, "confluence history").map((item) => {
+    const { record, items } = requireArrayField<import("./types").TimeframeAlignmentItem>(item, "timeframeAlignments", "confluence history item");
+    return { ...record, timeframeAlignments: items } as import("./types").ConfluenceSnapshotDto;
+  });
 }
 
 export async function calculateConfluence(symbol = "BTCUSDT") {
   const params = new URLSearchParams({ symbol });
-  const res = await fetch(`${API_BASE}/api/confluence/calculate?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/confluence/calculate?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").ConfluenceSnapshotDto>;
 }
 
@@ -568,7 +589,9 @@ export async function calculateConfluence(symbol = "BTCUSDT") {
 export async function getVolumeProfile(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 200) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
   const res = await fetch(`${API_BASE}/api/volume-profile/current?${params}`);
-  return getJson(res) as Promise<import("./types").VolumeProfileDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").VolumeBinDto>(data, "bins", "volume profile");
+  return { ...record, bins: items } as import("./types").VolumeProfileDto;
 }
 
 // --- Smart Money Concepts ---
@@ -604,7 +627,7 @@ export async function getEnsembleHistory(symbol = "BTCUSDT", timeframe = "1h", l
 
 export async function evaluateEnsemblePredictions(symbol = "BTCUSDT") {
   const params = new URLSearchParams({ symbol });
-  const res = await fetch(`${API_BASE}/api/ensemble/evaluate?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/ensemble/evaluate?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").PredictionEvaluationSummaryDto>;
 }
 
@@ -616,12 +639,12 @@ export async function getEnsembleEvaluations(symbol = "BTCUSDT") {
 
 export async function runBatchReplay(sampleCount = 2000, minConfidence = 0.60, symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ sampleCount: String(sampleCount), minConfidence: String(minConfidence), symbol, timeframe });
-  const res = await fetch(`${API_BASE}/api/ensemble/batch-replay?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/ensemble/batch-replay?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").BatchReplayResultDto>;
 }
 
 export async function runEnsembleBacktest(payload: import("./types").EnsembleBacktestRunRequest = {}) {
-  const res = await fetch(`${API_BASE}/api/ensemble-backtest/run`, {
+  const res = await adminFetch(`${API_BASE}/api/ensemble-backtest/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -631,13 +654,13 @@ export async function runEnsembleBacktest(payload: import("./types").EnsembleBac
 
 export async function optimizeEnsembleWeights(symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ symbol, timeframe });
-  const res = await fetch(`${API_BASE}/api/ensemble-backtest/optimize?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/ensemble-backtest/optimize?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").WeightOptimizationResultDto>;
 }
 
 export async function evaluateEnsemblePaperTrade(symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ symbol, timeframe });
-  const res = await fetch(`${API_BASE}/api/paper-trades/evaluate-ensemble?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/paper-trades/evaluate-ensemble?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -770,7 +793,7 @@ export async function getCurrentSentiment(symbol = "BTCUSDT"): Promise<import(".
 
 export async function refreshSentiment(symbol = "BTCUSDT"): Promise<import("./types").SentimentSnapshotDto> {
   const params = new URLSearchParams({ symbol });
-  const res = await fetch(`${API_BASE}/api/sentiment/refresh?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/sentiment/refresh?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -786,7 +809,7 @@ export async function placeMarketOrder(payload: {
   side: "BUY" | "SELL" | "LONG" | "SHORT";
   quantity: number;
 }): Promise<import("./types").BinanceOrderResult> {
-  const res = await fetch(`${API_BASE}/api/execution/market-order`, {
+  const res = await executionFetch(`${API_BASE}/api/execution/market-order`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -800,7 +823,7 @@ export async function placeStopLossOrder(payload: {
   quantity: number;
   stopPrice: number;
 }): Promise<import("./types").BinanceOrderResult> {
-  const res = await fetch(`${API_BASE}/api/execution/stop-loss`, {
+  const res = await executionFetch(`${API_BASE}/api/execution/stop-loss`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -814,7 +837,7 @@ export async function placeTakeProfitOrder(payload: {
   quantity: number;
   stopPrice: number;
 }): Promise<import("./types").BinanceOrderResult> {
-  const res = await fetch(`${API_BASE}/api/execution/take-profit`, {
+  const res = await executionFetch(`${API_BASE}/api/execution/take-profit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -823,7 +846,7 @@ export async function placeTakeProfitOrder(payload: {
 }
 
 export async function cancelAllExecutionOrders(symbol = "BTCUSDT"): Promise<import("./types").BinanceOrderResult> {
-  const res = await fetch(`${API_BASE}/api/execution/orders/${encodeURIComponent(symbol)}`, {
+  const res = await executionFetch(`${API_BASE}/api/execution/orders/${encodeURIComponent(symbol)}`, {
     method: "DELETE",
   });
   return getJson(res);
@@ -835,7 +858,7 @@ export async function getExecutionStreamStatus(): Promise<import("./types").Stre
 }
 
 export async function reconnectExecutionStream(): Promise<{ message: string; status: import("./types").StreamStatusDto }> {
-  const res = await fetch(`${API_BASE}/api/execution/stream/reconnect`, {
+  const res = await executionFetch(`${API_BASE}/api/execution/stream/reconnect`, {
     method: "POST",
   });
   return getJson(res);
@@ -852,7 +875,11 @@ export async function getExecutionBalanceSnapshots(asset = "USDT", limit = 100):
 export async function getDataAudit(symbol = "BTCUSDT"): Promise<import("./types").DataAuditResponse> {
   const params = new URLSearchParams({ symbol });
   const res = await fetch(`${API_BASE}/api/market/data-audit?${params}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").TimeframeAuditSummary>(data, "timeframes", "data audit");
+  requireRecord(record.news, "data audit.news");
+  requireRecord(record.rulesAlerts, "data audit.rulesAlerts");
+  return { ...record, timeframes: items } as import("./types").DataAuditResponse;
 }
 
 export async function backfillKlines(options: {
@@ -873,7 +900,7 @@ export async function backfillKlines(options: {
   if (options.wait !== undefined) params.set("wait", String(options.wait));
   if (options.fillGaps !== undefined) params.set("fillGaps", String(options.fillGaps));
 
-  const res = await fetch(`${API_BASE}/api/market/klines/backfill?${params}`, {
+  const res = await adminFetch(`${API_BASE}/api/market/klines/backfill?${params}`, {
     method: "POST",
   });
   return getJson(res);
@@ -911,7 +938,7 @@ export async function rebuildPatternIndex(options: {
     lookbackBars: String(lookbackBars),
     windowSize: String(windowSize),
   });
-  const res = await fetch(`${API_BASE}/api/market/pattern-index/rebuild?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/market/pattern-index/rebuild?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -928,7 +955,7 @@ export async function warmupPatternIndex(options: {
     lookbackBars: String(lookbackBars),
   });
   if (windowSize != null) params.set("windowSize", String(windowSize));
-  const res = await fetch(`${API_BASE}/api/market/pattern-index/warmup?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/market/pattern-index/warmup?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -968,33 +995,33 @@ export async function buildWindowDataset(options: {
     windowSize: String(windowSize),
     horizon,
   });
-  const res = await fetch(`${API_BASE}/api/market/window-dataset/build?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/market/window-dataset/build?${params}`, { method: "POST" });
   return getJson(res);
 }
 
 export async function buildMlDataset(symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ symbol, timeframe });
-  const res = await fetch(`${API_BASE}/api/market/ml-dataset/build?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/market/ml-dataset/build?${params}`, { method: "POST" });
   return getJson(res);
 }
 
 export async function indexTechnicalIndicators(symbol = "BTCUSDT", timeframe?: string) {
   const params = new URLSearchParams({ symbol });
   if (timeframe) params.set("timeframe", timeframe);
-  const res = await fetch(`${API_BASE}/api/indexer/technical-indicators?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/indexer/technical-indicators?${params}`, { method: "POST" });
   return getJson(res);
 }
 
 export async function rebuildMlDatasetFromIndexer(symbol = "BTCUSDT", timeframe?: string) {
   const params = new URLSearchParams({ symbol });
   if (timeframe) params.set("timeframe", timeframe);
-  const res = await fetch(`${API_BASE}/api/indexer/ml-dataset?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/indexer/ml-dataset?${params}`, { method: "POST" });
   return getJson(res);
 }
 
 export async function indexVolumeStats(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 2000) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
-  const res = await fetch(`${API_BASE}/api/discovery/index-volume?${params}`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/discovery/index-volume?${params}`, { method: "POST" });
   return getJson(res);
 }
 
@@ -1005,7 +1032,7 @@ export async function getVolumeStats(symbol = "BTCUSDT", timeframe = "1h", take 
 }
 
 export async function buildTransitionMatrix() {
-  const res = await fetch(`${API_BASE}/api/transitions/build`, { method: "POST" });
+  const res = await adminFetch(`${API_BASE}/api/transitions/build`, { method: "POST" });
   return getJson(res);
 }
 

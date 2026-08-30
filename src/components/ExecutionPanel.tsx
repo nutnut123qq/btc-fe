@@ -2,17 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  Wallet,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
   Zap,
-  ShieldAlert,
   Radio,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  Layers,
   Activity,
   Trash2,
 } from "lucide-react";
@@ -31,6 +27,8 @@ import type {
   StreamStatusDto,
   WalletBalanceSnapshotDto,
 } from "@/lib/types";
+import { SessionAccessPanel } from "./SessionAccessPanel";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 interface ExecutionPanelProps {
   symbol?: string;
@@ -49,6 +47,7 @@ export function ExecutionPanel({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [executionUnlocked, setExecutionUnlocked] = useState(() => Boolean(getSessionKey("execution")));
 
   // Order Form State
   const [orderType, setOrderType] = useState<"market" | "stop_loss" | "take_profit">("market");
@@ -223,7 +222,7 @@ export function ExecutionPanel({
 
           <button
             onClick={() => void handleReconnectStream()}
-            disabled={actionLoading}
+            disabled={actionLoading || !executionUnlocked}
             className="p-1 text-gray-400 hover:text-gray-200 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
             title="Kết nối lại User Data Stream"
           >
@@ -240,6 +239,12 @@ export function ExecutionPanel({
           </button>
         </div>
       </div>
+
+      <SessionAccessPanel
+        kind="execution"
+        label="Quyền giao dịch Binance Futures Testnet"
+        onChange={setExecutionUnlocked}
+      />
 
       {/* Message Banner */}
       {message && (
@@ -427,7 +432,7 @@ export function ExecutionPanel({
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={() => void handlePlaceOrder()}
-            disabled={actionLoading}
+            disabled={actionLoading || !executionUnlocked}
             className={`flex-1 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50 ${
               orderSide === "BUY"
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20"
@@ -442,7 +447,7 @@ export function ExecutionPanel({
 
           <button
             onClick={() => void handleCancelAll()}
-            disabled={actionLoading}
+            disabled={actionLoading || !executionUnlocked}
             className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-rose-300 border border-gray-700 rounded-lg font-semibold text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
             title="Hủy toàn bộ lệnh mở của mã này"
           >

@@ -7,6 +7,8 @@ import { getAlertSettings, putAlertSettings } from "@/lib/api";
 import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
 import { DataManagementPanel } from "./DataManagementPanel";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { SessionAccessPanel } from "./SessionAccessPanel";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 const ALERT_USER_ID = "default";
 
@@ -15,6 +17,7 @@ export function AlertSettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [adminUnlocked, setAdminUnlocked] = useState(() => Boolean(getSessionKey("admin")));
 
   const [enabled, setEnabled] = useState(false);
   const [priceAbove, setPriceAbove] = useState("");
@@ -120,6 +123,12 @@ export function AlertSettingsScreen() {
         Điều kiện lưu trong PostgreSQL; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
       </p>
 
+      <SessionAccessPanel
+        kind="admin"
+        label="Quyền quản trị"
+        onChange={setAdminUnlocked}
+      />
+
       {loading && <p className="text-gray-500 text-sm">Đang tải…</p>}
 
       {!loading && (
@@ -200,7 +209,7 @@ export function AlertSettingsScreen() {
 
           <button
             type="button"
-            disabled={saving}
+            disabled={saving || !adminUnlocked}
             onClick={() => void save()}
             className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium disabled:opacity-50 transition-colors"
           >
@@ -211,12 +220,12 @@ export function AlertSettingsScreen() {
 
       <hr className="border-gray-800 my-6" />
 
-      <TelegramSettingsPanel />
+      <TelegramSettingsPanel adminUnlocked={adminUnlocked} />
 
       <hr className="border-gray-800 my-6" />
 
       <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
-        <DataManagementPanel />
+        <DataManagementPanel adminUnlocked={adminUnlocked} />
       </ErrorBoundary>
     </div>
   );

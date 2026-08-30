@@ -7,7 +7,6 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
-  Info,
   ChevronDown,
   ChevronUp,
   Newspaper,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { getCurrentSentiment, refreshSentiment } from "@/lib/api";
 import type { SentimentSnapshotDto } from "@/lib/types";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 interface SentimentBadgeProps {
   symbol?: string;
@@ -23,20 +23,17 @@ interface SentimentBadgeProps {
 }
 
 export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: SentimentBadgeProps) {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [sentiment, setSentiment] = useState<SentimentSnapshotDto | null>(null);
-  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const loadSentiment = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await getCurrentSentiment(symbol);
       setSentiment(data);
     } catch (err) {
       console.error("Failed to load sentiment", err);
-    } finally {
-      setLoading(false);
     }
   }, [symbol]);
 
@@ -117,7 +114,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         </span>
         <button
           onClick={() => void handleRefresh()}
-          disabled={refreshing}
+          disabled={refreshing || !adminUnlocked}
           className="text-gray-500 hover:text-gray-300 ml-1 transition-colors disabled:opacity-50"
           title="Làm mới điểm tâm lý"
         >
@@ -156,7 +153,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
           <button
             onClick={() => void handleRefresh()}
-            disabled={refreshing}
+            disabled={refreshing || !adminUnlocked}
             className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             title="Tính toán lại Snapshot Tâm lý"
           >

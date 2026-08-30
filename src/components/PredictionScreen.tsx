@@ -6,6 +6,7 @@ import { getLatestPrediction, getPredictionHistory, getAvailableModels, auditPre
 import type { PredictionResult, ModelPredictionItem, AvailableModel, PredictionAccuracySummaryDto } from "@/lib/types";
 import { WINDOW_SIZES } from "@/lib/types";
 import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 const SYMBOL_OPTIONS = [
   { value: "BTCUSDT", label: "BTC/USDT" },
@@ -32,6 +33,7 @@ function formatTime(ms: number) {
 }
 
 export function PredictionScreen() {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [symbol, setSymbol] = useState("BTCUSDT");
   const [timeframe, setTimeframe] = useState("1h");
   const [windowSize, setWindowSize] = useState(5);
@@ -278,7 +280,7 @@ export function PredictionScreen() {
           </div>
           <button
             onClick={() => void handleAudit()}
-            disabled={auditing}
+            disabled={auditing || !adminUnlocked}
             className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${auditing ? "animate-spin" : ""}`} />

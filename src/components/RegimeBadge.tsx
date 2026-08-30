@@ -4,8 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { getCurrentRegime, getRegimeSummary, buildRegimes } from "@/lib/api";
 import { MarketRegimeDto, RegimeSummaryDto } from "@/lib/types";
 import { RefreshCw, Activity, Layers, ArrowUpCircle, ArrowDownCircle, MinusCircle, Maximize, Minimize2 } from "lucide-react";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 export function RegimeBadge({ symbol = "BTCUSDT", timeframe = "1h" }: { symbol?: string; timeframe?: string }) {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [currentRegime, setCurrentRegime] = useState<MarketRegimeDto | null>(null);
   const [summary, setSummary] = useState<RegimeSummaryDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = "1h" }: { symbol?:
           </div>
           <button 
             onClick={handleBuild}
-            disabled={isLoading}
+            disabled={isLoading || !adminUnlocked}
             className="p-1.5 hover:bg-gray-800 rounded-md text-gray-400 disabled:opacity-50"
             title="Build / Re-calculate Regimes"
           >
@@ -105,7 +107,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = "1h" }: { symbol?:
         </div>
         <button 
           onClick={handleBuild}
-          disabled={isLoading}
+          disabled={isLoading || !adminUnlocked}
           className="p-1.5 hover:bg-gray-800 rounded-md text-gray-400 disabled:opacity-50"
           title="Build / Re-calculate Regimes"
         >

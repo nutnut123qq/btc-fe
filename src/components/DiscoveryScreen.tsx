@@ -6,6 +6,7 @@ import { runDiscovery, getDiscoveredRules, clearDiscoveredRules, evaluateSequenc
 import { parseRuleConditions } from "@/lib/formatRuleCondition";
 import { RuleConditionsDisplay } from "./RuleConditionsDisplay";
 import { RuleDiscoverySummary } from "./RuleDiscoverySummary";
+import { getSessionKey } from "@/lib/sessionAuth";
 
 import type { SequenceRule } from "@/lib/types";
 
@@ -16,8 +17,9 @@ const SYMBOL_OPTIONS = [
 ];
 
 export function DiscoveryScreen() {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [symbol, setSymbol] = useState("BTCUSDT");
-  const [timeframe, setTimeframe] = useState("1h");
+  const timeframe = "1h";
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
   const [loading, setLoading] = useState(false);
@@ -108,7 +110,7 @@ export function DiscoveryScreen() {
       <div className="flex items-center justify-end gap-2">
         <button
           onClick={() => void handleEvaluate()}
-          disabled={evaluating || rules.length === 0}
+          disabled={evaluating || rules.length === 0 || !adminUnlocked}
           className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 disabled:opacity-50"
         >
           <Play className="w-3.5 h-3.5" />
@@ -116,7 +118,7 @@ export function DiscoveryScreen() {
         </button>
         <button
           onClick={() => void loadRules()}
-          disabled={loading}
+          disabled={loading || !adminUnlocked}
           className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -124,7 +126,7 @@ export function DiscoveryScreen() {
         </button>
         <button
           onClick={() => void handleRun()}
-          disabled={running}
+          disabled={running || !adminUnlocked}
           className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-50"
         >
           <FlaskConical className="w-3.5 h-3.5" />

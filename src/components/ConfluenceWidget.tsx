@@ -4,8 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { getConfluenceCurrent, calculateConfluence } from "../lib/api";
 import type { ConfluenceSnapshotDto } from "../lib/types";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { getSessionKey } from "../lib/sessionAuth";
 
 export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [data, setData] = useState<ConfluenceSnapshotDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
         </div>
         <button
           onClick={handleRecalculate}
-          disabled={loading}
+          disabled={loading || !adminUnlocked}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />

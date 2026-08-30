@@ -310,7 +310,9 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     });
 
     if (combinedMarkers.length > 0) {
-      createSeriesMarkers(candleSeries, combinedMarkers);
+      // Keep the price action readable on dense datasets; detailed history remains
+      // available in the dedicated Smart Money/pattern panels.
+      createSeriesMarkers(candleSeries, combinedMarkers.slice(-60));
     }
 
     // Visible range: zoom to highlight window with padding (like Flutter's kHighlightVisiblePadBars = 12)

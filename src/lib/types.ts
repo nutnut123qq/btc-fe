@@ -917,25 +917,32 @@ export type WalletBalanceSnapshotDto = {
 export type TimeframeAuditSummary = {
   timeframe: string;
   totalKlines: number;
-  firstKlineTimeMs: number;
-  lastKlineTimeMs: number;
+  minOpenTimeMs: number | null;
+  maxOpenTimeMs: number | null;
+  expectedCount: number | null;
   gapsCount: number;
   dataCoveragePct: number;
   largestGapMs: number;
-};
-
-export type DataAuditGapItem = {
-  timeframe: string;
-  gapStartMs: number;
-  gapEndMs: number;
-  missingBars: number;
+  candlePatternsCount: number;
+  technicalIndicatorsCount: number;
+  windowVectorsCount: number;
+  mlFeatureStoresCount: number;
+  priceTargetsCount: number;
+  windowClassificationDatasetsCount: number;
+  gaps: Array<{ startMs: number; endMs: number; missingCount: number }>;
 };
 
 export type DataAuditResponse = {
-  requestId: string;
   symbol: string;
+  generatedAtUtc: string;
   timeframes: TimeframeAuditSummary[];
-  topGaps: DataAuditGapItem[];
+  news: {
+    articles: number;
+    chunks: number;
+    minDate: string | null;
+    maxDate: string | null;
+  };
+  rulesAlerts: { rules: number; signals: number; alerts: number };
 };
 
 export type BackfillStartInfo = {

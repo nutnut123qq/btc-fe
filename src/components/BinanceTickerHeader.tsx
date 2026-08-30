@@ -1,7 +1,7 @@
 "use client";
 
 import { MarketTicker } from "@/lib/types";
-import { TrendingUp, TrendingDown, Search, Activity, BarChart2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Search } from "lucide-react";
 
 type Props = {
   selectedSymbol: string;

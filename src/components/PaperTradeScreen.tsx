@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { LineChart, RefreshCw, Activity, ArrowUpRight, ArrowDownRight, LayoutList } from "lucide-react";
 import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades, evaluateEnsemblePaperTrade } from "@/lib/api";
+import { getSessionKey } from "@/lib/sessionAuth";
 import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -22,6 +23,7 @@ const SYMBOL_OPTIONS = [
 ];
 
 export function PaperTradeScreen() {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [selectedSymbol, setSelectedSymbol] = useState<string>("all");
   const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
@@ -42,10 +44,10 @@ export function PaperTradeScreen() {
       const symbolParam = sym === "all" ? undefined : sym;
       const timeframeParam = tf === "all" ? undefined : tf;
       const [sumRes, openRes, closedRes, eqRes] = await Promise.all([
-        getPaperTradeSummary(symbolParam ?? "BTCUSDT", timeframeParam),
-        getOpenPaperTrades(symbolParam ?? "BTCUSDT"),
+        getPaperTradeSummary(symbolParam, timeframeParam),
+        getOpenPaperTrades(symbolParam),
         getPaperTrades({ symbol: symbolParam, timeframe: timeframeParam, status: "closed", take: 100 }),
-        getPaperTradeEquityCurve(symbolParam ?? "BTCUSDT", timeframeParam)
+        getPaperTradeEquityCurve(symbolParam, timeframeParam)
       ]);
       setSummary(sumRes);
       setOpenTrades(openRes.items ?? []);
@@ -209,7 +211,7 @@ export function PaperTradeScreen() {
         </div>
         <button
           onClick={() => void handleEvaluateEnsemble()}
-          disabled={loading}
+          disabled={loading || !adminUnlocked}
           className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
         >
           {loading ? "Running..." : "Evaluate Now"}
@@ -345,14 +347,14 @@ export function PaperTradeScreen() {
                 <tr key={t.id} className="border-b border-gray-800/30 hover:bg-gray-800/50 transition-colors">
                   <td className="py-2 px-2 text-gray-400">{t.exitTimeMs ? formatTime(t.exitTimeMs) : "-"}</td>
                   <td className="py-2 px-2">
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${t.side === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${t.side.toLowerCase() === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
                       {t.side.toUpperCase()}
                     </span>
                   </td>
                   <td className="py-2 px-2 text-right">{t.entryPrice?.toLocaleString() ?? "-"}</td>
                   <td className="py-2 px-2 text-right">{t.exitPrice?.toLocaleString() ?? "-"}</td>
                   <td className={`py-2 px-2 text-right font-medium ${t.netReturn && t.netReturn >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    {t.netReturn != null ? formatPct(t.netReturn) : "-"}
+                    {t.netReturn != null ? formatPct(t.netReturnPct ?? t.netReturn * 100) : "-"}
                   </td>
                   <td className="py-2 px-2 text-right text-gray-400">{t.confidence ? (t.confidence * 100).toFixed(0) + "%" : "-"}</td>
                   <td className="py-2 px-2 text-gray-400 text-xs">{t.modelVersion ?? "-"}</td>

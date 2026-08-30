@@ -12,6 +12,7 @@ import {
   PredictionEvaluationSummaryDto,
   BatchReplayResultDto,
 } from "../lib/types";
+import { getSessionKey } from "../lib/sessionAuth";
 
 interface EnsembleLayer {
   layerName: string;
@@ -30,6 +31,7 @@ export function EnsembleDashboardWidget({
   symbol?: string;
   timeframe?: string;
 }) {
+  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [ensemble, setEnsemble] = useState<EnsemblePredictionDto | null>(null);
   const [evalSummary, setEvalSummary] = useState<PredictionEvaluationSummaryDto | null>(null);
   const [replayResult, setReplayResult] = useState<BatchReplayResultDto | null>(null);
@@ -187,7 +189,7 @@ export function EnsembleDashboardWidget({
           </div>
           <button
             onClick={handleRunBatchReplay}
-            disabled={replaying}
+            disabled={replaying || !adminUnlocked}
             className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
           >
             {replaying ? "Đang Du Hành 2,000 Mẫu..." : "🚀 Kích Hoạt Batch Replay (2,000 Mẫu)"}
@@ -229,7 +231,7 @@ export function EnsembleDashboardWidget({
           </div>
           <button
             onClick={handleRunEvaluation}
-            disabled={evaluating}
+            disabled={evaluating || !adminUnlocked}
             className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-gray-950 font-bold rounded-lg text-xs shadow-md transition-all disabled:opacity-50 flex items-center gap-1.5"
           >
             {evaluating ? "Đang Nối Nến..." : "⚡ Đối Chiếu & Cập Nhật T/F/N"}
