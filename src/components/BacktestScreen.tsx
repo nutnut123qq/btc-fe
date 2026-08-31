@@ -23,6 +23,7 @@ export function BacktestScreen() {
   const [activeTab, setActiveTab] = useState<"ml" | "ensemble">("ml");
   const [runs, setRuns] = useState<BacktestRunSummary[]>([]);
   const [selected, setSelected] = useState<(BacktestRunSummary & { trades: BacktestTradeItem[] }) | null>(null);
+  const [includeLegacy, setIncludeLegacy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,20 +44,21 @@ export function BacktestScreen() {
     setLoading(true);
     setError("");
     try {
-      const data = await getBacktestRuns(selectedSymbol);
+      const data = await getBacktestRuns(selectedSymbol, undefined, 50, includeLegacy);
       setRuns(data.items ?? []);
+      setSelected(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load backtests");
     } finally {
       setLoading(false);
     }
-  }, [selectedSymbol]);
+  }, [selectedSymbol, includeLegacy]);
 
   const loadDetail = async (id: number) => {
     setLoading(true);
     setError("");
     try {
-      const data = await getBacktestRunDetail(id);
+      const data = await getBacktestRunDetail(id, includeLegacy);
       setSelected(data);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load backtest detail");
@@ -166,7 +168,7 @@ export function BacktestScreen() {
             onClick={() => setActiveTab("ensemble")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ensemble" ? "bg-teal-500/20 text-teal-400 border border-teal-500/40 font-bold" : "bg-gray-900 border border-gray-800 text-gray-400"}`}
           >
-            Master Ensemble
+            Ensemble (Experimental)
           </button>
         </div>
       </div>
@@ -174,10 +176,23 @@ export function BacktestScreen() {
       {activeTab === "ml" && (
         <>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-teal-400" />
-          Backtest chiến lược ML
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-teal-400" />
+            Backtest chiến lược ML
+          </h2>
+          <label className="flex items-center gap-2 text-xs text-amber-300">
+            <input
+              type="checkbox"
+              checked={includeLegacy}
+              onChange={(event) => setIncludeLegacy(event.target.checked)}
+            />
+            Lab: hiện Legacy/Invalid
+          </label>
+        </div>
+        {includeLegacy && (
+          <p className="mb-3 text-xs text-amber-300">Kết quả Legacy/Invalid chỉ phục vụ điều tra, không phải bằng chứng production.</p>
+        )}
 
         {error && (
           <div className="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg px-3 py-2 text-sm mb-4">
@@ -193,6 +208,7 @@ export function BacktestScreen() {
                 <th className="text-left py-2 px-2">Model</th>
                 <th className="text-left py-2 px-2">TF</th>
                 <th className="text-left py-2 px-2">Horizon</th>
+                <th className="text-left py-2 px-2">Validity</th>
                 <th className="text-right py-2 px-2">Trades</th>
                 <th className="text-right py-2 px-2">Win rate</th>
                 <th className="text-right py-2 px-2">Return</th>
@@ -213,6 +229,12 @@ export function BacktestScreen() {
                   <td className="py-2 px-2">{r.modelName}</td>
                   <td className="py-2 px-2">{r.timeframe}</td>
                   <td className="py-2 px-2">{r.horizon}</td>
+                  <td className="py-2 px-2">
+                    <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${r.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : r.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-amber-500/40 text-amber-300"}`}>
+                      {r.validityStatus}
+                    </span>
+                    {r.invalidReason && <div className="mt-1 max-w-56 text-[10px] text-gray-500">{r.invalidReason}</div>}
+                  </td>
                   <td className="py-2 px-2 text-right">{r.totalTrades}</td>
                   <td className="py-2 px-2 text-right">{(r.winRate * 100).toFixed(1)}%</td>
                   <td className={`py-2 px-2 text-right font-medium ${r.totalReturnPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -228,7 +250,9 @@ export function BacktestScreen() {
               ))}
               {runs.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={11} className="py-4 text-center text-gray-500">Chưa có backtest nào. Chạy script `ai/backtest_strategy.py` để tạo.</td>
+                  <td colSpan={12} className="py-4 text-center text-gray-500">
+                    {includeLegacy ? "Không có backtest nào trong phạm vi đã chọn." : "Không có backtest Valid. Bật bộ lọc Lab để xem Legacy/Invalid."}
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -241,7 +265,12 @@ export function BacktestScreen() {
           <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
             <Activity className="w-4 h-4 text-teal-400" />
             Chi tiết backtest #{selected.id} — {selected.modelName}
+            <span className={`rounded border px-2 py-0.5 text-[10px] ${selected.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : selected.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-amber-500/40 text-amber-300"}`}>{selected.validityStatus}</span>
           </h3>
+          <p className="mb-3 text-xs text-gray-400">
+            Pipeline {selected.pipelineVersion} · Evaluation {selected.evaluationVersion}
+            {selected.invalidReason ? ` · ${selected.invalidReason}` : ""}
+          </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="bg-gray-950 border border-gray-800 rounded-lg p-3">

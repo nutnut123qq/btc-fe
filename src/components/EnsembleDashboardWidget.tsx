@@ -2,17 +2,13 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  getEnsemblePredict,
+  getEnsembleHistory,
   getEnsembleEvaluations,
-  evaluateEnsemblePredictions,
-  runBatchReplay,
 } from "../lib/api";
 import {
   EnsemblePredictionDto,
   PredictionEvaluationSummaryDto,
-  BatchReplayResultDto,
 } from "../lib/types";
-import { getSessionKey } from "../lib/sessionAuth";
 
 interface EnsembleLayer {
   layerName: string;
@@ -31,25 +27,22 @@ export function EnsembleDashboardWidget({
   symbol?: string;
   timeframe?: string;
 }) {
-  const adminUnlocked = Boolean(getSessionKey("admin"));
+  const [showExperimental, setShowExperimental] = useState(false);
   const [ensemble, setEnsemble] = useState<EnsemblePredictionDto | null>(null);
   const [evalSummary, setEvalSummary] = useState<PredictionEvaluationSummaryDto | null>(null);
-  const [replayResult, setReplayResult] = useState<BatchReplayResultDto | null>(null);
   const [loading, setLoading] = useState(false);
-  const [evaluating, setEvaluating] = useState(false);
-  const [replaying, setReplaying] = useState(false);
   const [error, setError] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [ensRes, evalRes] = await Promise.all([
-        getEnsemblePredict(symbol, timeframe),
-        getEnsembleEvaluations(symbol).catch(() => null),
+      const [history, evalRes] = await Promise.all([
+        getEnsembleHistory(symbol, timeframe, 50, true),
+        getEnsembleEvaluations(symbol, true),
       ]);
-      setEnsemble(ensRes);
-      if (evalRes) setEvalSummary(evalRes);
+      setEnsemble(history.find((item) => item.sourcePredictionId == null) ?? null);
+      setEvalSummary(evalRes);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load ensemble data");
     } finally {
@@ -57,75 +50,67 @@ export function EnsembleDashboardWidget({
     }
   }, [symbol, timeframe]);
 
-  const handleRunEvaluation = async () => {
-    setEvaluating(true);
-    try {
-      const updatedEval = await evaluateEnsemblePredictions(symbol);
-      setEvalSummary(updatedEval);
-    } catch (err: unknown) {
-      alert("Lỗi khi chạy đánh giá T/F/N: " + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setEvaluating(false);
-    }
-  };
-
-  const handleRunBatchReplay = async () => {
-    setReplaying(true);
-    try {
-      const res = await runBatchReplay(2000, 0.60, symbol, timeframe);
-      setReplayResult(res);
-      // Reload evaluation list after batch replay
-      const updatedEval = await getEnsembleEvaluations(symbol);
-      setEvalSummary(updatedEval);
-    } catch (err: unknown) {
-      alert("Lỗi khi chạy Historical Batch Replay: " + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setReplaying(false);
-    }
-  };
-
   useEffect(() => {
+    if (!showExperimental) return;
     void loadData();
     const interval = setInterval(() => void loadData(), 60000);
     return () => clearInterval(interval);
-  }, [loadData]);
+  }, [loadData, showExperimental]);
 
-  if (loading && !ensemble) {
-    return <div className="p-4 bg-gray-900 rounded shadow text-white animate-pulse">Loading Ensemble Master Predictor...</div>;
+  if (!showExperimental) {
+    return (
+      <div className="rounded-xl border border-amber-500/40 bg-amber-950/15 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 font-semibold text-amber-200">
+              Ensemble challenger
+              <span className="rounded border border-amber-500/50 px-2 py-0.5 text-[10px] font-bold uppercase">Experimental / Legacy</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-400">Kết quả lịch sử chưa vượt promotion gate; chỉ mở số liệu trong phạm vi Lab.</p>
+          </div>
+          <button onClick={() => setShowExperimental(true)} className="rounded border border-amber-500/40 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-500/10">
+            Mở trong Lab
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && !evalSummary) {
+    return <div className="p-4 bg-gray-900 rounded shadow text-white animate-pulse">Đang tải ensemble experimental...</div>;
   }
 
   if (error) {
     return (
       <div className="p-4 bg-red-900/50 border border-red-500 rounded text-red-200">
-        <h3 className="font-bold mb-2">Ensemble Predictor Error</h3>
+        <h3 className="font-bold mb-2">Không tải được ensemble experimental</h3>
         <p>{error}</p>
         <button onClick={loadData} className="mt-2 px-3 py-1 bg-red-800 rounded hover:bg-red-700">Retry</button>
       </div>
     );
   }
 
-  if (!ensemble) return null;
-
-  const dirColor =
-    ensemble.finalDirection === "Bullish"
+  const dirColor = ensemble?.finalDirection === "Bullish"
       ? "text-green-400 bg-green-400/10 border-green-400/30"
-      : ensemble.finalDirection === "Bearish"
+      : ensemble?.finalDirection === "Bearish"
       ? "text-red-400 bg-red-400/10 border-red-400/30"
       : "text-gray-300 bg-gray-400/10 border-gray-400/30";
 
-  const layers = ensemble.layers || (ensemble.layerBreakdownJson ? JSON.parse(ensemble.layerBreakdownJson) : []);
+  const layers = ensemble?.layers ?? [];
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Master Prediction Card */}
+      {ensemble ? (
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-xl relative overflow-hidden">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-              <span className="bg-indigo-500 text-xs px-2 py-1 rounded text-white uppercase font-bold tracking-wider">AI Master</span>
-              Ensemble Predictor
+              <span className="bg-amber-600 text-xs px-2 py-1 rounded text-white uppercase font-bold tracking-wider">Experimental</span>
+              Ensemble challenger
             </h2>
-            <div className="text-sm text-gray-400 mt-1">Dự báo đồng thuận đa tác vụ cho {symbol} ({timeframe})</div>
+            <div className="text-sm text-gray-400 mt-1">Nghiên cứu legacy cho {symbol} ({timeframe}); không phải tín hiệu production.</div>
+            <div className="mt-1 text-xs text-amber-300">{ensemble.promotionReason}</div>
+            <div className="mt-1 text-[11px] text-gray-500">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
           </div>
           <div className={`px-4 py-2 rounded-full border ${dirColor} font-bold text-lg shadow-sm flex items-center gap-2`}>
             {ensemble.finalDirection === "Bullish" && "🚀"}
@@ -175,94 +160,59 @@ export function EnsembleDashboardWidget({
           </div>
         </div>
       </div>
-
-      {/* Historical Batch Replay (2,000 Out-of-Sample Tests) Controls & Epoch Cards */}
-      <div className="bg-gray-800 border border-indigo-500/40 rounded-xl p-5 shadow-xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-gray-700">
-          <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              ⏳ Historical Batch Replay Engine (Kiểm Định Quá Khứ 2020 – 2026)
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Cho AI &quot;du hành thời gian&quot; về 2,000 điểm quá khứ, nghiêm ngặt không lộ dữ liệu tương lai để thử thách Win Rate thực sự.
-            </p>
-          </div>
-          <button
-            onClick={handleRunBatchReplay}
-            disabled={replaying || !adminUnlocked}
-            className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
-          >
-            {replaying ? "Đang Du Hành 2,000 Mẫu..." : "🚀 Kích Hoạt Batch Replay (2,000 Mẫu)"}
-          </button>
-        </div>
-
-        {/* Epoch Breakdown Cards */}
-        {replayResult && replayResult.epochBreakdown && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            {replayResult.epochBreakdown.map((ep, idx) => (
-              <div key={idx} className="bg-gray-900 border border-gray-700 p-4 rounded-xl flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">{ep.epochName}</div>
-                  <div className="text-sm font-semibold text-gray-200 mt-0.5">{ep.periodDescription}</div>
-                </div>
-                <div className="mt-4 flex items-end justify-between border-t border-gray-800 pt-3">
-                  <div>
-                    <div className="text-xs text-gray-400">Mẫu thử: {ep.totalSamples}</div>
-                    <div className="text-xs text-emerald-400">Đúng T: {ep.trueCount} | Sai F: {ep.falseCount}</div>
-                  </div>
-                  <div className="text-2xl font-black text-emerald-400">{ep.winRatePct}%</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      ) : (
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 text-sm text-gray-400">Không có snapshot ensemble cho {symbol} ({timeframe}); bảng đánh giá legacy vẫn được giữ bên dưới.</div>
+      )}
 
       {/* T / F / N Scoreboard & Evaluation History Table */}
       <div className="bg-gray-800 border border-teal-500/30 rounded-xl p-5 shadow-xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-gray-700">
+        <div className="mb-4 border-b border-gray-700 pb-4">
           <div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              🏆 Bảng Theo Dõi & Đối Chiếu Thực Tế (T / F / N)
+              Bảng đánh giá ensemble Experimental / Legacy (T / F / N)
             </h3>
             <p className="text-xs text-gray-400 mt-0.5">
               Đánh giá thực nghiệm tự động: <span className="text-emerald-400 font-bold">T</span> (Đúng), <span className="text-rose-400 font-bold">F</span> (Sai), <span className="text-amber-400 font-bold">N</span> (Đang chờ 24h)
             </p>
           </div>
-          <button
-            onClick={handleRunEvaluation}
-            disabled={evaluating || !adminUnlocked}
-            className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-gray-950 font-bold rounded-lg text-xs shadow-md transition-all disabled:opacity-50 flex items-center gap-1.5"
-          >
-            {evaluating ? "Đang Nối Nến..." : "⚡ Đối Chiếu & Cập Nhật T/F/N"}
-          </button>
         </div>
 
         {/* Stats Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-          <div className="bg-gray-900 p-3 rounded-lg border border-gray-700/60 text-center">
-            <div className="text-[11px] text-gray-400 uppercase font-semibold">Tổng Dự Báo</div>
-            <div className="text-2xl font-black text-white mt-1">{evalSummary?.totalPredictions ?? 0}</div>
+        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/15 px-3 py-2 text-xs text-amber-200">
+          {evalSummary?.promotionReason ?? "Ensemble chưa qua promotion gate."}
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3 mb-6">
+          <div className="rounded-lg border border-amber-500/30 bg-gray-900 p-3">
+            <div className="mb-2 text-xs font-bold uppercase text-amber-300">Raw legacy · có thể chứa duplicate</div>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-400">
+              <div>Tổng<strong className="block text-lg text-white">{evalSummary?.totalPredictions ?? 0}</strong></div>
+              <div>Đúng / Sai<strong className="block text-lg text-gray-200">{evalSummary?.trueCount ?? 0} / {evalSummary?.falseCount ?? 0}</strong></div>
+              <div>Chờ<strong className="block text-lg text-amber-300">{evalSummary?.pendingCount ?? 0}</strong></div>
+            </div>
+            <div className="mt-2 text-center text-sm text-amber-200">Raw directional accuracy: <strong>{evalSummary?.winRatePct ?? 0}%</strong></div>
           </div>
-          <div className="bg-gray-900 p-3 rounded-lg border border-emerald-500/30 text-center">
-            <div className="text-[11px] text-emerald-400 uppercase font-semibold">Đúng (T)</div>
-            <div className="text-2xl font-black text-emerald-400 mt-1">{evalSummary?.trueCount ?? 0}</div>
+          <div className="rounded-lg border border-indigo-500/30 bg-gray-900 p-3">
+            <div className="mb-2 text-xs font-bold uppercase text-indigo-300">Canonical audit · deduplicated</div>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-400">
+              <div>Đã đánh giá<strong className="block text-lg text-white">{evalSummary?.canonicalEvaluatedCount ?? 0}</strong></div>
+              <div>Đúng / Sai<strong className="block text-lg text-gray-200">{evalSummary?.canonicalTrueCount ?? 0} / {evalSummary?.canonicalFalseCount ?? 0}</strong></div>
+              <div>Chờ<strong className="block text-lg text-amber-300">{evalSummary?.canonicalPendingCount ?? 0}</strong></div>
+            </div>
+            <div className="mt-2 text-center text-sm text-indigo-200">Canonical directional accuracy: <strong>{evalSummary?.canonicalWinRatePct ?? 0}%</strong></div>
           </div>
-          <div className="bg-gray-900 p-3 rounded-lg border border-rose-500/30 text-center">
-            <div className="text-[11px] text-rose-400 uppercase font-semibold">Sai (F)</div>
-            <div className="text-2xl font-black text-rose-400 mt-1">{evalSummary?.falseCount ?? 0}</div>
-          </div>
-          <div className="bg-gray-900 p-3 rounded-lg border border-amber-500/30 text-center">
-            <div className="text-[11px] text-amber-400 uppercase font-semibold">Chờ 24h (N)</div>
-            <div className="text-2xl font-black text-amber-400 mt-1">{evalSummary?.pendingCount ?? 0}</div>
-          </div>
-          <div className="bg-gray-900 p-3 rounded-lg border border-teal-500/30 text-center col-span-2 sm:col-span-1">
-            <div className="text-[11px] text-teal-400 uppercase font-semibold">Tỷ Lệ Thắng</div>
-            <div className="text-2xl font-black text-teal-300 mt-1">{evalSummary?.winRatePct ?? 0}%</div>
+          <div className="rounded-lg border border-cyan-500/30 bg-gray-900 p-3">
+            <div className="mb-2 text-xs font-bold uppercase text-cyan-300">Versioned re-evaluation · Experimental · non-promotable</div>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-400">
+              <div>Tổng<strong className="block text-lg text-white">{evalSummary?.reevaluatedCount ?? 0}</strong></div>
+              <div>Đúng / Sai<strong className="block text-lg text-gray-200">{evalSummary?.reevaluatedTrueCount ?? 0} / {evalSummary?.reevaluatedFalseCount ?? 0}</strong></div>
+              <div>Chờ<strong className="block text-lg text-amber-300">{evalSummary?.reevaluatedPendingCount ?? 0}</strong></div>
+            </div>
+            <div className="mt-2 text-center text-sm text-cyan-200">Re-evaluated directional accuracy: <strong>{evalSummary?.reevaluatedWinRatePct ?? 0}%</strong></div>
           </div>
         </div>
 
         {/* Records Table */}
+        <h4 className="mb-2 text-xs font-bold uppercase text-amber-300">Raw legacy records</h4>
         <div className="overflow-x-auto rounded-lg border border-gray-700 max-h-96">
           <table className="w-full text-left text-xs text-gray-300">
             <thead className="bg-gray-900 text-gray-400 uppercase font-mono border-b border-gray-700 sticky top-0">
@@ -322,12 +272,42 @@ export function EnsembleDashboardWidget({
               ) : (
                 <tr>
                   <td colSpan={7} className="p-6 text-center text-gray-500 italic">
-                    Chưa có bản ghi dự báo nào. Hãy gọi API dự báo hoặc bấm Batch Replay để kiểm định quá khứ.
+                    Chưa có bản ghi trong phạm vi Lab, hoặc các bản ghi đã được archive.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        <h4 className="mb-2 mt-5 text-xs font-bold uppercase text-cyan-300">Versioned re-evaluation lineage</h4>
+        <div className="overflow-x-auto rounded-lg border border-cyan-900/60 max-h-72">
+          {evalSummary?.reevaluatedItems.length ? (
+            <table className="w-full text-left text-xs text-gray-300">
+              <thead className="sticky top-0 border-b border-gray-700 bg-gray-900 text-gray-400 uppercase">
+                <tr>
+                  <th className="p-3">Source</th>
+                  <th className="p-3">Record</th>
+                  <th className="p-3">Evaluation version</th>
+                  <th className="p-3">Khung</th>
+                  <th className="p-3">Kết quả</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {evalSummary.reevaluatedItems.map((item) => (
+                  <tr key={item.id}>
+                    <td className="p-3 font-mono">#{item.sourcePredictionId}</td>
+                    <td className="p-3 font-mono">#{item.id}</td>
+                    <td className="p-3 text-cyan-300">{item.evaluationVersion}</td>
+                    <td className="p-3">{item.timeframe}</td>
+                    <td className="p-3">{item.evaluationStatus ?? "N"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-5 text-center text-xs text-gray-500">Chưa có lineage re-evaluation v2; raw legacy vẫn được giữ nguyên và không bị ghi đè.</div>
+          )}
         </div>
       </div>
 

@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { LineChart, RefreshCw, Activity, ArrowUpRight, ArrowDownRight, LayoutList } from "lucide-react";
-import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades, evaluateEnsemblePaperTrade } from "@/lib/api";
-import { getSessionKey } from "@/lib/sessionAuth";
+import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades } from "@/lib/api";
 import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -23,7 +22,6 @@ const SYMBOL_OPTIONS = [
 ];
 
 export function PaperTradeScreen() {
-  const adminUnlocked = Boolean(getSessionKey("admin"));
   const [selectedSymbol, setSelectedSymbol] = useState<string>("all");
   const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
@@ -59,19 +57,6 @@ export function PaperTradeScreen() {
       setLoading(false);
     }
   }, [selectedSymbol, selectedTf]);
-
-  const handleEvaluateEnsemble = async () => {
-    setLoading(true);
-    try {
-      const sym = selectedSymbol === "all" ? "BTCUSDT" : selectedSymbol;
-      await evaluateEnsemblePaperTrade(sym, selectedTf === "all" ? "1h" : selectedTf);
-      await loadAll(selectedSymbol, selectedTf);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Lỗi đánh giá Ensemble Auto-Trade");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     void loadAll(selectedSymbol, selectedTf);
@@ -203,19 +188,11 @@ export function PaperTradeScreen() {
         </div>
       )}
 
-      {/* Ensemble Banner */}
-      <div className="bg-teal-950/30 border border-teal-900/50 rounded-2xl p-4 flex items-center justify-between">
+      <div className="bg-amber-950/20 border border-amber-900/50 rounded-2xl p-4">
         <div>
-          <h3 className="text-sm font-semibold text-teal-400">Ensemble Auto-Trade Evaluation</h3>
-          <p className="text-xs text-gray-400 mt-1">Đánh giá lại toàn bộ lệnh paper trade và chạy sinh tín hiệu mới bằng Ensemble logic.</p>
+          <h3 className="text-sm font-semibold text-amber-300">Ensemble đang được quarantine</h3>
+          <p className="text-xs text-gray-400 mt-1">Pipeline ensemble legacy chưa qua promotion gate; Paper Journal không tạo tín hiệu mới từ pipeline này.</p>
         </div>
-        <button
-          onClick={() => void handleEvaluateEnsemble()}
-          disabled={loading || !adminUnlocked}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {loading ? "Running..." : "Evaluate Now"}
-        </button>
       </div>
 
       {/* Summary Cards Row */}

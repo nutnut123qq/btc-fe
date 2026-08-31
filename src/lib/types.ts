@@ -25,6 +25,24 @@ export type AlertItem = {
   priceSnapshot: number | null;
   createdAt: string;
   isRead: boolean;
+  sourceKey: string | null;
+  archivedAtUtc: string | null;
+};
+
+export type AlertListResponse = {
+  userId: string;
+  unreadCount: number;
+  items: AlertItem[];
+};
+
+export type ValidityStatus = "Valid" | "Legacy" | "Invalid";
+
+export type VersionedResearchRecord = {
+  pipelineVersion: string;
+  evaluationVersion: string;
+  validityStatus: ValidityStatus;
+  invalidReason: string | null;
+  archivedAtUtc: string | null;
 };
 
 export type AlertSettingsDto = {
@@ -165,10 +183,13 @@ export type PredictionResult = {
     prob_up: number;
     model_version: string;
     inference_ms: number;
+    pipelineVersion: string;
+    evaluationVersion: string;
+    validityStatus: ValidityStatus;
   };
 };
 
-export type ModelPredictionItem = {
+export type ModelPredictionItem = VersionedResearchRecord & {
   id: number;
   symbol: string;
   timeframe: string;
@@ -195,6 +216,15 @@ export type PredictionAccuracySummaryDto = {
   falseCount: number;
   pendingCount: number;
   winRatePct: number;
+  canonicalPredictionCount: number;
+  canonicalEvaluatedCount: number;
+  canonicalTrueCount: number;
+  canonicalFalseCount: number;
+  canonicalWinRatePct: number;
+  validated: false;
+  maturity: "Experimental";
+  promotionEligible: false;
+  promotionReason: string;
 };
 
 export type AvailableModel = {
@@ -210,7 +240,7 @@ export type AvailableModel = {
   };
 };
 
-export type BacktestRunSummary = {
+export type BacktestRunSummary = VersionedResearchRecord & {
   id: number;
   symbol: string;
   timeframe: string;
@@ -719,7 +749,7 @@ export type EnsembleLayerVoteDto = {
   summary: string;
 };
 
-export type EnsemblePredictionDto = {
+export type EnsemblePredictionDto = VersionedResearchRecord & {
   id: number;
   symbol: string;
   timeframe: string;
@@ -736,7 +766,12 @@ export type EnsemblePredictionDto = {
   actualReturnPct?: number | null;
   evaluationStatus?: "T" | "F" | "N";
   evaluatedAtMs?: number | null;
+  sourcePredictionId: number | null;
   createdAtUtc: string;
+  validated: false;
+  maturity: "Experimental";
+  promotionEligible: false;
+  promotionReason: string;
 };
 
 export type PredictionEvaluationSummaryDto = {
@@ -746,7 +781,22 @@ export type PredictionEvaluationSummaryDto = {
   falseCount: number;
   pendingCount: number;
   winRatePct: number;
+  canonicalEvaluatedCount: number;
+  canonicalTrueCount: number;
+  canonicalFalseCount: number;
+  canonicalPendingCount: number;
+  canonicalWinRatePct: number;
+  reevaluatedCount: number;
+  reevaluatedTrueCount: number;
+  reevaluatedFalseCount: number;
+  reevaluatedPendingCount: number;
+  reevaluatedWinRatePct: number;
+  validated: false;
+  maturity: "Experimental";
+  promotionEligible: false;
+  promotionReason: string;
   items: EnsemblePredictionDto[];
+  reevaluatedItems: EnsemblePredictionDto[];
 };
 
 export type EpochWinRateDto = {

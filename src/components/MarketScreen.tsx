@@ -100,22 +100,22 @@ export function MarketScreen() {
             <ConfluenceWidget symbol={selectedSymbol} />
           </ErrorBoundary>
 
-          {/* Master AI Ensemble - Expandable */}
-          <div className="bg-gray-800 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg">
+          {/* Experimental ensemble is quarantined behind an explicit Lab action. */}
+          <div className="bg-gray-800 border border-amber-500/30 rounded-xl overflow-hidden shadow-lg">
             <button
               onClick={() => setShowEnsemble(!showEnsemble)}
               className="w-full flex items-center justify-between p-4 bg-gray-800/80 hover:bg-gray-700/50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                <div className="p-2 bg-amber-500/20 rounded-lg text-amber-300">
                   <BrainCircuit className="w-5 h-5" />
                 </div>
                 <div className="text-left">
                   <h3 className="font-bold text-gray-100 flex items-center gap-2">
-                    Master AI Ensemble Predictor ({selectedSymbol.replace("USDT", "/USDT")})
-                    <span className="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full font-black tracking-widest">WAVE 5</span>
+                    Ensemble challenger ({selectedSymbol.replace("USDT", "/USDT")})
+                    <span className="text-xs border border-amber-500/50 text-amber-300 px-2 py-0.5 rounded-full font-black tracking-widest">EXPERIMENTAL</span>
                   </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Aggregated voting from all intelligence layers</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Legacy research chưa qua promotion gate; không phải tín hiệu production.</p>
                 </div>
               </div>
               <div className="text-gray-400">

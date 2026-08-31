@@ -1,4 +1,4 @@
-import { requireArray, requireArrayField, requireRecord, safeApiErrorMessage } from "./apiContract";
+import { isCoreResearchRecord, requireArray, requireArrayField, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, safeApiErrorMessage } from "./apiContract";
 import { parseAiSseLine } from "./aiStream";
 import { authenticatedFetch } from "./sessionAuth";
 
@@ -121,10 +121,17 @@ export async function putAlertSettings(userId: string, body: import("./types").A
   return getJson(res);
 }
 
-export async function getAlerts(userId: string, take = 30) {
-  const params = new URLSearchParams({ userId, take: String(take) });
+export async function getAlerts(userId: string, take = 30, includeArchived = false) {
+  const params = new URLSearchParams({ userId, take: String(take), includeArchived: String(includeArchived) });
   const res = await fetch(`${API_BASE}/api/alerts?${params}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").AlertItem>(data, "items", "alerts");
+  items.forEach((item, index) => {
+    if (item.archivedAtUtc !== null && typeof item.archivedAtUtc !== "string") {
+      throw new Error(`INVALID_API_RESPONSE: alerts.items[${index}].archivedAtUtc must be null or a string`);
+    }
+  });
+  return { ...record, items: includeArchived ? items : items.filter((item) => item.archivedAtUtc == null) } as import("./types").AlertListResponse;
 }
 
 export async function getUnreadCount(userId: string) {
@@ -289,15 +296,23 @@ export async function getLatestPrediction(payload: {
   });
   if (modelName) params.set("modelName", modelName);
   const res = await fetch(`${API_BASE}/api/prediction/latest?${params}`);
-  return getJson(res) as Promise<import("./types").PredictionResult>;
+  const data = requireRecord(await getJson(res), "latest prediction");
+  const prediction = requireRecord(data.prediction, "latest prediction.prediction");
+  if (typeof prediction.pipelineVersion !== "string" || typeof prediction.evaluationVersion !== "string" || !["Valid", "Legacy", "Invalid"].includes(String(prediction.validityStatus))) {
+    throw new Error("INVALID_API_RESPONSE: latest prediction is missing validity metadata");
+  }
+  if (prediction.validityStatus !== "Valid") {
+    throw new Error("No validated signal");
+  }
+  return data as import("./types").PredictionResult;
 }
 
-export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = "1h", take = 100) {
-  const params = new URLSearchParams({ symbol, timeframe, take: String(take) });
+export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = "1h", take = 100, includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, timeframe, take: String(take), includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/prediction/history?${params}`);
   const data: unknown = await getJson(res);
-  const { record, items } = requireArrayField<import("./types").ModelPredictionItem>(data, "items", "prediction history");
-  return { ...record, items } as { symbol: string; timeframe: string; count: number; items: import("./types").ModelPredictionItem[] };
+  const { record, items } = requireVersionedResearchItems<import("./types").ModelPredictionItem>(data, "items", "prediction history");
+  return { ...record, items: includeLegacy ? items : items.filter(isCoreResearchRecord) } as { symbol: string; timeframe: string; count: number; items: import("./types").ModelPredictionItem[] };
 }
 
 export async function getAvailableModels() {
@@ -307,28 +322,37 @@ export async function getAvailableModels() {
   return { models: items };
 }
 
-export async function auditPredictions(symbol = "BTCUSDT", timeframe = "1h") {
-  const params = new URLSearchParams({ symbol, timeframe });
+export async function auditPredictions(symbol = "BTCUSDT", timeframe = "1h", includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, timeframe, includeLegacy: String(includeLegacy) });
   const res = await adminFetch(`${API_BASE}/api/prediction/audit?${params}`, { method: "POST" });
   return getJson(res) as Promise<{ symbol: string; timeframe: string; totalPending: number; evaluatedCount: number; message: string }>;
 }
 
-export async function getPredictionAccuracy(symbol = "BTCUSDT", timeframe = "1h") {
-  const params = new URLSearchParams({ symbol, timeframe });
+export async function getPredictionAccuracy(symbol = "BTCUSDT", timeframe = "1h", includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, timeframe, includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/prediction/accuracy?${params}`);
-  return getJson(res) as Promise<import("./types").PredictionAccuracySummaryDto>;
+  return requireExperimentalAccuracy(await getJson(res)) as import("./types").PredictionAccuracySummaryDto;
 }
 
-export async function getBacktestRuns(symbol = "BTCUSDT", timeframe?: string, take = 50) {
-  const params = new URLSearchParams({ symbol, take: String(take) });
+export async function getBacktestRuns(symbol = "BTCUSDT", timeframe?: string, take = 50, includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, take: String(take), includeLegacy: String(includeLegacy) });
   if (timeframe) params.set("timeframe", timeframe);
   const res = await fetch(`${API_BASE}/api/backtest/runs?${params}`);
-  return getJson(res) as Promise<{ symbol: string; timeframe?: string; count: number; items: import("./types").BacktestRunSummary[] }>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireVersionedResearchItems<import("./types").BacktestRunSummary>(data, "items", "backtest runs");
+  return { ...record, items: includeLegacy ? items : items.filter(isCoreResearchRecord) } as { symbol: string; timeframe?: string; count: number; items: import("./types").BacktestRunSummary[] };
 }
 
-export async function getBacktestRunDetail(id: number) {
-  const res = await fetch(`${API_BASE}/api/backtest/runs/${id}`);
-  return getJson(res) as Promise<import("./types").BacktestRunSummary & { trades: import("./types").BacktestTradeItem[]; metricsJson: string; equityCurveJson: string }>;
+export async function getBacktestRunDetail(id: number, includeLegacy = false) {
+  const params = new URLSearchParams({ includeLegacy: String(includeLegacy) });
+  const res = await fetch(`${API_BASE}/api/backtest/runs/${id}?${params}`);
+  const data = requireRecord(await getJson(res), "backtest detail");
+  requireVersionedResearchRecord(data, "backtest detail");
+  if (!includeLegacy && !isCoreResearchRecord(data)) {
+    throw new Error("INVALID_API_RESPONSE: legacy backtest returned outside Lab scope");
+  }
+  requireArray(data.trades, "backtest detail.trades");
+  return data as import("./types").BacktestRunSummary & { trades: import("./types").BacktestTradeItem[]; metricsJson: string; equityCurveJson: string };
 }
 
 // --- Paper Trading ---
@@ -639,25 +663,45 @@ export async function getSentimentHistory(symbol = "BTCUSDT", limit = 50) {
 export async function getEnsemblePredict(symbol = "BTCUSDT", timeframe = "1h") {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await fetch(`${API_BASE}/api/ensemble/predict?${params}`);
-  return getJson(res) as Promise<import("./types").EnsemblePredictionDto>;
+  return requireExperimentalEnsemble(await getJson(res), "ensemble prediction") as import("./types").EnsemblePredictionDto;
 }
 
-export async function getEnsembleHistory(symbol = "BTCUSDT", timeframe = "1h", limit = 50) {
-  const params = new URLSearchParams({ symbol, timeframe, limit: String(limit) });
+export async function getEnsembleHistory(symbol = "BTCUSDT", timeframe = "1h", limit = 50, includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, timeframe, limit: String(limit), includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/ensemble/history?${params}`);
-  return getJson(res) as Promise<import("./types").EnsemblePredictionDto[]>;
+  const items = requireArray<Record<string, unknown>>(await getJson(res), "ensemble history");
+  items.forEach((item, index) => requireExperimentalEnsemble(item, `ensemble history[${index}]`));
+  return (includeLegacy ? items : items.filter(isCoreResearchRecord)) as import("./types").EnsemblePredictionDto[];
 }
 
-export async function evaluateEnsemblePredictions(symbol = "BTCUSDT") {
-  const params = new URLSearchParams({ symbol });
+export async function evaluateEnsemblePredictions(symbol = "BTCUSDT", includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, includeLegacy: String(includeLegacy) });
   const res = await adminFetch(`${API_BASE}/api/ensemble/evaluate?${params}`, { method: "POST" });
-  return getJson(res) as Promise<import("./types").PredictionEvaluationSummaryDto>;
+  return parseEnsembleEvaluationSummary(await getJson(res), includeLegacy);
 }
 
-export async function getEnsembleEvaluations(symbol = "BTCUSDT") {
-  const params = new URLSearchParams({ symbol });
+export async function getEnsembleEvaluations(symbol = "BTCUSDT", includeLegacy = false) {
+  const params = new URLSearchParams({ symbol, includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/ensemble/evaluations?${params}`);
-  return getJson(res) as Promise<import("./types").PredictionEvaluationSummaryDto>;
+  return parseEnsembleEvaluationSummary(await getJson(res), includeLegacy);
+}
+
+function parseEnsembleEvaluationSummary(data: unknown, includeLegacy: boolean) {
+  const record = requireExperimentalEnsembleSummary(data);
+  const { items } = requireVersionedResearchItems<import("./types").EnsemblePredictionDto>(data, "items", "ensemble evaluations");
+  const { items: reevaluatedItems } = requireVersionedResearchItems<import("./types").EnsemblePredictionDto>(data, "reevaluatedItems", "ensemble evaluations");
+  items.forEach((item, index) => requireExperimentalEnsemble(item, `ensemble evaluations.items[${index}]`));
+  reevaluatedItems.forEach((item, index) => {
+    const checked = requireExperimentalEnsemble(item, `ensemble evaluations.reevaluatedItems[${index}]`);
+    if (typeof checked.sourcePredictionId !== "number" || !Number.isFinite(checked.sourcePredictionId)) {
+      throw new Error(`INVALID_API_RESPONSE: ensemble evaluations.reevaluatedItems[${index}] is missing sourcePredictionId`);
+    }
+  });
+  return {
+    ...record,
+    items: includeLegacy ? items : items.filter(isCoreResearchRecord),
+    reevaluatedItems: includeLegacy ? reevaluatedItems : reevaluatedItems.filter(isCoreResearchRecord),
+  } as import("./types").PredictionEvaluationSummaryDto;
 }
 
 export async function runBatchReplay(sampleCount = 2000, minConfidence = 0.60, symbol = "BTCUSDT", timeframe = "1h") {
