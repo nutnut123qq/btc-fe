@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   Database,
   RefreshCw,
@@ -20,17 +20,40 @@ import {
   rebuildMlDatasetFromIndexer,
   getRagNewsContext,
   getTechSummary,
+  retryDataGap,
 } from "@/lib/api";
 import type {
   DataAuditResponse,
   BackfillStartInfo,
+  KlineGapAuditItem,
 } from "@/lib/types";
 
-export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?: boolean }) {
+function ageLabel(seconds: number | null): string {
+  if (seconds == null) return "--";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  if (seconds < 86400) return `${(seconds / 3600).toFixed(1)}h`;
+  return `${(seconds / 86400).toFixed(1)}d`;
+}
+
+function gapStatusClass(status: KlineGapAuditItem["status"]): string {
+  if (status === "Unavailable") return "text-rose-300 bg-rose-950/40 border-rose-900";
+  if (status === "Pending") return "text-amber-300 bg-amber-950/40 border-amber-900";
+  return "text-gray-400 bg-gray-900 border-gray-800";
+}
+
+export function DataManagementPanel({
+  adminUnlocked = false,
+  contractCompatible = false,
+}: {
+  adminUnlocked?: boolean;
+  contractCompatible?: boolean;
+}) {
   const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
   const [selectedTf, setSelectedTf] = useState("1h");
   const [auditData, setAuditData] = useState<DataAuditResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -41,20 +64,24 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
 
   const loadAudit = useCallback(async () => {
     setLoading(true);
+    setAuditError(null);
     try {
-      setAuditData(await getDataAudit(selectedSymbol));
-    } catch (err) {
-      console.error("Failed to load data audit", err);
+      setAuditData(await getDataAudit(selectedSymbol, AbortSignal.timeout(10_000)));
+    } catch (err: unknown) {
+      setAuditError(
+        err instanceof DOMException && err.name === "TimeoutError"
+          ? "Data Audit phản hồi quá 10 giây. Hãy thử lại khi backend bớt tải."
+          : err instanceof Error
+            ? err.message
+            : "Không tải được Data Audit",
+      );
     } finally {
       setLoading(false);
     }
   }, [selectedSymbol]);
 
-  useEffect(() => {
-    void loadAudit();
-  }, [loadAudit]);
-
   const handleBackfill = async (fillGaps = false, timeframe = selectedTf) => {
+    if (fillGaps && !window.confirm(`Chạy backfill gaps cho ${selectedSymbol} (${timeframe})?`)) return;
     setActionLoading(true);
     setMessage(null);
     try {
@@ -74,6 +101,22 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
         type: "error",
         text: err instanceof Error ? err.message : "Kích hoạt Backfill thất bại",
       });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRetryGap = async (gap: KlineGapAuditItem) => {
+    if (gap.id == null || (gap.status !== "Pending" && gap.status !== "Unavailable")) return;
+    if (!window.confirm(`Đặt lại lịch retry cho gap #${gap.id} (${gap.missingBars.toLocaleString()} nến)?`)) return;
+    setActionLoading(true);
+    setMessage(null);
+    try {
+      await retryDataGap(gap.id);
+      setMessage({ type: "success", text: `Đã đưa gap #${gap.id} về trạng thái Pending.` });
+      await loadAudit();
+    } catch (err: unknown) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Retry gap thất bại" });
     } finally {
       setActionLoading(false);
     }
@@ -137,6 +180,10 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
     }
   };
 
+  const topGaps = auditData?.timeframes.flatMap((tf) =>
+    tf.topGaps.map((gap, index) => ({ ...gap, timeframe: tf.timeframe, rowKey: `${tf.timeframe}-${gap.id ?? index}` })),
+  ) ?? [];
+
   return (
     <div className="space-y-4 bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg text-xs">
       {/* Header */}
@@ -147,7 +194,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           </div>
           <div>
             <h3 className="font-bold text-gray-100 uppercase tracking-wide">
-              Quản Trị Dữ Liệu & Kiểm Toán Indexer (Data Management & Audit)
+              Lab · Quản Trị Dữ Liệu & Kiểm Toán Indexer
             </h3>
             <p className="text-[11px] text-gray-400">
               Kiểm tra độ đầy đủ nến, phát hiện gaps, chạy backfill và rebuild các pipeline đặc trưng AI
@@ -158,7 +205,11 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
         <div className="flex items-center gap-2">
           <select
             value={selectedSymbol}
-            onChange={(e) => setSelectedSymbol(e.target.value)}
+            onChange={(e) => {
+              setSelectedSymbol(e.target.value);
+              setAuditData(null);
+              setAuditError(null);
+            }}
             className="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1 text-gray-200 font-bold"
           >
             <option value="BTCUSDT">BTC/USDT</option>
@@ -213,16 +264,31 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           Báo Cáo Kiểm Toán Nến & Độ Phủ Dữ Liệu ({selectedSymbol})
         </h4>
 
-        {auditData ? (
+        {loading ? (
+          <div className="space-y-2 border border-gray-800 rounded-lg p-3" role="status" aria-label="Đang tải Data Audit">
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="h-8 rounded bg-gray-800/60 animate-pulse" />
+            ))}
+          </div>
+        ) : auditError ? (
+          <div className="p-4 bg-rose-950/30 border border-rose-900/60 rounded-lg text-center text-rose-300">
+            {auditError}
+          </div>
+        ) : auditData ? (
           <div className="overflow-x-auto border border-gray-800 rounded-lg">
             <table className="w-full text-left font-mono text-[11px]">
               <thead className="bg-gray-950 text-gray-400 border-b border-gray-800">
                 <tr>
                   <th className="p-2">Khung (TF)</th>
                   <th className="p-2 text-right">Tổng số nến</th>
-                  <th className="p-2 text-right">Số khoảng trống (Gaps)</th>
+                  <th className="p-2 text-right">Thiếu nến</th>
+                  <th className="p-2 text-right">Khoảng gap</th>
+                  <th className="p-2 text-right">Pending</th>
+                  <th className="p-2 text-right">Unavailable</th>
+                  <th className="p-2 text-right">Gap ledger</th>
                   <th className="p-2 text-right">Độ phủ (%)</th>
-                  <th className="p-2 text-right">Gap lớn nhất</th>
+                  <th className="p-2 text-right">Tuổi nến cuối</th>
+                  <th className="p-2 text-right">Derived inventory</th>
                   <th className="p-2 text-center">Hành động</th>
                 </tr>
               </thead>
@@ -231,10 +297,14 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
                   <tr key={tf.timeframe} className="hover:bg-gray-800/30">
                     <td className="p-2 font-bold text-gray-200">{tf.timeframe}</td>
                     <td className="p-2 text-right text-gray-300">{tf.totalKlines?.toLocaleString()}</td>
-                    <td className="p-2 text-right">
-                      <span className={tf.gapsCount > 0 ? "text-amber-400 font-bold" : "text-emerald-400"}>
-                        {tf.gapsCount}
-                      </span>
+                    <td className={`p-2 text-right ${tf.missingBars > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                      {tf.missingBars.toLocaleString()}
+                    </td>
+                    <td className="p-2 text-right text-gray-300">{tf.gapRangeCount.toLocaleString()}</td>
+                    <td className="p-2 text-right text-amber-300">{tf.pendingGapCount}</td>
+                    <td className="p-2 text-right text-rose-300">{tf.unavailableGapCount}</td>
+                    <td className={`p-2 text-right font-semibold ${tf.gapLedgerStatus === "Reconciled" ? "text-emerald-400" : "text-amber-300"}`}>
+                      {tf.gapLedgerStatus === "Reconciled" ? "Đã đối soát" : "Tính trực tiếp · suy giảm"}
                     </td>
                     <td className="p-2 text-right">
                       <span
@@ -249,8 +319,11 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
                         {tf.dataCoveragePct?.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="p-2 text-right text-gray-400">
-                      {tf.largestGapMs > 0 ? `${(tf.largestGapMs / 3600000).toFixed(1)}h` : "--"}
+                    <td className="p-2 text-right text-gray-400">{ageLabel(tf.latestCandleAgeSeconds)}</td>
+                    <td className="p-2 text-right text-gray-500">
+                      {tf.candlePatterns == null
+                        ? "Chưa tải (fast audit)"
+                        : `${tf.candlePatterns.toLocaleString()} patterns · ${tf.technicalIndicators?.toLocaleString() ?? "--"} indicators`}
                     </td>
                     <td className="p-2 text-center">
                       <button
@@ -258,7 +331,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
                           setSelectedTf(tf.timeframe);
                           void handleBackfill(true, tf.timeframe);
                         }}
-                        disabled={actionLoading || !adminUnlocked}
+                        disabled={actionLoading || !adminUnlocked || !contractCompatible}
                         className="px-2 py-0.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 rounded text-[10px] font-semibold transition-colors"
                       >
                         Lấp gaps
@@ -268,6 +341,33 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
                 ))}
               </tbody>
             </table>
+            <div className="border-t border-gray-800 bg-gray-950/50 p-2">
+              <div className="mb-2 text-[10px] text-gray-500">
+                Top gaps đã phân loại. Unavailable vẫn là dữ liệu thiếu; retry chỉ đặt lại lịch thử, không đánh dấu đã lấp.
+              </div>
+              <div className="space-y-1.5">
+                {topGaps.length === 0 ? (
+                  <div className="text-[11px] text-emerald-400">Không có gap ưu tiên cần hiển thị.</div>
+                ) : topGaps.map((gap) => (
+                  <div key={gap.rowKey} className={`flex flex-wrap items-center justify-between gap-2 rounded border p-2 text-[10px] ${gapStatusClass(gap.status)}`}>
+                    <div>
+                      <span className="font-bold">{gap.timeframe}</span> · {gap.missingBars.toLocaleString()} nến · {gap.status ?? "Untracked"}
+                      <span className="ml-2 opacity-75">thử {gap.attemptCount} lần{gap.reason ? ` · ${gap.reason}` : ""}</span>
+                    </div>
+                    {(gap.status === "Pending" || gap.status === "Unavailable") && gap.id != null && (
+                      <button
+                        type="button"
+                        onClick={() => void handleRetryGap(gap)}
+                        disabled={actionLoading || !adminUnlocked || !contractCompatible}
+                        className="rounded border border-current px-2 py-1 font-semibold disabled:opacity-50"
+                      >
+                        Retry có xác nhận
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-500">
@@ -287,7 +387,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           {/* Backfill Full */}
           <button
             onClick={() => void handleBackfill(false)}
-            disabled={actionLoading || !adminUnlocked}
+            disabled={actionLoading || !adminUnlocked || !contractCompatible}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-teal-300 flex items-center gap-1">
@@ -299,7 +399,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           {/* Technical Indicators */}
           <button
             onClick={() => void handleReindexTech()}
-            disabled={actionLoading || !adminUnlocked}
+            disabled={actionLoading || !adminUnlocked || !contractCompatible}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-indigo-300 flex items-center gap-1">
@@ -311,7 +411,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           {/* ML Features */}
           <button
             onClick={() => void handleReindexMl()}
-            disabled={actionLoading || !adminUnlocked}
+            disabled={actionLoading || !adminUnlocked || !contractCompatible}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-purple-300 flex items-center gap-1">
@@ -323,7 +423,7 @@ export function DataManagementPanel({ adminUnlocked = false }: { adminUnlocked?:
           {/* Warmup Pattern Index */}
           <button
             onClick={() => void handleWarmupPatternIndex()}
-            disabled={actionLoading || !adminUnlocked}
+            disabled={actionLoading || !adminUnlocked || !contractCompatible}
             className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-amber-300 flex items-center gap-1">

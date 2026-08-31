@@ -27,9 +27,11 @@ import { BinanceTradeHistoryScreen } from "./BinanceTradeHistoryScreen";
 import { ArchetypeScreen } from "./ArchetypeScreen";
 import { AiChatWidget } from "./AiChatWidget";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { getAiCapabilities, getUnreadCount } from "@/lib/api";
+import { getAiCapabilities, getAppMeta, getUnreadCount, setApiContractCompatibility } from "@/lib/api";
 import type { AiCapabilitiesDto } from "@/lib/types";
 import { getLlmUiState, PAPER_JOURNAL_LABEL } from "@/lib/researchUi";
+import { canUseApiMutations, EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible } from "@/lib/apiContract";
+import type { ApiContractState } from "@/lib/apiContract";
 
 const TABS = [
   { key: "market", label: "Thị trường", icon: LineChart },
@@ -54,6 +56,7 @@ export function AppShell() {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [aiCapabilities, setAiCapabilities] = useState<AiCapabilitiesDto | null>(null);
+  const [contractState, setContractState] = useState<ApiContractState>("checking");
   const llmState = getLlmUiState(aiCapabilities);
 
   const handleTabChange = (key: TabKey) => {
@@ -95,6 +98,23 @@ export function AppShell() {
       isMounted = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    void getAppMeta(AbortSignal.timeout(5_000))
+      .then((meta) => {
+        const compatible = isApiContractCompatible(meta);
+        setApiContractCompatibility(compatible);
+        if (mounted) setContractState(compatible ? "compatible" : "mismatch");
+      })
+      .catch(() => {
+        setApiContractCompatibility(false);
+        if (mounted) setContractState("unavailable");
+      });
+    return () => {
+      mounted = false;
     };
   }, []);
 
@@ -144,6 +164,16 @@ export function AppShell() {
           </div>
         </div>
       </header>
+
+      {contractState !== "compatible" && (
+        <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-200" role="alert">
+          {contractState === "checking"
+            ? "Đang kiểm tra API contract; mutation tạm khóa."
+            : contractState === "mismatch"
+              ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
+              : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
+        </div>
+      )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-4">
         {visitedTabs.has("market") && (
@@ -212,7 +242,7 @@ export function AppShell() {
         {visitedTabs.has("settings") && (
           <div className={activeTab === "settings" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab Cảnh báo">
-              <AlertSettingsScreen />
+              <AlertSettingsScreen contractCompatible={canUseApiMutations(contractState)} />
             </ErrorBoundary>
           </div>
         )}

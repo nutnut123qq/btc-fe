@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { MessageCircle, Send, CheckCircle2, XCircle } from "lucide-react";
 import { getTelegramStatus, testTelegram } from "@/lib/api";
 
-export function TelegramSettingsPanel({ adminUnlocked = false }: { adminUnlocked?: boolean }) {
+export function TelegramSettingsPanel({
+  adminUnlocked = false,
+  contractCompatible = false,
+}: {
+  adminUnlocked?: boolean;
+  contractCompatible?: boolean;
+}) {
   const [configured, setConfigured] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -85,7 +91,7 @@ export function TelegramSettingsPanel({ adminUnlocked = false }: { adminUnlocked
       <div className="pt-2">
         <button
           onClick={() => void handleTest()}
-          disabled={!configured || testing || !adminUnlocked}
+          disabled={!configured || testing || !adminUnlocked || !contractCompatible}
           className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-medium transition-colors flex items-center gap-2"
         >
           <Send className="w-4 h-4" />

@@ -8,11 +8,12 @@ import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
 import { DataManagementPanel } from "./DataManagementPanel";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { SessionAccessPanel } from "./SessionAccessPanel";
+import { SystemStatusPanel } from "./SystemStatusPanel";
 import { getSessionKey } from "@/lib/sessionAuth";
 
 const ALERT_USER_ID = "default";
 
-export function AlertSettingsScreen() {
+export function AlertSettingsScreen({ contractCompatible = false }: { contractCompatible?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +130,16 @@ export function AlertSettingsScreen() {
         onChange={setAdminUnlocked}
       />
 
+      {!contractCompatible && (
+        <p className="rounded-lg border border-amber-900/60 bg-amber-950/30 p-2 text-xs text-amber-300">
+          API contract chưa được xác nhận; các thao tác ghi trong Settings và Lab đang bị khóa.
+        </p>
+      )}
+
+      <ErrorBoundary fallbackTitle="Lỗi tải trạng thái hệ thống">
+        <SystemStatusPanel />
+      </ErrorBoundary>
+
       {loading && <p className="text-gray-500 text-sm">Đang tải…</p>}
 
       {!loading && (
@@ -209,7 +220,7 @@ export function AlertSettingsScreen() {
 
           <button
             type="button"
-            disabled={saving || !adminUnlocked}
+            disabled={saving || !adminUnlocked || !contractCompatible}
             onClick={() => void save()}
             className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium disabled:opacity-50 transition-colors"
           >
@@ -220,12 +231,12 @@ export function AlertSettingsScreen() {
 
       <hr className="border-gray-800 my-6" />
 
-      <TelegramSettingsPanel adminUnlocked={adminUnlocked} />
+      <TelegramSettingsPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
 
       <hr className="border-gray-800 my-6" />
 
       <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
-        <DataManagementPanel adminUnlocked={adminUnlocked} />
+        <DataManagementPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
       </ErrorBoundary>
     </div>
   );

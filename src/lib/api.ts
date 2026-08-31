@@ -1,10 +1,23 @@
-import { isCoreResearchRecord, requireArray, requireArrayField, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, safeApiErrorMessage } from "./apiContract";
+import { isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, requireDataAudit, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireFreshnessHealth, requireGapRetry, requireLiveHealth, requireMutationContract, requireReadyHealth, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, requireWorkersHealth, safeApiErrorMessage } from "./apiContract";
 import { parseAiSseLine } from "./aiStream";
 import { authenticatedFetch } from "./sessionAuth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
-const adminFetch = authenticatedFetch.bind(null, "admin");
-const executionFetch = authenticatedFetch.bind(null, "execution");
+let apiContractCompatible = false;
+
+export function setApiContractCompatibility(compatible: boolean): void {
+  apiContractCompatible = compatible;
+}
+
+async function adminFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  requireMutationContract(apiContractCompatible);
+  return authenticatedFetch("admin", input, init);
+}
+
+async function executionFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  requireMutationContract(apiContractCompatible);
+  return authenticatedFetch("execution", input, init);
+}
 
 async function getJson(res: Response) {
   if (!res.ok) {
@@ -950,14 +963,52 @@ export async function getExecutionBalanceSnapshots(asset = "USDT", limit = 100):
 
 // --- Data Audit, Backfill & Indexing APIs ---
 
-export async function getDataAudit(symbol = "BTCUSDT"): Promise<import("./types").DataAuditResponse> {
-  const params = new URLSearchParams({ symbol });
-  const res = await fetch(`${API_BASE}/api/market/data-audit?${params}`);
+export async function getAppMeta(signal?: AbortSignal): Promise<import("./types").AppMetaDto> {
+  const res = await fetch(`${API_BASE}/api/meta`, { signal });
   const data: unknown = await getJson(res);
-  const { record, items } = requireArrayField<import("./types").TimeframeAuditSummary>(data, "timeframes", "data audit");
-  requireRecord(record.news, "data audit.news");
-  requireRecord(record.rulesAlerts, "data audit.rulesAlerts");
-  return { ...record, timeframes: items } as import("./types").DataAuditResponse;
+  return requireAppMeta(data) as import("./types").AppMetaDto;
+}
+
+export async function getHealthLive(signal?: AbortSignal): Promise<import("./types").LiveHealthDto> {
+  const res = await fetch(`${API_BASE}/api/health/live`, { signal });
+  const data: unknown = await getJson(res);
+  return requireLiveHealth(data) as import("./types").LiveHealthDto;
+}
+
+export async function getHealthReady(signal?: AbortSignal): Promise<import("./types").ReadyHealthDto> {
+  const res = await fetch(`${API_BASE}/api/health/ready`, { signal });
+  const data: unknown = res.ok || res.status === 503 ? await res.json() : await getJson(res);
+  return requireReadyHealth(data) as import("./types").ReadyHealthDto;
+}
+
+export async function getHealthFreshness(symbol = "BTCUSDT", signal?: AbortSignal): Promise<import("./types").FreshnessHealthDto> {
+  const params = new URLSearchParams({ symbol });
+  const res = await fetch(`${API_BASE}/api/health/freshness?${params}`, { signal });
+  const data: unknown = await getJson(res);
+  return requireFreshnessHealth(data) as import("./types").FreshnessHealthDto;
+}
+
+export async function getHealthWorkers(signal?: AbortSignal): Promise<import("./types").WorkersHealthDto> {
+  const res = await fetch(`${API_BASE}/api/health/workers`, { signal });
+  const data: unknown = await getJson(res);
+  return requireWorkersHealth(data) as import("./types").WorkersHealthDto;
+}
+
+export async function getDataAudit(
+  symbol = "BTCUSDT",
+  signal?: AbortSignal,
+  includeInventory = false,
+): Promise<import("./types").DataAuditResponse> {
+  const params = new URLSearchParams({ symbol, includeInventory: String(includeInventory) });
+  const res = await fetch(`${API_BASE}/api/market/data-audit?${params}`, { signal });
+  const data: unknown = await getJson(res);
+  return requireDataAudit(data) as import("./types").DataAuditResponse;
+}
+
+export async function retryDataGap(id: number): Promise<import("./types").GapRetryResponse> {
+  const res = await adminFetch(`${API_BASE}/api/market/data-gaps/${id}/retry`, { method: "POST" });
+  const data: unknown = await getJson(res);
+  return requireGapRetry(data) as import("./types").GapRetryResponse;
 }
 
 export async function backfillKlines(options: {

@@ -985,22 +985,40 @@ export type WalletBalanceSnapshotDto = {
 };
 
 // --- Data Audit & Backfill Types ---
+export type GapStateStatus = "Pending" | "Unavailable" | "Filled";
+
+export type KlineGapAuditItem = {
+  id: number | null;
+  startOpenTimeMs: number;
+  endOpenTimeMs: number;
+  missingBars: number;
+  status: GapStateStatus | null;
+  attemptCount: number;
+  nextRetryAtUtc: string | null;
+  reason: string | null;
+};
+
 export type TimeframeAuditSummary = {
   timeframe: string;
   totalKlines: number;
   minOpenTimeMs: number | null;
   maxOpenTimeMs: number | null;
-  expectedCount: number | null;
-  gapsCount: number;
+  expectedBars: number | null;
+  missingBars: number;
+  gapRangeCount: number;
   dataCoveragePct: number;
   largestGapMs: number;
-  candlePatternsCount: number;
-  technicalIndicatorsCount: number;
-  windowVectorsCount: number;
-  mlFeatureStoresCount: number;
-  priceTargetsCount: number;
-  windowClassificationDatasetsCount: number;
-  gaps: Array<{ startMs: number; endMs: number; missingCount: number }>;
+  pendingGapCount: number;
+  unavailableGapCount: number;
+  gapLedgerStatus: "Reconciled" | "LiveFallback";
+  latestCandleAgeSeconds: number | null;
+  candlePatterns: number | null;
+  technicalIndicators: number | null;
+  windowVectors: number | null;
+  mlFeatureStores: number | null;
+  priceTargets: number | null;
+  windowClassificationDatasets: number | null;
+  topGaps: KlineGapAuditItem[];
 };
 
 export type DataAuditResponse = {
@@ -1022,6 +1040,67 @@ export type BackfillStartInfo = {
   status: string;
   message: string;
   timeframes: string[];
+};
+
+export type GapRetryResponse = {
+  id: number;
+  status: "Pending";
+  attemptCount: 0;
+  nextRetryAtUtc: null;
+  updatedAtUtc: string;
+};
+
+export type LiveHealthDto = {
+  status: "healthy";
+  checkedAtUtc: string;
+};
+
+export type ReadyHealthDto = {
+  status: "ready" | "not_ready";
+  databaseReachable: boolean;
+  checkedAtUtc: string;
+  responseTimeMs: number;
+};
+
+export type FreshnessKlineDto = {
+  timeframe: string;
+  status: "fresh" | "stale" | "missing";
+  latestOpenTimeUtc: string | null;
+  ageSeconds: number | null;
+  maxAgeSeconds: number;
+};
+
+export type FreshnessHealthDto = {
+  status: "healthy" | "degraded";
+  databaseReachable: true;
+  checkedAtUtc: string;
+  symbol: string;
+  klines: FreshnessKlineDto[];
+};
+
+export type WorkerHealthDto = {
+  name: string;
+  status: "healthy" | "stale" | "failed" | "never";
+  lastStartedAtUtc: string | null;
+  lastSucceededAtUtc: string | null;
+  lastFailedAtUtc: string | null;
+  ageSeconds: number | null;
+  maxAgeSeconds: number;
+  lastDurationMs: number | null;
+  message: string | null;
+};
+
+export type WorkersHealthDto = {
+  checkedAtUtc: string;
+  workers: WorkerHealthDto[];
+};
+
+export type AppMetaDto = {
+  appVersion: string;
+  apiContractVersion: string;
+  dataPipelineVersion: string;
+  evaluationVersion: string;
+  environment: string;
 };
 
 export type PatternIndexStatusDto = {
