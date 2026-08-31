@@ -19,13 +19,18 @@ import {
 } from "lucide-react";
 import { getPortfolioSummary, getMultiAssetPaperTrades } from "@/lib/api";
 import { subscribeBinanceTickers, type BinanceLiveTicker } from "@/lib/binanceWs";
-import { subscribeTradeStream, type LiveTradeExecutedEvent, type LiveBalanceUpdatedEvent } from "@/lib/tradeStream";
 import type {
   PortfolioSummaryResponse,
   PaginatedPaperTrades,
   PaperTradeItem,
   PaperTradeFilterParams,
 } from "@/lib/types";
+import {
+  getPaperModelLabel,
+  getSimulatedPnlStatus,
+  PAPER_JOURNAL_LABEL,
+  SIMULATION_LABEL,
+} from "@/lib/researchUi";
 
 function formatUsdt(val: number | null | undefined): string {
   if (val === null || val === undefined) return "--";
@@ -60,18 +65,14 @@ export function BinanceTradeHistoryScreen() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
-  // Live WebSocket Prices State
+  // Public market prices used only to mark open simulated positions.
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
-
-  // SignalR Live Sync State
-  const [signalRConnected, setSignalRConnected] = useState<boolean>(false);
-  const [liveAlert, setLiveAlert] = useState<LiveTradeExecutedEvent | null>(null);
 
   // Auto-refresh timer state
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(30); // 30s default
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
 
-  // Subscribe to Binance Live WebSocket Ticker
+  // Binance public ticker is market data, not a user-data or execution stream.
   useEffect(() => {
     const unsub = subscribeBinanceTickers(["BTCUSDT", "ETHUSDT", "SOLUSDT"], (t: BinanceLiveTicker) => {
       setLivePrices((prev) => {
@@ -81,99 +82,6 @@ export function BinanceTradeHistoryScreen() {
     });
     return unsub;
   }, []);
-
-  // Subscribe to Backend SignalR Trade Notification Hub
-  useEffect(() => {
-    const unsub = subscribeTradeStream(
-      (tradeEvt: LiveTradeExecutedEvent) => {
-        setLiveAlert(tradeEvt);
-        setTimeout(() => setLiveAlert(null), 8000);
-
-        setTradesData((prev) => {
-          if (!prev) return prev;
-          const exists = prev.items.some(
-            (item) => item.id === tradeEvt.orderId || (tradeEvt.clientOrderId && item.clientOrderId === tradeEvt.clientOrderId)
-          );
-
-          if (exists) {
-            return {
-              ...prev,
-              items: prev.items.map((item) => {
-                if (item.id === tradeEvt.orderId || (tradeEvt.clientOrderId && item.clientOrderId === tradeEvt.clientOrderId)) {
-                  return {
-                    ...item,
-                    status: tradeEvt.isClosed ? "closed" : "open",
-                    exitPrice: tradeEvt.exitPrice ?? item.exitPrice,
-                    exitReason: tradeEvt.exitReason ?? item.exitReason,
-                    realizedPnLUsdt: tradeEvt.realizedPnL ?? item.realizedPnLUsdt,
-                    netReturn: tradeEvt.netReturn ?? item.netReturn,
-                    netReturnPct: tradeEvt.netReturn != null ? Number(tradeEvt.netReturn.toFixed(2)) : item.netReturnPct,
-                    executedQty: tradeEvt.executedQty ?? item.executedQty,
-                    exitTimeMs: tradeEvt.timestamp,
-                    closedAtUtc: tradeEvt.isClosed ? new Date(tradeEvt.timestamp).toISOString() : item.closedAtUtc,
-                  };
-                }
-                return item;
-              }),
-            };
-          } else {
-            const newItem: PaperTradeItem = {
-              id: tradeEvt.orderId || Date.now(),
-              symbol: tradeEvt.symbol,
-              timeframe: "1h",
-              windowEndMs: tradeEvt.timestamp,
-              entryTimeMs: tradeEvt.timestamp,
-              exitTimeMs: tradeEvt.isClosed ? tradeEvt.timestamp : 0,
-              side: tradeEvt.side,
-              confidence: null,
-              probDown: null,
-              probSideways: null,
-              probUp: null,
-              entryPrice: tradeEvt.entryPrice,
-              exitPrice: tradeEvt.exitPrice ?? null,
-              positionSizeUsdt: tradeEvt.executedQty * tradeEvt.entryPrice,
-              executedQty: tradeEvt.executedQty,
-              netReturn: tradeEvt.netReturn ?? null,
-              netReturnPct: tradeEvt.netReturn != null ? Number(tradeEvt.netReturn.toFixed(2)) : null,
-              realizedPnLUsdt: tradeEvt.realizedPnL != null ? Number(tradeEvt.realizedPnL.toFixed(2)) : null,
-              status: tradeEvt.isClosed ? "closed" : "open",
-              exitReason: tradeEvt.exitReason ?? null,
-              orderId: tradeEvt.orderId ?? null,
-              clientOrderId: tradeEvt.clientOrderId ?? null,
-              createdAtUtc: new Date(tradeEvt.timestamp).toISOString(),
-              closedAtUtc: tradeEvt.isClosed ? new Date(tradeEvt.timestamp).toISOString() : null,
-              modelVersion: "BinanceLiveStream",
-            };
-            return {
-              ...prev,
-              totalCount: prev.totalCount + 1,
-              items: [newItem, ...prev.items.slice(0, pageSize - 1)],
-            };
-          }
-        });
-
-        // Refresh portfolio metrics
-        void getPortfolioSummary().then((s) => setSummary(s)).catch(() => {});
-      },
-      (balanceEvt: LiveBalanceUpdatedEvent) => {
-        const usdt = balanceEvt.balances.find((b) => b.asset === "USDT");
-        if (usdt) {
-          setSummary((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              currentBalance: usdt.walletBalance,
-            };
-          });
-        }
-      },
-      (connected: boolean) => {
-        setSignalRConnected(connected);
-      }
-    );
-
-    return unsub;
-  }, [pageSize]);
 
   const loadData = useCallback(
     async (isManual = false) => {
@@ -199,7 +107,7 @@ export function BinanceTradeHistoryScreen() {
         setTradesData(tradesRes);
         setLastRefreshedAt(new Date());
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Không thể tải dữ liệu lịch sử giao dịch");
+        setError(err instanceof Error ? err.message : "Không thể tải nhật ký Paper");
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -242,34 +150,18 @@ export function BinanceTradeHistoryScreen() {
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-xs font-bold px-2 py-0.5 rounded">
-              USDT-M Futures
+              {SIMULATION_LABEL}
             </span>
             <h1 className="text-xl font-bold tracking-tight text-gray-100 flex items-center gap-2">
-              Lịch sử Giao dịch Binance Đa Tài sản
+              {PAPER_JOURNAL_LABEL}
             </h1>
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            Quản lý danh mục đa coin tự động hóa bằng AI Champion Model (XGBoost Calibrated 4h & ATR Dynamic TP/SL)
+            Giao dịch mô phỏng từ mô hình nghiên cứu; không phải lệnh đã khớp trên Binance.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* SignalR Live Sync Badge */}
-          <div
-            className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${
-              signalRConnected
-                ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                : "bg-amber-500/10 text-amber-300 border-amber-500/30"
-            }`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                signalRConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
-              }`}
-            />
-            <span>{signalRConnected ? "Live Sync (SignalR)" : "Connecting..."}</span>
-          </div>
-
           {/* Auto Refresh Selector */}
           <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-900 border border-gray-800 rounded-lg px-2.5 py-1.5">
             <Clock className="w-3.5 h-3.5 text-teal-400" />
@@ -298,34 +190,6 @@ export function BinanceTradeHistoryScreen() {
         </div>
       </div>
 
-      {/* ── 1.1 LIVE TRADE EXECUTION TOAST BANNER ── */}
-      {liveAlert && (
-        <div className="flex items-center justify-between gap-3 bg-emerald-950/80 border border-emerald-500/50 rounded-xl p-3.5 text-emerald-200 shadow-lg animate-fadeIn">
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="w-5 h-5 text-emerald-400 animate-bounce" />
-            <div>
-              <span className="font-bold text-sm text-emerald-300">
-                ⚡ [Live Push] Lệnh {liveAlert.symbol} {liveAlert.side} {liveAlert.status}:
-              </span>{" "}
-              <span className="text-xs text-gray-200">
-                Giá {liveAlert.isClosed ? `đóng: $${liveAlert.exitPrice?.toLocaleString()}` : `vào: $${liveAlert.entryPrice.toLocaleString()}`}
-                {liveAlert.realizedPnL != null && (
-                  <strong className={liveAlert.realizedPnL >= 0 ? " text-emerald-400 ml-1.5" : " text-rose-400 ml-1.5"}>
-                    (PnL: {liveAlert.realizedPnL >= 0 ? "+" : ""}${liveAlert.realizedPnL.toFixed(2)} USDT)
-                  </strong>
-                )}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => setLiveAlert(null)}
-            className="text-gray-400 hover:text-gray-200 text-xs px-2 py-1 bg-gray-900/60 rounded"
-          >
-            Đóng
-          </button>
-        </div>
-      )}
-
       {/* ── 2. PORTFOLIO METRICS CARDS ── */}
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -334,7 +198,7 @@ export function BinanceTradeHistoryScreen() {
             <div className="flex items-center justify-between text-gray-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <Wallet className="w-4 h-4 text-cyan-400" />
-                Số Dư Ví (USDT)
+                Vốn mô phỏng (USDT)
               </span>
               <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">
                 Vốn: {formatUsdt(summary.initialBalance)}
@@ -356,7 +220,7 @@ export function BinanceTradeHistoryScreen() {
             <div className="flex items-center justify-between text-gray-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
-                Tổng PnL Thực Tế
+                PnL đã ghi nhận (mô phỏng)
               </span>
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
@@ -381,7 +245,7 @@ export function BinanceTradeHistoryScreen() {
               <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                 <span>Trạng thái:</span>
                 <span className={summary.realizedPnLUsdt >= 0 ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
-                  {summary.realizedPnLUsdt >= 0 ? "Đang có lãi tích lũy" : "Đang điều chỉnh danh mục"}
+                  {getSimulatedPnlStatus(summary.realizedPnLUsdt)}
                 </span>
               </div>
             </div>
@@ -538,13 +402,13 @@ export function BinanceTradeHistoryScreen() {
         </div>
       </div>
 
-      {/* ── 4. BINANCE ORDER & TRADE HISTORY TABLE ── */}
+      {/* ── 4. SIMULATED TRADE JOURNAL ── */}
       <div className="bg-[#181a20] border border-[#2b313a] rounded-xl shadow-lg overflow-hidden">
         <div className="p-4 border-b border-[#2b313a] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-teal-400" />
             <h2 className="text-sm font-bold text-gray-100 uppercase tracking-wide">
-              Danh Sách Lệnh Khớp Thực Tế ({tradesData?.totalCount || 0} Lệnh)
+              Danh sách giao dịch mô phỏng ({tradesData?.totalCount || 0} lệnh)
             </h2>
           </div>
           <div className="text-xs text-gray-400">
@@ -580,7 +444,7 @@ export function BinanceTradeHistoryScreen() {
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-gray-500">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-teal-400" />
-                    Đang nạp dữ liệu lệnh khớp Binance...
+                    Đang nạp nhật ký Paper...
                   </td>
                 </tr>
               ) : !tradesData || tradesData.items.length === 0 ? (
@@ -650,7 +514,7 @@ export function BinanceTradeHistoryScreen() {
                               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
                               {formatUsdt(livePrices[trade.symbol] || trade.entryPrice)}
                             </span>
-                            <span className="text-[9px] text-cyan-500/80">Live WebSocket</span>
+                            <span className="text-[9px] text-cyan-500/80">Giá thị trường tham chiếu</span>
                           </div>
                         ) : (
                           formatUsdt(trade.exitPrice)
@@ -712,7 +576,7 @@ export function BinanceTradeHistoryScreen() {
                                   }`}
                                 >
                                   {isFloatPos ? "+" : ""}
-                                  {(floatPct * 100).toFixed(2)}% (Live)
+                                  {(floatPct * 100).toFixed(2)}% (tạm tính)
                                 </div>
                               </div>
                             );
@@ -744,7 +608,7 @@ export function BinanceTradeHistoryScreen() {
                       <td className="py-3 px-3 text-center">
                         {isOpen ? (
                           <span className="inline-block bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">
-                            OPEN (LIVE)
+                            ĐANG MỞ · PAPER
                           </span>
                         ) : trade.exitReason === "TP" ? (
                           <span className="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded">
@@ -767,17 +631,17 @@ export function BinanceTradeHistoryScreen() {
                         )}
                       </td>
 
-                      {/* 10. AI Trigger & Confidence */}
+                      {/* 10. Model metadata */}
                       <td className="py-3 px-4">
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5">
                             <Sparkles className="w-3 h-3 text-teal-400" />
                             <span className="text-[11px] font-semibold text-gray-200">
-                              {trade.confidence ? `${(trade.confidence * 100).toFixed(1)}% Conf` : "AI Trigger"}
+                              {trade.confidence != null ? `${(trade.confidence * 100).toFixed(1)}% Conf` : "Chưa có độ tin cậy"}
                             </span>
                           </div>
                           <div className="text-[9px] text-gray-400 truncate max-w-[140px]" title={trade.modelVersion || ""}>
-                            {trade.modelVersion ? trade.modelVersion.replace(".joblib", "") : "XGB Calibrated"}
+                            {getPaperModelLabel(trade.modelVersion)}
                           </div>
                           {trade.ensembleDirection && (
                             <span className="text-[9px] text-purple-300">

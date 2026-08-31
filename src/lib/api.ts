@@ -1,4 +1,5 @@
-import { requireArray, requireArrayField, requireRecord } from "./apiContract";
+import { requireArray, requireArrayField, requireRecord, safeApiErrorMessage } from "./apiContract";
+import { parseAiSseLine } from "./aiStream";
 import { authenticatedFetch } from "./sessionAuth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -8,7 +9,7 @@ const executionFetch = authenticatedFetch.bind(null, "execution");
 async function getJson(res: Response) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+    throw new Error(safeApiErrorMessage(text, res.status));
   }
   return res.json();
 }
@@ -204,9 +205,7 @@ export async function getCandlePatternsByType(payload: {
 export async function getBitcoinAnalysis(symbol = "BTCUSDT") {
   const params = new URLSearchParams({ symbol });
   const res = await fetch(`${API_BASE}/api/analysis/analyze?${params}`);
-  const text = await res.text();
-  if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
-  return JSON.parse(text) as import("./types").AnalysisResult;
+  return getJson(res) as Promise<import("./types").AnalysisResult>;
 }
 
 // --- Sequence Rules / Discovery ---
@@ -423,12 +422,16 @@ export async function getArchetypes(params: {
   if (params.page) qs.set("page", String(params.page));
   if (params.pageSize) qs.set("pageSize", String(params.pageSize));
   const res = await fetch(`${API_BASE}/api/archetypes?${qs}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeDto>(data, "items", "archetypes");
+  return { ...record, items };
 }
 
 export async function getArchetypeDetail(id: number) {
   const res = await fetch(`${API_BASE}/api/archetypes/${id}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeOutcomeDto>(data, "outcomes", "archetype detail");
+  return { ...record, outcomes: items } as import("./types").ArchetypeDetailDto;
 }
 
 export async function getArchetypeOccurrences(id: number, params: {
@@ -439,7 +442,9 @@ export async function getArchetypeOccurrences(id: number, params: {
   if (params.page) qs.set("page", String(params.page));
   if (params.pageSize) qs.set("pageSize", String(params.pageSize));
   const res = await fetch(`${API_BASE}/api/archetypes/${id}/occurrences?${qs}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeOccurrenceDto>(data, "items", "archetype occurrences");
+  return { ...record, items };
 }
 
 export async function matchCurrentArchetype(params: {
@@ -458,7 +463,9 @@ export async function matchMultiWindow(symbol?: string, timeframe?: string) {
   if (symbol) qs.set("symbol", symbol);
   if (timeframe) qs.set("timeframe", timeframe);
   const res = await fetch(`${API_BASE}/api/archetypes/match-multi?${qs}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeMatchDto>(data, "matches", "archetype matches");
+  return { ...record, matches: items };
 }
 
 export async function getArchetypeRankings(params: {
@@ -473,19 +480,25 @@ export async function getArchetypeRankings(params: {
   if (params.sortBy) qs.set("sortBy", params.sortBy);
   if (params.top) qs.set("top", String(params.top));
   const res = await fetch(`${API_BASE}/api/archetypes/rankings?${qs}`);
-  return getJson(res);
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeRankingDto>(data, "items", "archetype rankings");
+  return { ...record, items };
 }
 
 // --- Transition Matrix API ---
 
 export async function getTransitionsFrom(id: number, top = 10) {
   const res = await fetch(`${API_BASE}/api/transitions/from/${id}?top=${top}`);
-  return getJson(res) as Promise<{ archetypeId: number; transitions: import("./types").ArchetypeTransitionDto[] }>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeTransitionDto>(data, "transitions", "transitions from archetype");
+  return { ...record, transitions: items } as { archetypeId: number; transitions: import("./types").ArchetypeTransitionDto[] };
 }
 
 export async function getTransitionsTo(id: number, top = 10) {
   const res = await fetch(`${API_BASE}/api/transitions/to/${id}?top=${top}`);
-  return getJson(res) as Promise<{ archetypeId: number; transitions: import("./types").ArchetypeTransitionDto[] }>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeTransitionDto>(data, "transitions", "transitions to archetype");
+  return { ...record, transitions: items } as { archetypeId: number; transitions: import("./types").ArchetypeTransitionDto[] };
 }
 
 export async function predictNextArchetype(params: {
@@ -496,7 +509,9 @@ export async function predictNextArchetype(params: {
   if (params.timeframe) qs.set("timeframe", params.timeframe);
   if (params.windowSize) qs.set("windowSize", String(params.windowSize));
   const res = await fetch(`${API_BASE}/api/transitions/predict?${qs}`);
-  return getJson(res) as Promise<import("./types").TransitionPredictionDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").ArchetypeTransitionDto>(data, "topTransitions", "transition prediction");
+  return { ...record, topTransitions: items } as import("./types").TransitionPredictionDto;
 }
 
 export async function predictSequence(params: {
@@ -507,7 +522,9 @@ export async function predictSequence(params: {
   if (params.timeframe) qs.set("timeframe", params.timeframe);
   if (params.windowSize) qs.set("windowSize", String(params.windowSize));
   const res = await fetch(`${API_BASE}/api/transitions/predict-sequence?${qs}`);
-  return getJson(res) as Promise<import("./types").SequencePredictionDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").SequencePredictionDto["topSequences"][number]>(data, "topSequences", "sequence prediction");
+  return { ...record, topSequences: items } as import("./types").SequencePredictionDto;
 }
 
 export async function getEntropyRanking(params: {
@@ -519,7 +536,9 @@ export async function getEntropyRanking(params: {
   if (params.windowSize) qs.set("windowSize", String(params.windowSize));
   if (params.top) qs.set("top", String(params.top));
   const res = await fetch(`${API_BASE}/api/transitions/entropy-ranking?${qs}`);
-  return getJson(res) as Promise<{ items: import("./types").EntropyRankingDto[] }>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").EntropyRankingDto>(data, "items", "entropy ranking");
+  return { ...record, items } as import("./types").EntropyRankingResponseDto;
 }
 
 export async function getTransitionMatrix(params: {
@@ -530,7 +549,9 @@ export async function getTransitionMatrix(params: {
   if (params.timeframe) qs.set("timeframe", params.timeframe);
   qs.set("windowSize", String(params.windowSize));
   const res = await fetch(`${API_BASE}/api/transitions/matrix?${qs}`);
-  return getJson(res) as Promise<import("./types").TransitionMatrixDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").TransitionMatrixCell>(data, "cells", "transition matrix");
+  return { ...record, cells: items } as import("./types").TransitionMatrixDto;
 }
 
 // --- Market Regime ---
@@ -582,7 +603,9 @@ export async function getConfluenceHistory(symbol = "BTCUSDT", limit = 50) {
 export async function calculateConfluence(symbol = "BTCUSDT") {
   const params = new URLSearchParams({ symbol });
   const res = await adminFetch(`${API_BASE}/api/confluence/calculate?${params}`, { method: "POST" });
-  return getJson(res) as Promise<import("./types").ConfluenceSnapshotDto>;
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").TimeframeAlignmentItem>(data, "timeframeAlignments", "calculated confluence");
+  return { ...record, timeframeAlignments: items } as import("./types").ConfluenceSnapshotDto;
 }
 
 // --- Volume Profile ---
@@ -665,6 +688,19 @@ export async function evaluateEnsemblePaperTrade(symbol = "BTCUSDT", timeframe =
 }
 
 // --- AI Chat / Explainer API ---
+export async function getAiCapabilities() {
+  const res = await fetch(`${API_BASE}/api/ai-chat/capabilities`);
+  const data: unknown = await getJson(res);
+  const record = requireRecord(data, "AI capabilities");
+  return {
+    mlInference: record.mlInference === true,
+    llmExplanation: record.llmExplanation === true,
+    provider: typeof record.provider === "string" ? record.provider : "unknown",
+    reason: typeof record.reason === "string" ? record.reason : null,
+    fallbackExplanation: record.fallbackExplanation === true,
+  } satisfies import("./types").AiCapabilitiesDto;
+}
+
 export async function queryAiChat(payload: { symbol?: string; timeframe?: string; prompt?: string }) {
   const res = await fetch(`${API_BASE}/api/ai-chat/query`, {
     method: "POST",
@@ -700,7 +736,8 @@ export async function streamAiChat({
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+      const text = await res.text().catch(() => "");
+      throw new Error(safeApiErrorMessage(text, res.status));
     }
 
     if (!res.body) {
@@ -710,6 +747,18 @@ export async function streamAiChat({
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
+
+    const consumeLine = (line: string) => {
+      const event = parseAiSseLine(line);
+      if (!event) return false;
+      if (event.type === "token") {
+        onToken(event.token);
+        return false;
+      }
+
+      onComplete(event.evidenceTags);
+      return true;
+    };
 
     try {
       while (true) {
@@ -726,32 +775,17 @@ export async function streamAiChat({
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith("data:")) {
-            const jsonStr = trimmed.substring(5).trim();
-            if (!jsonStr) continue;
-            try {
-              const data = JSON.parse(jsonStr);
-              if (data.token) {
-                onToken(data.token);
-              }
-              if (data.done) {
-                const tags = data.evidence_tags || data.evidenceTags;
-                onComplete(tags);
-                return;
-              }
-            } catch {
-              // Raw text fallback if not JSON
-              onToken(jsonStr);
-            }
-          }
+          if (consumeLine(line)) return;
         }
       }
+
+      buffer += decoder.decode();
+      if (buffer.trim() && consumeLine(buffer)) return;
     } finally {
       reader.releaseLock();
     }
 
-    onComplete();
+    throw new Error("AI_STREAM_TRUNCATED");
   } catch (err: unknown) {
     if (signal?.aborted || (err instanceof DOMException && err.name === "AbortError")) {
       // Graceful stream abort

@@ -2,6 +2,7 @@
 
 import { TrendingUp, BarChart2 } from "lucide-react";
 import type { TransitionPredictionDto, SequencePredictionDto } from "@/lib/types";
+import { getPredictionUnavailableMessage } from "@/lib/researchUi";
 
 interface ArchetypePredictViewProps {
   nextPred: TransitionPredictionDto | null;
@@ -17,7 +18,7 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
           <TrendingUp className="w-4 h-4" />
           Dự đoán tiếp theo
         </h3>
-        {nextPred ? (
+        {nextPred?.validated ? (
           <>
             <div className="flex items-center justify-between mb-4 bg-gray-900 p-3 rounded-lg border border-gray-800">
               <div>
@@ -72,7 +73,10 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
             </div>
           </>
         ) : (
-          <div className="text-gray-500 text-sm py-8 text-center">Không có dữ liệu</div>
+          <div className="text-gray-500 text-sm py-8 text-center">
+            <span className="mb-1 block text-amber-400">EXPERIMENTAL</span>
+            {getPredictionUnavailableMessage(nextPred)}
+          </div>
         )}
       </div>
 
@@ -82,7 +86,7 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
           <BarChart2 className="w-4 h-4" />
           Dự đoán chuỗi
         </h3>
-        {seqPred ? (
+        {seqPred?.validated ? (
           <>
             <div className="mb-4 bg-gray-900 p-3 rounded-lg border border-gray-800 flex items-center gap-3">
               <span className="font-mono text-gray-400">
@@ -153,7 +157,10 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
             </div>
           </>
         ) : (
-          <div className="text-gray-500 text-sm py-8 text-center">Không có dữ liệu</div>
+          <div className="text-gray-500 text-sm py-8 text-center">
+            <span className="mb-1 block text-amber-400">EXPERIMENTAL</span>
+            {getPredictionUnavailableMessage(seqPred, "Chưa có dự báo chuỗi đã được xác thực")}
+          </div>
         )}
       </div>
     </div>

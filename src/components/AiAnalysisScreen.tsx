@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Bot, RefreshCw, TrendingUp, TrendingDown, ChevronDown, ChevronRight } from "lucide-react";
-import { AnalysisResult } from "@/lib/types";
+import type { AiCapabilitiesDto, AnalysisResult } from "@/lib/types";
 import { getBitcoinAnalysis } from "@/lib/api";
+import { AI_ANALYSIS_SYMBOL, getLlmUiState } from "@/lib/researchUi";
 import { SentimentBadge } from "./SentimentBadge";
 import { ErrorBoundary } from "./ErrorBoundary";
 
@@ -23,27 +24,22 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
   );
 }
 
-const SYMBOL_OPTIONS = [
-  { value: "BTCUSDT", label: "BTC/USDT" },
-  { value: "ETHUSDT", label: "ETH/USDT" },
-  { value: "SOLUSDT", label: "SOL/USDT" },
-];
-
-export function AiAnalysisScreen() {
-  const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
+export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitiesDto | null }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalysisResult | null>(null);
+  const llmState = getLlmUiState(capabilities);
+  const llmUnavailable = llmState !== "on";
 
   const analyze = async () => {
     setLoading(true);
     setError(null);
     setData(null);
     try {
-      const result = await getBitcoinAnalysis(selectedSymbol);
+      const result = await getBitcoinAnalysis(AI_ANALYSIS_SYMBOL);
       setData(result);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed");
+      setError(e instanceof Error ? e.message : "Phân tích AI chưa thể hoàn tất.");
     } finally {
       setLoading(false);
     }
@@ -57,35 +53,33 @@ export function AiAnalysisScreen() {
           Phân tích AI Đa Tác Tử (LangGraph Multi-Agent)
         </h2>
 
-        <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800 self-start sm:self-auto">
-          <span className="text-xs font-semibold text-gray-400 px-1">Coin:</span>
-          {SYMBOL_OPTIONS.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => setSelectedSymbol(s.value)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                selectedSymbol === s.value
-                  ? "bg-teal-500 text-gray-950 shadow"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <span className="self-start rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
+          BTC/USDT · tài sản nghiên cứu hiện tại
+        </span>
       </div>
 
       <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
-        <SentimentBadge symbol={selectedSymbol} />
+        <SentimentBadge symbol={AI_ANALYSIS_SYMBOL} />
       </ErrorBoundary>
 
       <p className="text-sm text-gray-400">
-        Phân tích đa góc nhìn (News Agent, Tech Agent, Bull/Bear Researchers, Trader, Risk Judge) cho {selectedSymbol.replace("USDT", "/USDT")}.
+        Phân tích đa góc nhìn cho BTC/USDT. ETH và SOL chưa được xác thực cho pipeline này.
       </p>
+
+      {llmState === "unknown" && (
+        <div className="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm text-gray-300">
+          Đang kiểm tra khả năng giải thích LLM…
+        </div>
+      )}
+      {llmState === "off" && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+          LLM OFF — phân tích đa tác tử chưa khả dụng; dữ liệu và mô hình định lượng vẫn hoạt động bình thường.
+        </div>
+      )}
 
       <button
         onClick={() => void analyze()}
-        disabled={loading}
+        disabled={loading || llmUnavailable}
         className="w-full py-3 px-4 rounded-xl font-bold tracking-wide flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white shadow-lg shadow-teal-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
       >
         {loading ? (
@@ -96,7 +90,7 @@ export function AiAnalysisScreen() {
         ) : (
           <>
             <Bot className="w-5 h-5" />
-            Phân tích bằng AI
+            {llmState === "unknown" ? "Đang kiểm tra LLM" : llmUnavailable ? "Giải thích LLM chưa khả dụng" : "Phân tích bằng AI"}
           </>
         )}
       </button>

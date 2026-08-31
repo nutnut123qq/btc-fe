@@ -120,6 +120,11 @@ export function ArchetypeDetailModal({
                   <div className="text-center text-gray-500 text-xs">Lợi nhuận TB</div>
                 </div>
               ))}
+              {detail.outcomes.length === 0 && (
+                <div className="sm:col-span-3 py-8 text-center text-sm text-gray-500">
+                  Chưa có thống kê kết quả cho mẫu này
+                </div>
+              )}
             </div>
           </div>
 
@@ -169,6 +174,13 @@ export function ArchetypeDetailModal({
                       </td>
                     </tr>
                   ))}
+                  {occurrences.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-6 text-center text-gray-500">
+                        Chưa có lần xuất hiện gần đây
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

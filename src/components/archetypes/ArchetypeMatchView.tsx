@@ -90,6 +90,11 @@ export function ArchetypeMatchView({
               )}
             </div>
           ))}
+          {matchData.length === 0 && (
+            <div className="md:col-span-2 lg:col-span-4 py-8 text-center text-gray-500">
+              Không có kết quả khớp cho cấu hình này
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -3,31 +3,36 @@
 import { useState, useRef, useEffect } from "react";
 import { Bot, X, Send, Sparkles, Loader2 } from "lucide-react";
 import { streamAiChat } from "@/lib/api";
-import { AiChatMessage } from "@/lib/types";
+import type { AiCapabilitiesDto, AiChatMessage } from "@/lib/types";
+import { canUseAiExplanation, getLlmUiState } from "@/lib/researchUi";
 
 const QUICK_CHIPS = [
-  { id: "ensemble", label: "🔍 Giải thích dự báo Ensemble", prompt: "Tại sao AI đưa ra dự báo Master Ensemble hiện tại? Giải thích chi tiết theo 5 lớp." },
+  { id: "forecast", label: "🔍 Giải thích dự báo hiện tại", prompt: "Giải thích dự báo định lượng hiện tại và nêu rõ dữ liệu nào đang có." },
   { id: "smc", label: "📈 Phân tích FVG & VPVR POC", prompt: "Vùng hỗ trợ/kháng cự FVG và Point of Control (POC) hiện tại ở đâu?" },
   { id: "archetype", label: "🔄 Tỷ lệ thắng Archetype", prompt: "Cửa sổ nến hiện tại khớp với mẫu nến archetype nào và xác suất chuyển đổi tiếp theo?" },
   { id: "confluence", label: "⚡ Đánh giá Confluence 4 khung", prompt: "Hội tụ đa khung thời gian Confluence đạt bao nhiêu điểm? Có xung đột xu hướng không?" },
 ];
 
-export function AiChatWidget() {
+const currentTimestampMs = () => Date.now();
+
+export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputPrompt, setInputPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<AiChatMessage[]>([
+  const [messages, setMessages] = useState<AiChatMessage[]>(() => [
     {
       id: "welcome",
       sender: "ai",
-      text: "Xin chào! Tôi là Trợ lý AI Phân tích Bitcoin (XAI). Tôi đọc trực tiếp **100% dữ liệu từ 8 lớp Database** (Archetype, Markov, Regime, Confluence, VPVR/SMC, Sentiment, Ensemble, Paper Trades) để giải thích mọi thắc mắc của bạn.",
-      evidenceTags: ["Master Ensemble", "8-Layer Database Context"],
-      timestampMs: Date.now(),
+      text: "Tôi giải thích dữ liệu nghiên cứu định lượng hiện có. Nội dung này không thay đổi tín hiệu hoặc quyết định của mô hình.",
+      evidenceTags: [],
+      timestampMs: currentTimestampMs(),
     },
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const llmState = getLlmUiState(capabilities);
+  const canExplain = canUseAiExplanation(capabilities);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +51,7 @@ export function AiChatWidget() {
 
   const handleSend = async (customPrompt?: string) => {
     const textToSend = customPrompt || inputPrompt;
-    if (!textToSend.trim() || loading) return;
+    if (!textToSend.trim() || loading || !canExplain) return;
 
     // Abort previous in-flight stream if any
     if (abortControllerRef.current) {
@@ -54,21 +59,22 @@ export function AiChatWidget() {
     }
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+    const timestampMs = currentTimestampMs();
 
     const userMsg: AiChatMessage = {
-      id: `user-${Date.now()}`,
+      id: `user-${timestampMs}`,
       sender: "user",
       text: textToSend,
-      timestampMs: Date.now(),
+      timestampMs,
     };
 
-    const aiMsgId = `ai-${Date.now()}`;
+    const aiMsgId = `ai-${timestampMs}`;
     const initialAiMsg: AiChatMessage = {
       id: aiMsgId,
       sender: "ai",
       text: "",
       evidenceTags: ["Đang trích xuất dữ liệu..."],
-      timestampMs: Date.now(),
+      timestampMs,
     };
 
     setMessages((prev) => [...prev, userMsg, initialAiMsg]);
@@ -94,20 +100,21 @@ export function AiChatWidget() {
                     ...m,
                     evidenceTags: evidenceTags && evidenceTags.length > 0
                       ? evidenceTags
-                      : ["Master Ensemble", "Markov Transitions", "Multi-TF Confluence", "VPVR & SMC"],
+                      : [],
                   }
                 : m
             )
           );
           setLoading(false);
         },
-        onError: (err) => {
+        onError: () => {
           setMessages((prev) =>
             prev.map((m) =>
               m.id === aiMsgId
                 ? {
                     ...m,
-                    text: m.text ? m.text + `\n\n⚠️ *[Ngắt kết nối stream: ${err.message}]*` : `⚠️ Không thể kết nối AI: ${err.message}`,
+                    text: "Giải thích tạm thời không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.",
+                    evidenceTags: [],
                   }
                 : m
             )
@@ -115,13 +122,14 @@ export function AiChatWidget() {
           setLoading(false);
         },
       });
-    } catch (err: unknown) {
+    } catch {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === aiMsgId
             ? {
                 ...m,
-                text: `⚠️ Không thể kết nối với dịch vụ AI: ${err instanceof Error ? err.message : "Lỗi mạng"}.`,
+                text: "Giải thích tạm thời không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.",
+                evidenceTags: [],
               }
             : m
         )
@@ -141,7 +149,7 @@ export function AiChatWidget() {
         >
           <div className="relative">
             <Bot className="w-6 h-6 animate-pulse" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-gray-950" />
+            <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-gray-950 ${llmState === "on" ? "bg-emerald-400" : llmState === "off" ? "bg-amber-400" : "bg-gray-500"}`} />
           </div>
           <span className="text-sm tracking-wide">Trợ lý AI (XAI)</span>
           <Sparkles className="w-4 h-4 text-cyan-200" />
@@ -164,7 +172,13 @@ export function AiChatWidget() {
                     XAI
                   </span>
                 </h3>
-                <p className="text-[11px] text-gray-400">Đọc trực tiếp 100% dữ liệu từ 8 lớp Database</p>
+                <p className={`text-[11px] ${llmState === "off" ? "text-amber-300" : "text-gray-400"}`}>
+                  {llmState === "unknown"
+                    ? "Đang kiểm tra khả năng giải thích"
+                    : llmState === "off"
+                      ? "LLM OFF · dùng giải thích định lượng dự phòng"
+                      : "Giải thích từ dữ liệu nghiên cứu"}
+                </p>
               </div>
             </div>
             <button
@@ -216,7 +230,7 @@ export function AiChatWidget() {
             {loading && (
               <div className="flex items-center gap-2 p-3 rounded-2xl bg-gray-800/50 border border-gray-700/40 text-gray-400 max-w-[70%]">
                 <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
-                <span className="text-xs">Đang truy vấn 8 lớp Database...</span>
+                <span className="text-xs">Đang tổng hợp dữ liệu nghiên cứu...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -228,7 +242,7 @@ export function AiChatWidget() {
               <button
                 key={chip.id}
                 onClick={() => void handleSend(chip.prompt)}
-                disabled={loading}
+                disabled={loading || !canExplain}
                 className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-gray-800 hover:bg-gray-700 text-teal-300 border border-teal-500/20 hover:border-teal-500/40 transition-colors flex items-center gap-1 disabled:opacity-50"
               >
                 {chip.label}
@@ -248,13 +262,13 @@ export function AiChatWidget() {
               type="text"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
-              placeholder="Hỏi AI về nến, FVG, POC, Ensemble forecast..."
-              disabled={loading}
+              placeholder={llmState === "unknown" ? "Đang kiểm tra dịch vụ giải thích..." : "Hỏi về nến, FVG, POC, dự báo..."}
+              disabled={loading || !canExplain}
               className="flex-1 bg-gray-900 border border-gray-700/80 rounded-xl px-3 py-2 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-teal-500"
             />
             <button
               type="submit"
-              disabled={loading || !inputPrompt.trim()}
+              disabled={loading || !canExplain || !inputPrompt.trim()}
               className="p-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-gray-950 font-bold disabled:opacity-40 disabled:hover:bg-teal-500 transition-colors"
             >
               <Send className="w-4 h-4" />

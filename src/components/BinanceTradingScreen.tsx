@@ -25,7 +25,6 @@ import { MarketTradesWidget } from "./MarketTradesWidget";
 import { OrderBookWidget } from "./OrderBookWidget";
 import { ConfluenceWidget } from "./ConfluenceWidget";
 import { RegimeBadge } from "./RegimeBadge";
-import { ExecutionPanel } from "./ExecutionPanel";
 import { SentimentBadge } from "./SentimentBadge";
 import { ErrorBoundary } from "./ErrorBoundary";
 
@@ -64,7 +63,6 @@ import {
   RefreshCw,
   Activity,
   Flame,
-  Zap,
 } from "lucide-react";
 
 const TIMEFRAMES = [
@@ -77,7 +75,7 @@ const TIMEFRAMES = [
   { label: "1d", value: "1d" },
 ] as const;
 
-type RightTab = "trades" | "depth" | "ai" | "execution";
+type RightTab = "trades" | "depth" | "ai";
 type BottomTab = "market_trades" | "paper_trades" | "smart_money" | "volume_profile" | "liquidation_heatmap";
 
 export function BinanceTradingScreen() {
@@ -587,16 +585,6 @@ export function BinanceTradingScreen() {
             >
               <BrainCircuit className="w-3 h-3" /> AI
             </button>
-            <button
-              onClick={() => setRightTab("execution")}
-              className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
-                rightTab === "execution"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-              }`}
-            >
-              <Zap className="w-3 h-3 text-amber-400" /> Đặt lệnh
-            </button>
           </div>
 
           {/* Right Tab Content */}
@@ -617,17 +605,6 @@ export function BinanceTradingScreen() {
               </div>
             )}
 
-            {rightTab === "execution" && (
-              <div className="space-y-3 overflow-y-auto h-full pr-1">
-                <ErrorBoundary fallbackTitle="Lỗi tải Bảng Đặt lệnh Testnet">
-                  <ExecutionPanel
-                    symbol={selectedSymbol}
-                    currentPrice={activeTicker ? activeTicker.lastPrice : undefined}
-                    onOrderSuccess={() => void loadChartData(selectedSymbol, selectedTf)}
-                  />
-                </ErrorBoundary>
-              </div>
-            )}
           </div>
         </div>
       </div>

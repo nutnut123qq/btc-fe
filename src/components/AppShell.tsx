@@ -27,7 +27,9 @@ import { BinanceTradeHistoryScreen } from "./BinanceTradeHistoryScreen";
 import { ArchetypeScreen } from "./ArchetypeScreen";
 import { AiChatWidget } from "./AiChatWidget";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { getUnreadCount } from "@/lib/api";
+import { getAiCapabilities, getUnreadCount } from "@/lib/api";
+import type { AiCapabilitiesDto } from "@/lib/types";
+import { getLlmUiState, PAPER_JOURNAL_LABEL } from "@/lib/researchUi";
 
 const TABS = [
   { key: "market", label: "Thị trường", icon: LineChart },
@@ -37,7 +39,7 @@ const TABS = [
   { key: "rules", label: "Rules nến", icon: Layers },
   { key: "predict", label: "Dự đoán", icon: TrendingUp },
   { key: "paper", label: "Paper", icon: LineChart },
-  { key: "binanceHistory", label: "Lịch sử Binance", icon: ListOrdered },
+  { key: "binanceHistory", label: PAPER_JOURNAL_LABEL, icon: ListOrdered },
   { key: "backtest", label: "Backtest", icon: BarChart3 },
   { key: "settings", label: "Cảnh báo", icon: Settings },
 ] as const;
@@ -51,6 +53,8 @@ export function AppShell() {
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["market"]));
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [aiCapabilities, setAiCapabilities] = useState<AiCapabilitiesDto | null>(null);
+  const llmState = getLlmUiState(aiCapabilities);
 
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
@@ -94,6 +98,18 @@ export function AppShell() {
     };
   }, []);
 
+  useEffect(() => {
+    void getAiCapabilities()
+      .then(setAiCapabilities)
+      .catch(() => setAiCapabilities({
+        mlInference: false,
+        llmExplanation: false,
+        provider: "unavailable",
+        reason: "Không thể kiểm tra dịch vụ giải thích.",
+        fallbackExplanation: false,
+      }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
       <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-40">
@@ -102,18 +118,30 @@ export function AppShell() {
             <Activity className="text-teal-400" />
             Bitcoin AI Analyst
           </h1>
-          <button
-            onClick={() => setAlertsOpen(true)}
-            className="relative p-2 rounded-lg border border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300"
-            aria-label="Thông báo"
-          >
-            <Bell className="w-5 h-5" />
-            {unread > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-[10px] font-bold bg-rose-600 text-white rounded-full">
-                {unread > 99 ? "99+" : unread}
+          <div className="flex items-center gap-2">
+            {llmState === "unknown" && (
+              <span className="hidden sm:inline-flex rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] font-bold text-gray-400">
+                LLM · đang kiểm tra
               </span>
             )}
-          </button>
+            {llmState === "off" && (
+              <span className="hidden sm:inline-flex rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-300">
+                LLM OFF · định lượng vẫn hoạt động
+              </span>
+            )}
+            <button
+              onClick={() => setAlertsOpen(true)}
+              className="relative p-2 rounded-lg border border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300"
+              aria-label="Thông báo"
+            >
+              <Bell className="w-5 h-5" />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-[10px] font-bold bg-rose-600 text-white rounded-full">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -142,7 +170,7 @@ export function AppShell() {
         {visitedTabs.has("ai") && (
           <div className={activeTab === "ai" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab AI">
-              <AiAnalysisScreen />
+              <AiAnalysisScreen capabilities={aiCapabilities} />
             </ErrorBoundary>
           </div>
         )}
@@ -169,7 +197,7 @@ export function AppShell() {
         )}
         {visitedTabs.has("binanceHistory") && (
           <div className={activeTab === "binanceHistory" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Lịch sử Binance">
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Nhật ký Paper đa tài sản">
               <BinanceTradeHistoryScreen />
             </ErrorBoundary>
           </div>
@@ -212,7 +240,7 @@ export function AppShell() {
       </nav>
 
       <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
-      <AiChatWidget />
+      <AiChatWidget capabilities={aiCapabilities} />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 import type { TransitionMatrixDto, ArchetypeTransitionDto } from "@/lib/types";
+import { hasTransitionMatrixData } from "@/lib/researchUi";
 
 interface MarkovMatrixViewProps {
   matrix: TransitionMatrixDto | null;
@@ -20,6 +21,10 @@ export function MarkovMatrixView({
 }: MarkovMatrixViewProps) {
   if (!matrix) {
     return <div className="py-12 text-center text-gray-500">Không có dữ liệu</div>;
+  }
+
+  if (!hasTransitionMatrixData(matrix)) {
+    return <div className="py-12 text-center text-gray-500">Chưa có dữ liệu chuyển đổi cho cấu hình này</div>;
   }
 
   return (

@@ -34,12 +34,12 @@ import { ErrorBoundary } from "./ErrorBoundary";
 const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 const TIMEFRAME_OPTIONS = ["15m", "30m", "1h", "4h", "1d"];
 const WINDOW_SIZES = [10, 15, 20, 25];
+type ArchetypeSubTab = "gallery" | "match" | "rankings" | "transitions" | "predict";
 
 export function ArchetypeScreen() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
-  const [activeSubTab, setActiveSubTab] = useState<
-    "gallery" | "match" | "rankings" | "transitions" | "predict"
-  >("gallery");
+  const [activeSubTab, setActiveSubTab] = useState<ArchetypeSubTab>("gallery");
+  const [tabErrors, setTabErrors] = useState<Partial<Record<ArchetypeSubTab, string>>>({});
 
   // Gallery State
   const [galleryTf, setGalleryTf] = useState("1h");
@@ -83,6 +83,7 @@ export function ArchetypeScreen() {
 
   const loadGallery = useCallback(async () => {
     setGalleryLoading(true);
+    setTabErrors((prev) => ({ ...prev, gallery: undefined }));
     try {
       const res = await getArchetypes({
         symbol: selectedSymbol,
@@ -91,9 +92,10 @@ export function ArchetypeScreen() {
         sortBy: gallerySort,
         pageSize: 50,
       });
-      setArchetypes(res.items || []);
+      setArchetypes(res.items);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, gallery: "Không thể tải thư viện mẫu nến." }));
     } finally {
       setGalleryLoading(false);
     }
@@ -101,11 +103,13 @@ export function ArchetypeScreen() {
 
   const loadMatch = useCallback(async () => {
     setMatchLoading(true);
+    setTabErrors((prev) => ({ ...prev, match: undefined }));
     try {
       const res = await matchMultiWindow(selectedSymbol, matchTf);
-      setMatchData(res.matches || []);
+      setMatchData(res.matches);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, match: "Không thể tải kết quả khớp mẫu nến." }));
     } finally {
       setMatchLoading(false);
     }
@@ -113,6 +117,7 @@ export function ArchetypeScreen() {
 
   const loadRankings = useCallback(async () => {
     setRankingsLoading(true);
+    setTabErrors((prev) => ({ ...prev, rankings: undefined }));
     try {
       const res = await getArchetypeRankings({
         symbol: selectedSymbol,
@@ -121,9 +126,10 @@ export function ArchetypeScreen() {
         horizon: rankingsHorizon,
         sortBy: rankingsSort,
       });
-      setRankings(res.items || []);
+      setRankings(res.items);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, rankings: "Không thể tải bảng xếp hạng mẫu nến." }));
     } finally {
       setRankingsLoading(false);
     }
@@ -136,14 +142,16 @@ export function ArchetypeScreen() {
         getArchetypeOccurrences(id, { horizon: "4h", pageSize: 20 }),
       ]);
       setDetail(resDetail);
-      setOccurrences(resOcc.items || []);
+      setOccurrences(resOcc.items);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, gallery: "Không thể tải chi tiết mẫu nến." }));
     }
   };
 
   const loadMatrix = useCallback(async () => {
     setTransLoading(true);
+    setTabErrors((prev) => ({ ...prev, transitions: undefined }));
     try {
       const res = await getTransitionMatrix({ symbol: selectedSymbol, timeframe: transTf, windowSize: transWs });
       setMatrix(res);
@@ -151,19 +159,22 @@ export function ArchetypeScreen() {
       setArcTransitions([]);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, transitions: "Không thể tải ma trận chuyển đổi. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
     } finally {
       setTransLoading(false);
     }
   }, [selectedSymbol, transTf, transWs]);
 
   const loadTransitionsForArc = async (id: number) => {
-    setSelectedArcForTrans(id);
     setArcTransLoading(true);
+    setTabErrors((prev) => ({ ...prev, transitions: undefined }));
     try {
       const res = await getTransitionsFrom(id, 10);
-      setArcTransitions(res.transitions || []);
+      setSelectedArcForTrans(id);
+      setArcTransitions(res.transitions);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, transitions: "Không thể tải chi tiết chuyển đổi. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
     } finally {
       setArcTransLoading(false);
     }
@@ -171,6 +182,7 @@ export function ArchetypeScreen() {
 
   const loadPredictions = useCallback(async () => {
     setPredictLoading(true);
+    setTabErrors((prev) => ({ ...prev, predict: undefined }));
     try {
       const [nextRes, seqRes] = await Promise.all([
         predictNextArchetype({ symbol: selectedSymbol, timeframe: predictTf, windowSize: predictWs }),
@@ -180,6 +192,7 @@ export function ArchetypeScreen() {
       setSeqPred(seqRes);
     } catch (e) {
       console.error(e);
+      setTabErrors((prev) => ({ ...prev, predict: "Không thể tải dự báo thử nghiệm. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
     } finally {
       setPredictLoading(false);
     }
@@ -204,6 +217,14 @@ export function ArchetypeScreen() {
   useEffect(() => {
     if (activeSubTab === "predict") void loadPredictions();
   }, [activeSubTab, loadPredictions]);
+
+  const retryActiveTab = () => {
+    if (activeSubTab === "gallery") void loadGallery();
+    else if (activeSubTab === "match") void loadMatch();
+    else if (activeSubTab === "rankings") void loadRankings();
+    else if (activeSubTab === "transitions") void loadMatrix();
+    else void loadPredictions();
+  };
 
   return (
     <div className="space-y-4">
@@ -248,6 +269,19 @@ export function ArchetypeScreen() {
           ))}
         </div>
       </div>
+
+      {tabErrors[activeSubTab] && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <span>{tabErrors[activeSubTab]}</span>
+          <button
+            type="button"
+            onClick={retryActiveTab}
+            className="shrink-0 rounded-lg border border-rose-400/30 px-3 py-1.5 text-xs font-bold hover:bg-rose-500/10"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
 
       <ErrorBoundary fallbackTitle="Lỗi tải thành phần Mẫu nến">
         {activeSubTab === "gallery" && (

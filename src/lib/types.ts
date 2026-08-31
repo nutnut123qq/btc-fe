@@ -532,17 +532,19 @@ export type ArchetypeTransitionDto = {
 };
 
 export type TransitionPredictionDto = {
-  currentArchetypeId: number;
-  currentArchetypeCode: string;
+  currentArchetypeId: number | null;
+  currentArchetypeCode: string | null;
   similarity: number;
   topTransitions: ArchetypeTransitionDto[];
   entropyBits: number;
   predictability: string; // "High" | "Medium" | "Low"
+  validated: boolean;
+  reason: string | null;
 };
 
 export type SequencePredictionDto = {
-  previousArchetypeCode: string;
-  currentArchetypeCode: string;
+  previousArchetypeCode: string | null;
+  currentArchetypeCode: string | null;
   topSequences: {
     thirdArchetypeId: number;
     thirdArchetypeCode: string;
@@ -552,6 +554,8 @@ export type SequencePredictionDto = {
     outcomeSidewaysRate: number;
     avgReturnPct: number;
   }[];
+  validated: boolean;
+  reason: string | null;
 };
 
 export type EntropyRankingDto = {
@@ -565,6 +569,16 @@ export type EntropyRankingDto = {
   predictability: string;
   topTransitionCode: string;
   topTransitionProb: number;
+  validated: false;
+  maturity: "Experimental";
+  reason: string;
+};
+
+export type EntropyRankingResponseDto = {
+  validated: false;
+  maturity: "Experimental";
+  reason: string;
+  items: EntropyRankingDto[];
 };
 
 export type TransitionMatrixCell = {
@@ -623,7 +637,14 @@ export type TimeframeAlignmentItem = {
   directionalScore: number;
   regimeType: string;
   archetypeCode: string | null;
-  winRate: number;
+};
+
+export type AiCapabilitiesDto = {
+  mlInference: boolean;
+  llmExplanation: boolean;
+  provider: string;
+  reason: string | null;
+  fallbackExplanation: boolean;
 };
 
 export type ConfluenceSnapshotDto = {
