@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test tests/*.test.mts"
+    "typecheck": "tsc --noEmit",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test tests/*.test.mts",
+    "test:e2e": "playwright test",
+    "contract:generate": "node scripts/generate-contract-types.mjs",
+    "contract:check": "node scripts/generate-contract-types.mjs --check"
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.11",
@@ -19,12 +23,14 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.3.3",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

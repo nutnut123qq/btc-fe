@@ -46,8 +46,7 @@ const balanceHandlers = new Set<BalanceUpdatedHandler>();
 const statusHandlers = new Set<StatusChangeHandler>();
 
 export function getSignalRHubUrl(): string {
-  const base = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5197";
-  return `${base.replace(/\/+$/, "")}/hubs/trade-notifications`;
+  return "/hubs/trade-notifications";
 }
 
 export function subscribeTradeStream(

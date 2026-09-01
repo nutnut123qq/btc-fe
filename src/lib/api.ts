@@ -2,7 +2,7 @@ import { isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, 
 import { parseAiSseLine } from "./aiStream";
 import { authenticatedFetch } from "./sessionAuth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
+const API_BASE = "";
 let apiContractCompatible = false;
 
 export function setApiContractCompatibility(compatible: boolean): void {
