@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Newspaper, RefreshCw, Filter } from "lucide-react";
 import { NewsItem } from "@/lib/types";
 import { getNews } from "@/lib/api";
+import { formatDataAge, isDataStale } from "@/lib/freshness";
 
 function stripHtml(raw: string): string {
   return raw
@@ -81,6 +82,11 @@ export function NewsScreen() {
     return items.filter(i => i.source === selectedSource).slice(0, 20);
   }, [items, selectedSource]);
 
+  const newestPublishedAt = useMemo(() => items
+    .map((item) => item.publishedAt)
+    .filter((value): value is string => Boolean(value))
+    .sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null, [items]);
+
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
@@ -141,6 +147,12 @@ export function NewsScreen() {
               Thử lại
             </button>
           </div>
+        </div>
+      )}
+
+      {!loading && !error && newestPublishedAt && isDataStale(newestPublishedAt, 6 * 60 * 60_000) && (
+        <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-3 text-sm text-amber-300">
+          Nguồn tin đã ngừng cập nhật ({formatDataAge(newestPublishedAt)}). Không dùng danh sách này như tin tức hiện tại.
         </div>
       )}
       

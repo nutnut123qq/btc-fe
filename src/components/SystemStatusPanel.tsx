@@ -115,7 +115,10 @@ export function SystemStatusPanel() {
             <div className="space-y-1.5">
               {workers && workers.workers.length > 0 ? workers.workers.map((worker) => (
                 <div key={worker.name} className={`flex items-start justify-between gap-3 rounded border px-2 py-1.5 ${statusClass(worker.status)}`}>
-                  <div className="font-semibold">{worker.name}</div>
+                  <div>
+                    <div className="font-semibold">{worker.name}</div>
+                    {worker.message && <div className="mt-0.5 max-w-xl break-words text-[10px] opacity-80">{worker.message}</div>}
+                  </div>
                   <div className="shrink-0 text-right font-mono">
                     <div>{worker.status}</div>
                     <div className="text-[10px] opacity-80">{ageLabel(worker.ageSeconds)}</div>

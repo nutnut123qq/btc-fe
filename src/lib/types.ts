@@ -735,7 +735,7 @@ export type SentimentSnapshotDto = {
   longShortRatio: number;
   newsSentimentScore: number;
   aggregatedSentiment: number;
-  sentimentLabel: "ExtremeFear" | "Fear" | "Neutral" | "Greed" | "ExtremeGreed";
+  sentimentLabel: "EXTREME_FEAR" | "FEAR" | "NEUTRAL" | "GREED" | "EXTREME_GREED";
   createdAtUtc: string;
 };
 

@@ -5,16 +5,18 @@ import { getConfluenceCurrent, calculateConfluence } from "../lib/api";
 import type { ConfluenceSnapshotDto } from "../lib/types";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { getSessionKey } from "../lib/sessionAuth";
+import { formatDataAge, isDataStale } from "../lib/freshness";
 
 export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [data, setData] = useState<ConfluenceSnapshotDto | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchConfluence = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setData(null);
     try {
       const res = await getConfluenceCurrent(symbol);
       setData(res);
@@ -61,9 +63,21 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4 text-sm text-amber-300">
+        <p>Chưa có dữ liệu Confluence cho {symbol}. Chức năng còn lại vẫn hoạt động.</p>
+        {adminUnlocked && (
+          <button onClick={handleRecalculate} disabled={loading} className="mt-2 flex items-center gap-1 rounded bg-amber-900/40 px-2 py-1 text-xs hover:bg-amber-900/60 disabled:opacity-50">
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Tạo snapshot đầu tiên
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const score = data.confluenceScore;
+  const stale = isDataStale(data.createdAtUtc, 2 * 60 * 60_000);
   let scoreColor = "text-emerald-500";
   let ringColor = "border-emerald-500";
   if (score < 45) {
@@ -112,6 +126,12 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
           Tính toán lại
         </button>
       </div>
+
+      {stale && (
+        <div className="mb-4 rounded-lg border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+          Snapshot Confluence đã cũ ({formatDataAge(data.createdAtUtc)}); không dùng như tín hiệu hiện tại.
+        </div>
+      )}
 
       {data.hasConflict && (
         <div className="mb-6 flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-sm">

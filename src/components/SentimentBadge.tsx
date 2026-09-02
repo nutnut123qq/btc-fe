@@ -16,6 +16,8 @@ import {
 import { getCurrentSentiment, refreshSentiment } from "@/lib/api";
 import type { SentimentSnapshotDto } from "@/lib/types";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { formatDataAge, isDataStale } from "@/lib/freshness";
+import { sentimentBand, sentimentMeterPercent } from "@/lib/sentiment";
 
 interface SentimentBadgeProps {
   symbol?: string;
@@ -60,7 +62,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
   };
 
   const getSentimentDetails = (score: number, label?: string) => {
-    if (score <= 25 || label === "ExtremeFear") {
+    const band = sentimentBand(score, label);
+    if (band === "extreme-fear") {
       return {
         label: "Cực kỳ sợ hãi",
         color: "text-rose-400 bg-rose-500/15 border-rose-500/30",
@@ -68,7 +71,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         icon: TrendingDown,
       };
     }
-    if (score <= 45 || label === "Fear") {
+    if (band === "fear") {
       return {
         label: "Sợ hãi",
         color: "text-amber-400 bg-amber-500/15 border-amber-500/30",
@@ -76,7 +79,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         icon: TrendingDown,
       };
     }
-    if (score <= 55 || label === "Neutral") {
+    if (band === "neutral") {
       return {
         label: "Trung lập",
         color: "text-blue-400 bg-blue-500/15 border-blue-500/30",
@@ -84,7 +87,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         icon: Gauge,
       };
     }
-    if (score <= 75 || label === "Greed") {
+    if (band === "greed") {
       return {
         label: "Hưng phấn",
         color: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
@@ -100,8 +103,15 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     };
   };
 
-  const score = sentiment?.aggregatedSentiment ?? 50;
-  const cfg = getSentimentDetails(score, sentiment?.sentimentLabel);
+  if (!sentiment) {
+    return compact
+      ? <div className="rounded-lg border border-gray-800 bg-gray-900 px-2.5 py-1 text-[11px] text-gray-500">Tâm lý: chưa có dữ liệu</div>
+      : <div className="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs text-gray-500">Chưa có snapshot tâm lý.</div>;
+  }
+
+  const score = sentiment.aggregatedSentiment;
+  const stale = isDataStale(sentiment.createdAtUtc, 2 * 60 * 60_000);
+  const cfg = getSentimentDetails(score, sentiment.sentimentLabel);
   const Icon = cfg.icon;
 
   if (compact) {
@@ -112,6 +122,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] border ${cfg.color}`}>
           {score.toFixed(0)} - {cfg.label}
         </span>
+        {stale && <span className="text-[10px] text-amber-400" title={`Snapshot ${formatDataAge(sentiment.createdAtUtc)}`}>Dữ liệu cũ</span>}
         <button
           onClick={() => void handleRefresh()}
           disabled={refreshing || !adminUnlocked}
@@ -163,6 +174,11 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
       </div>
 
       {/* Main Meter Gauge */}
+      {stale && sentiment && (
+        <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-2 text-[11px] text-amber-300">
+          Snapshot tâm lý đã cũ ({formatDataAge(sentiment.createdAtUtc)}); không dùng như tín hiệu hiện tại.
+        </div>
+      )}
       <div className="bg-gray-950 p-3 rounded-lg border border-gray-800/80 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -183,14 +199,14 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden relative">
             <div
               className={`h-full transition-all duration-500 rounded-full ${cfg.barColor}`}
-              style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
+              style={{ width: `${sentimentMeterPercent(score)}%` }}
             />
           </div>
           <div className="flex justify-between text-[9px] text-gray-500 font-mono">
-            <span>0 (Cực sợ)</span>
-            <span>25</span>
-            <span>50 (Trung lập)</span>
-            <span>75</span>
+            <span>-100 (Cực sợ)</span>
+            <span>-50</span>
+            <span>0 (Trung lập)</span>
+            <span>50</span>
             <span>100 (Cực tham)</span>
           </div>
         </div>

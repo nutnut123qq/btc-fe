@@ -43,7 +43,7 @@ async function mockBackend(page: Page, metaAvailable: boolean): Promise<string[]
     }
     if (path === "/api/sentiment/current") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
-        aggregatedSentiment: 50, sentimentLabel: "Neutral",
+        aggregatedSentiment: 0, sentimentLabel: "NEUTRAL", createdAtUtc: new Date().toISOString(),
       }) });
       return;
     }

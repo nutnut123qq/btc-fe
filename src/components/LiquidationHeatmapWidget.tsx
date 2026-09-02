@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, memo } from "react";
 import { getLiquidationSnapshot } from "../lib/api";
 import type { LiquidationSnapshotDto, LiquidationBinDto } from "../lib/types";
+import { formatDataAge, isDataStale } from "../lib/freshness";
 
 interface LiquidationHeatmapWidgetProps {
   symbol?: string;
@@ -74,6 +75,7 @@ export function LiquidationHeatmapWidget({
   }, [data, bins]);
 
   const totalVol = (data?.totalLongLiqUsdt ?? 0) + (data?.totalShortLiqUsdt ?? 0);
+  const stale = data ? isDataStale(data.timestampUtc, 2 * 60 * 60_000) : false;
   const longPct = totalVol > 0 ? ((data?.totalLongLiqUsdt ?? 0) / totalVol) * 100 : 50;
   const shortPct = totalVol > 0 ? ((data?.totalShortLiqUsdt ?? 0) / totalVol) * 100 : 50;
   const biasLabel = longPct > 55 ? "LONG FLUSH BIAS" : shortPct > 55 ? "SHORT SQUEEZE BIAS" : "BALANCED";
@@ -140,6 +142,11 @@ export function LiquidationHeatmapWidget({
 
       {!loading && !error && data && (
         <div className="space-y-4">
+          {stale && (
+            <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+              Dữ liệu liquidation đã cũ ({formatDataAge(data.timestampUtc)}). Các mức giá dưới đây chỉ là snapshot lịch sử, không phải thị trường hiện tại.
+            </div>
+          )}
           {/* Summary Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-3 bg-gray-950/60 rounded-xl border border-gray-800/60">
@@ -150,8 +157,8 @@ export function LiquidationHeatmapWidget({
                 ${data.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                Timeframe: {data.timeframe}
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${stale ? "bg-amber-400" : "bg-emerald-400"}`} />
+                Snapshot: {formatDataAge(data.timestampUtc)} · {data.timeframe}
               </div>
             </div>
 
@@ -234,7 +241,7 @@ export function LiquidationHeatmapWidget({
                     {isClose && (
                       <div className="my-1.5 flex items-center gap-2 px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded text-[11px] font-mono text-cyan-400">
                         <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                        <span>MARKET PRICE: ${data.currentPrice.toFixed(2)}</span>
+                        <span>SNAPSHOT REFERENCE: ${data.currentPrice.toFixed(2)}</span>
                       </div>
                     )}
 

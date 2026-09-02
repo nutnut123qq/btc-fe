@@ -619,9 +619,10 @@ export async function buildRegimes(symbol = "BTCUSDT", timeframe = "1h", lookbac
 
 // --- Confluence ---
 
-export async function getConfluenceCurrent(symbol = "BTCUSDT") {
+export async function getConfluenceCurrent(symbol = "BTCUSDT"): Promise<import("./types").ConfluenceSnapshotDto | null> {
   const params = new URLSearchParams({ symbol });
   const res = await fetch(`${API_BASE}/api/confluence/current?${params}`);
+  if (res.status === 404) return null;
   const data: unknown = await getJson(res);
   const { record, items } = requireArrayField<import("./types").TimeframeAlignmentItem>(data, "timeframeAlignments", "confluence");
   return { ...record, timeframeAlignments: items } as import("./types").ConfluenceSnapshotDto;
