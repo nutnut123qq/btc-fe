@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const productionBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -8,13 +10,14 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL: productionBaseUrl || "http://127.0.0.1:3100",
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
     trace: "retain-on-failure",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   ],
-  webServer: {
+  webServer: productionBaseUrl ? undefined : {
     command: "npm run start -- --port 3100",
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,

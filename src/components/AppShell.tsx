@@ -103,7 +103,14 @@ export function AppShell() {
 
   useEffect(() => {
     let mounted = true;
-    void getAppMeta(AbortSignal.timeout(5_000))
+    const loadMeta = async () => {
+      try {
+        return await getAppMeta(AbortSignal.timeout(5_000));
+      } catch {
+        return getAppMeta(AbortSignal.timeout(10_000));
+      }
+    };
+    void loadMeta()
       .then((meta) => {
         const compatible = isApiContractCompatible(meta);
         setApiContractCompatibility(compatible);

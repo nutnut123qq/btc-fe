@@ -40,6 +40,7 @@ export function PredictionScreen() {
   const [horizon, setHorizon] = useState("1h");
   const [modelName, setModelName] = useState("");
   const [models, setModels] = useState<AvailableModel[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [history, setHistory] = useState<ModelPredictionItem[]>([]);
   const [accuracy, setAccuracy] = useState<PredictionAccuracySummaryDto | null>(null);
@@ -54,6 +55,8 @@ export function PredictionScreen() {
       setModels(data.models ?? []);
     } catch (e) {
       console.error(e);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -119,7 +122,14 @@ export function PredictionScreen() {
     void loadAccuracy();
   }, [loadHistory, loadAccuracy]);
 
-  const availableModelNames = Array.from(new Set(models.map((m) => m.model_name))).filter(Boolean);
+  const compatibleModels = models.filter((model) =>
+    model.symbol === symbol
+    && model.timeframe === timeframe
+    && model.window_size === windowSize
+    && model.horizon === horizon
+  );
+  const availableModelNames = Array.from(new Set(compatibleModels.map((m) => m.model_name))).filter(Boolean);
+  const canPredict = compatibleModels.some((model) => !modelName || model.model_name === modelName || model.file === modelName);
 
   return (
     <div className="space-y-4">
@@ -196,7 +206,7 @@ export function PredictionScreen() {
           <div className="flex items-end">
             <button
               onClick={() => void runPrediction()}
-              disabled={loading}
+              disabled={loading || !canPredict}
               className="w-full bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700 text-white font-medium rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -204,6 +214,12 @@ export function PredictionScreen() {
             </button>
           </div>
         </div>
+
+        {modelsLoaded && !canPredict && (
+          <div className="bg-amber-950/40 border border-amber-800 text-amber-200 rounded-lg px-3 py-2 text-sm mb-4">
+            Chưa có model tương thích đã qua promotion gate; dự đoán được khóa an toàn.
+          </div>
+        )}
 
         {error && (
           <div className="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg px-3 py-2 text-sm mb-4">
