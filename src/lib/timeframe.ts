@@ -1,5 +1,18 @@
-// Binance interval → milliseconds. Single source for the frontend (was duplicated in ChartPanel).
-// Case-sensitive like Binance: "1m" = minute, "1M" = month. Returns 900_000 (15m) for unknown.
+export const ACTIVE_TIMEFRAMES = ["1h", "4h", "1d"] as const;
+export type ActiveTimeframe = (typeof ACTIVE_TIMEFRAMES)[number];
+export const DEFAULT_TIMEFRAME: ActiveTimeframe = "4h";
+
+export function isActiveTimeframe(value: unknown): value is ActiveTimeframe {
+  return typeof value === "string" && ACTIVE_TIMEFRAMES.includes(value as ActiveTimeframe);
+}
+
+/** Convert persisted or API-provided selections to a supported production timeframe. */
+export function normalizeActiveTimeframe(value: unknown): ActiveTimeframe {
+  return isActiveTimeframe(value) ? value : DEFAULT_TIMEFRAME;
+}
+
+// Binance interval → milliseconds. Legacy intervals remain readable for historical records.
+// Case-sensitive like Binance: "1m" = minute, "1M" = month. Unknown values use the 4h production default.
 const INTERVAL_MS: Record<string, number> = {
   "1m": 60_000,
   "3m": 180_000,
@@ -19,5 +32,5 @@ const INTERVAL_MS: Record<string, number> = {
 };
 
 export function intervalToMs(interval: string): number {
-  return INTERVAL_MS[interval] ?? 900_000;
+  return INTERVAL_MS[interval] ?? INTERVAL_MS[DEFAULT_TIMEFRAME];
 }

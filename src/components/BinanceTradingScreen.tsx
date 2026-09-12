@@ -27,6 +27,7 @@ import { ConfluenceWidget } from "./ConfluenceWidget";
 import { RegimeBadge } from "./RegimeBadge";
 import { SentimentBadge } from "./SentimentBadge";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 
 // Code-splitting with dynamic imports to optimize First Contentful Paint & bundle size
 const BtcCandlestickChart = dynamic(
@@ -65,22 +66,14 @@ import {
   Flame,
 } from "lucide-react";
 
-const TIMEFRAMES = [
-  { label: "1m", value: "1m" },
-  { label: "5m", value: "5m" },
-  { label: "15m", value: "15m" },
-  { label: "30m", value: "30m" },
-  { label: "1h", value: "1h" },
-  { label: "4h", value: "4h" },
-  { label: "1d", value: "1d" },
-] as const;
+const TIMEFRAMES = ACTIVE_TIMEFRAMES.map((timeframe) => ({ label: timeframe, value: timeframe }));
 
 type RightTab = "trades" | "depth" | "ai";
 type BottomTab = "market_trades" | "paper_trades" | "smart_money" | "volume_profile" | "liquidation_heatmap";
 
 export function BinanceTradingScreen() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
-  const [selectedTf, setSelectedTf] = useState<string>("1h");
+  const [selectedTf, setSelectedTf] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [tickers, setTickers] = useState<MarketTicker[]>([]);
   const [klines, setKlines] = useState<KlineOHLC[]>([]);
   const [loadingKlines, setLoadingKlines] = useState<boolean>(true);

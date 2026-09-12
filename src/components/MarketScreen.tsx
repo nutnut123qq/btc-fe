@@ -13,10 +13,12 @@ import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
 import { LiquidationHeatmapWidget } from "./LiquidationHeatmapWidget";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ChevronDown, ChevronUp, BrainCircuit, LayoutGrid, Terminal } from "lucide-react";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 
 export function MarketScreen() {
   const [viewMode, setViewMode] = useState<"binance" | "classic">("binance");
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [showEnsemble, setShowEnsemble] = useState(false);
 
   const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
@@ -88,7 +90,7 @@ export function MarketScreen() {
             </div>
             <div className="w-full sm:w-[320px] space-y-2">
               <ErrorBoundary fallbackTitle="Lỗi tải Regime">
-                <RegimeBadge symbol={selectedSymbol} timeframe="1h" />
+                <RegimeBadge symbol={selectedSymbol} timeframe={selectedTimeframe} />
               </ErrorBoundary>
               <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
                 <SentimentBadge symbol={selectedSymbol} compact={true} />
@@ -125,7 +127,7 @@ export function MarketScreen() {
             {showEnsemble && (
               <div className="p-4 border-t border-gray-700/50 bg-gray-900/50">
                 <ErrorBoundary fallbackTitle="Lỗi tải Ensemble Predictor">
-                  <EnsembleDashboardWidget symbol={selectedSymbol} timeframe="1h" />
+                  <EnsembleDashboardWidget symbol={selectedSymbol} timeframe={selectedTimeframe} />
                 </ErrorBoundary>
               </div>
             )}
@@ -133,23 +135,31 @@ export function MarketScreen() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ErrorBoundary fallbackTitle="Lỗi tải Volume Profile">
-              <VolumeProfileWidget symbol={selectedSymbol} timeframe="1h" />
+              <VolumeProfileWidget symbol={selectedSymbol} timeframe={selectedTimeframe} />
             </ErrorBoundary>
             <ErrorBoundary fallbackTitle="Lỗi tải Smart Money Structure">
-              <SmartMoneyWidget symbol={selectedSymbol} timeframe="1h" />
+              <SmartMoneyWidget symbol={selectedSymbol} timeframe={selectedTimeframe} />
             </ErrorBoundary>
           </div>
 
           <ErrorBoundary fallbackTitle="Lỗi tải Bản đồ Thanh lý">
-            <LiquidationHeatmapWidget symbol={selectedSymbol} timeframe="1h" onSymbolChange={(s) => setSelectedSymbol(s)} />
+            <LiquidationHeatmapWidget symbol={selectedSymbol} timeframe={selectedTimeframe} onSymbolChange={(s) => setSelectedSymbol(s)} />
           </ErrorBoundary>
 
           <ErrorBoundary fallbackTitle="Lỗi tải biểu đồ kỹ thuật">
-            <ChartPanel symbol={selectedSymbol} />
+            <ChartPanel
+              symbol={selectedSymbol}
+              timeframe={selectedTimeframe}
+              onTimeframeChange={setSelectedTimeframe}
+            />
           </ErrorBoundary>
 
           <ErrorBoundary fallbackTitle="Lỗi tải Sequence Analysis">
-            <SequenceAnalysisPanel symbol={selectedSymbol} />
+            <SequenceAnalysisPanel
+              symbol={selectedSymbol}
+              timeframe={selectedTimeframe}
+              onTimeframeChange={setSelectedTimeframe}
+            />
           </ErrorBoundary>
         </div>
       )}

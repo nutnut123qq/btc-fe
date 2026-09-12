@@ -4,16 +4,17 @@ import { useEffect, useState, useMemo, memo } from "react";
 import { getLiquidationSnapshot } from "../lib/api";
 import type { LiquidationSnapshotDto, LiquidationBinDto } from "../lib/types";
 import { formatDataAge, isDataStale } from "../lib/freshness";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
 
 interface LiquidationHeatmapWidgetProps {
   symbol?: string;
-  timeframe?: string;
+  timeframe?: ActiveTimeframe;
   onSymbolChange?: (s: string) => void;
 }
 
 export function LiquidationHeatmapWidget({
   symbol = "BTCUSDT",
-  timeframe = "1h",
+  timeframe = DEFAULT_TIMEFRAME,
   onSymbolChange,
 }: LiquidationHeatmapWidgetProps) {
   const [data, setData] = useState<LiquidationSnapshotDto | null>(null);

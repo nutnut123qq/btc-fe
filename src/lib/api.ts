@@ -1,6 +1,7 @@
 import { isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, requireDataAudit, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireFreshnessHealth, requireGapRetry, requireLiveHealth, requireMutationContract, requireReadyHealth, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, requireWorkersHealth, safeApiErrorMessage } from "./apiContract";
 import { parseAiSseLine } from "./aiStream";
 import { authenticatedFetch } from "./sessionAuth";
+import { DEFAULT_TIMEFRAME } from "./timeframe";
 
 const API_BASE = "";
 let apiContractCompatible = false;
@@ -29,7 +30,7 @@ async function getJson(res: Response) {
 
 export async function getBtcKlines({
   symbol = "BTCUSDT",
-  interval = "1h",
+  interval = DEFAULT_TIMEFRAME,
   limit = 200,
   startTimeMs,
   endTimeMs,
@@ -185,7 +186,7 @@ export async function indexCandlePatterns(payload: {
   timeframe?: string;
   lookbackBars?: number;
 }) {
-  const { symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 500 } = payload;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 500 } = payload;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -206,7 +207,7 @@ export async function getCandlePatternsByType(payload: {
 }) {
   const {
     symbol = "BTCUSDT",
-    timeframe = "1h",
+    timeframe = DEFAULT_TIMEFRAME,
     patternType,
     page = 1,
     pageSize = 50,
@@ -229,7 +230,7 @@ export async function getBitcoinAnalysis(symbol = "BTCUSDT") {
 }
 
 // --- Sequence Rules / Discovery ---
-export async function evaluateSequenceRules(symbol = "BTCUSDT", timeframe = "1h", limit = 50) {
+export async function evaluateSequenceRules(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, limit = 50) {
   const params = new URLSearchParams({ symbol, timeframe, limit: String(limit) });
   const res = await adminFetch(`${API_BASE}/api/discovery/evaluate?${params}`, { method: "POST" });
   return getJson(res);
@@ -237,7 +238,7 @@ export async function evaluateSequenceRules(symbol = "BTCUSDT", timeframe = "1h"
 
 export async function runDiscovery(
   symbol = "BTCUSDT",
-  timeframe = "1h",
+  timeframe = DEFAULT_TIMEFRAME,
   lookbackBars = 2000,
   futureBars = 5,
   minWinRate = 0.55,
@@ -273,19 +274,19 @@ export async function clearDiscoveredRules() {
 }
 
 // --- Sequence / structure analysis ---
-export async function getMarketStructure(symbol = "BTCUSDT", interval = "1h", limit = 200) {
+export async function getMarketStructure(symbol = "BTCUSDT", interval = DEFAULT_TIMEFRAME, limit = 200) {
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/market/market-structure?${params}`);
   return getJson(res) as Promise<import("./types").MarketStructureResponse>;
 }
 
-export async function getSequenceScenarios(symbol = "BTCUSDT", interval = "1h", limit = 50) {
+export async function getSequenceScenarios(symbol = "BTCUSDT", interval = DEFAULT_TIMEFRAME, limit = 50) {
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/market/sequence-scenarios?${params}`);
   return getJson(res) as Promise<import("./types").SequenceScenariosResponse>;
 }
 
-export async function validateCandles(symbol = "BTCUSDT", interval = "1h", limit = 100) {
+export async function validateCandles(symbol = "BTCUSDT", interval = DEFAULT_TIMEFRAME, limit = 100) {
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/market/validate-candles?${params}`);
   return getJson(res) as Promise<import("./types").ValidateCandlesResponse>;
@@ -300,7 +301,7 @@ export async function getLatestPrediction(payload: {
   horizon?: string;
   modelName?: string;
 }) {
-  const { symbol = "BTCUSDT", timeframe = "1h", windowSize = 5, horizon = "1h", modelName } = payload;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, windowSize = 5, horizon = DEFAULT_TIMEFRAME, modelName } = payload;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -320,7 +321,7 @@ export async function getLatestPrediction(payload: {
   return data as import("./types").PredictionResult;
 }
 
-export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = "1h", take = 100, includeLegacy = false) {
+export async function getPredictionHistory(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, take = 100, includeLegacy = false) {
   const params = new URLSearchParams({ symbol, timeframe, take: String(take), includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/prediction/history?${params}`);
   const data: unknown = await getJson(res);
@@ -335,13 +336,13 @@ export async function getAvailableModels() {
   return { models: items };
 }
 
-export async function auditPredictions(symbol = "BTCUSDT", timeframe = "1h", includeLegacy = false) {
+export async function auditPredictions(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, includeLegacy = false) {
   const params = new URLSearchParams({ symbol, timeframe, includeLegacy: String(includeLegacy) });
   const res = await adminFetch(`${API_BASE}/api/prediction/audit?${params}`, { method: "POST" });
   return getJson(res) as Promise<{ symbol: string; timeframe: string; totalPending: number; evaluatedCount: number; message: string }>;
 }
 
-export async function getPredictionAccuracy(symbol = "BTCUSDT", timeframe = "1h", includeLegacy = false) {
+export async function getPredictionAccuracy(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, includeLegacy = false) {
   const params = new URLSearchParams({ symbol, timeframe, includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/prediction/accuracy?${params}`);
   return requireExperimentalAccuracy(await getJson(res)) as import("./types").PredictionAccuracySummaryDto;
@@ -593,25 +594,25 @@ export async function getTransitionMatrix(params: {
 
 // --- Market Regime ---
 
-export async function getCurrentRegime(symbol = "BTCUSDT", timeframe = "1h") {
+export async function getCurrentRegime(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await fetch(`${API_BASE}/api/regime/current?${params}`);
   return getJson(res) as Promise<import("./types").MarketRegimeDto>;
 }
 
-export async function getRegimeHistory(symbol = "BTCUSDT", timeframe = "1h", limit = 100) {
+export async function getRegimeHistory(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, limit = 100) {
   const params = new URLSearchParams({ symbol, timeframe, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/regime/history?${params}`);
   return getJson(res) as Promise<import("./types").MarketRegimeDto[]>;
 }
 
-export async function getRegimeSummary(symbol = "BTCUSDT", timeframe = "1h") {
+export async function getRegimeSummary(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await fetch(`${API_BASE}/api/regime/summary?${params}`);
   return getJson(res) as Promise<import("./types").RegimeSummaryDto>;
 }
 
-export async function buildRegimes(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 2000) {
+export async function buildRegimes(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 2000) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
   const res = await adminFetch(`${API_BASE}/api/regime/build?${params}`, { method: "POST" });
   return getJson(res);
@@ -647,7 +648,7 @@ export async function calculateConfluence(symbol = "BTCUSDT") {
 }
 
 // --- Volume Profile ---
-export async function getVolumeProfile(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 200) {
+export async function getVolumeProfile(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 200) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
   const res = await fetch(`${API_BASE}/api/volume-profile/current?${params}`);
   const data: unknown = await getJson(res);
@@ -656,7 +657,7 @@ export async function getVolumeProfile(symbol = "BTCUSDT", timeframe = "1h", loo
 }
 
 // --- Smart Money Concepts ---
-export async function getSmartMoneyStructures(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 200) {
+export async function getSmartMoneyStructures(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 200) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
   const res = await fetch(`${API_BASE}/api/smart-money/structures?${params}`);
   return getJson(res) as Promise<import("./types").SmartMoneyStructureDto[]>;
@@ -674,13 +675,13 @@ export async function getSentimentHistory(symbol = "BTCUSDT", limit = 50) {
   return getJson(res) as Promise<import("./types").SentimentSnapshotDto[]>;
 }
 
-export async function getEnsemblePredict(symbol = "BTCUSDT", timeframe = "1h") {
+export async function getEnsemblePredict(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await fetch(`${API_BASE}/api/ensemble/predict?${params}`);
   return requireExperimentalEnsemble(await getJson(res), "ensemble prediction") as import("./types").EnsemblePredictionDto;
 }
 
-export async function getEnsembleHistory(symbol = "BTCUSDT", timeframe = "1h", limit = 50, includeLegacy = false) {
+export async function getEnsembleHistory(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, limit = 50, includeLegacy = false) {
   const params = new URLSearchParams({ symbol, timeframe, limit: String(limit), includeLegacy: String(includeLegacy) });
   const res = await fetch(`${API_BASE}/api/ensemble/history?${params}`);
   const items = requireArray<Record<string, unknown>>(await getJson(res), "ensemble history");
@@ -718,7 +719,7 @@ function parseEnsembleEvaluationSummary(data: unknown, includeLegacy: boolean) {
   } as import("./types").PredictionEvaluationSummaryDto;
 }
 
-export async function runBatchReplay(sampleCount = 2000, minConfidence = 0.60, symbol = "BTCUSDT", timeframe = "1h") {
+export async function runBatchReplay(sampleCount = 2000, minConfidence = 0.60, symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ sampleCount: String(sampleCount), minConfidence: String(minConfidence), symbol, timeframe });
   const res = await adminFetch(`${API_BASE}/api/ensemble/batch-replay?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").BatchReplayResultDto>;
@@ -733,13 +734,13 @@ export async function runEnsembleBacktest(payload: import("./types").EnsembleBac
   return getJson(res) as Promise<import("./types").BacktestRunSummary & { trades: import("./types").BacktestTradeItem[]; equityCurve: import("./types").EquityCurvePoint[] }>;
 }
 
-export async function optimizeEnsembleWeights(symbol = "BTCUSDT", timeframe = "1h") {
+export async function optimizeEnsembleWeights(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await adminFetch(`${API_BASE}/api/ensemble-backtest/optimize?${params}`, { method: "POST" });
   return getJson(res) as Promise<import("./types").WeightOptimizationResultDto>;
 }
 
-export async function evaluateEnsemblePaperTrade(symbol = "BTCUSDT", timeframe = "1h") {
+export async function evaluateEnsemblePaperTrade(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await adminFetch(`${API_BASE}/api/paper-trades/evaluate-ensemble?${params}`, { method: "POST" });
   return getJson(res);
@@ -770,7 +771,7 @@ export async function queryAiChat(payload: { symbol?: string; timeframe?: string
 
 export async function streamAiChat({
   symbol = "BTCUSDT",
-  timeframe = "1h",
+  timeframe = DEFAULT_TIMEFRAME,
   prompt = "",
   signal,
   onToken,
@@ -856,7 +857,7 @@ export async function streamAiChat({
 }
 
 // --- Liquidation Snapshot APIs ---
-export async function getLiquidationSnapshot(symbol = "BTCUSDT", timeframe = "1h"): Promise<import("./types").LiquidationSnapshotDto> {
+export async function getLiquidationSnapshot(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME): Promise<import("./types").LiquidationSnapshotDto> {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await fetch(`${API_BASE}/api/liquidation/latest?${params}`);
   const data = await getJson(res);
@@ -870,7 +871,7 @@ export async function getLiquidationSnapshot(symbol = "BTCUSDT", timeframe = "1h
   return data;
 }
 
-export async function getLiquidationHistory(symbol = "BTCUSDT", timeframe = "1h", limit = 20): Promise<import("./types").LiquidationSnapshotDto[]> {
+export async function getLiquidationHistory(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, limit = 20): Promise<import("./types").LiquidationSnapshotDto[]> {
   const params = new URLSearchParams({ symbol, timeframe, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/liquidation/history?${params}`);
   return getJson(res);
@@ -1042,7 +1043,7 @@ export async function getPatternIndexStatus(options: {
   featureType?: string;
   windowSize?: number;
 } = {}): Promise<import("./types").PatternIndexStatusDto> {
-  const { symbol = "BTCUSDT", timeframe = "15m", featureType = "all", windowSize = 10 } = options;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, featureType = "all", windowSize = 10 } = options;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -1060,7 +1061,7 @@ export async function rebuildPatternIndex(options: {
   lookbackBars?: number;
   windowSize?: number;
 } = {}) {
-  const { symbol = "BTCUSDT", timeframe = "15m", featureType = "all", lookbackBars = 5000, windowSize = 10 } = options;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, featureType = "all", lookbackBars = 5000, windowSize = 10 } = options;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -1078,7 +1079,7 @@ export async function warmupPatternIndex(options: {
   lookbackBars?: number;
   windowSize?: number;
 } = {}) {
-  const { symbol = "BTCUSDT", timeframe = "15m", lookbackBars = 5000, windowSize } = options;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 5000, windowSize } = options;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -1098,7 +1099,7 @@ export async function getWindowDataset(options: {
   page?: number;
   take?: number;
 } = {}) {
-  const { symbol = "BTCUSDT", timeframe = "1h", windowSize = 10, horizon = "1d", label, page = 1, take = 100 } = options;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, windowSize = 10, horizon = "1d", label, page = 1, take = 100 } = options;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -1118,7 +1119,7 @@ export async function buildWindowDataset(options: {
   windowSize?: number;
   horizon?: string;
 } = {}) {
-  const { symbol = "BTCUSDT", timeframe = "1h", windowSize = 10, horizon = "1d" } = options;
+  const { symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, windowSize = 10, horizon = "1d" } = options;
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -1129,7 +1130,7 @@ export async function buildWindowDataset(options: {
   return getJson(res);
 }
 
-export async function buildMlDataset(symbol = "BTCUSDT", timeframe = "1h") {
+export async function buildMlDataset(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME) {
   const params = new URLSearchParams({ symbol, timeframe });
   const res = await adminFetch(`${API_BASE}/api/market/ml-dataset/build?${params}`, { method: "POST" });
   return getJson(res);
@@ -1149,13 +1150,13 @@ export async function rebuildMlDatasetFromIndexer(symbol = "BTCUSDT", timeframe?
   return getJson(res);
 }
 
-export async function indexVolumeStats(symbol = "BTCUSDT", timeframe = "1h", lookbackBars = 2000) {
+export async function indexVolumeStats(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, lookbackBars = 2000) {
   const params = new URLSearchParams({ symbol, timeframe, lookbackBars: String(lookbackBars) });
   const res = await adminFetch(`${API_BASE}/api/discovery/index-volume?${params}`, { method: "POST" });
   return getJson(res);
 }
 
-export async function getVolumeStats(symbol = "BTCUSDT", timeframe = "1h", take = 100): Promise<{ symbol: string; timeframe: string; count: number; items: import("./types").CandleVolumeStatItem[] }> {
+export async function getVolumeStats(symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME, take = 100): Promise<{ symbol: string; timeframe: string; count: number; items: import("./types").CandleVolumeStatItem[] }> {
   const params = new URLSearchParams({ symbol, timeframe, take: String(take) });
   const res = await fetch(`${API_BASE}/api/discovery/volume-stats?${params}`);
   return getJson(res);
@@ -1172,7 +1173,7 @@ export async function getRagNewsContext(query: string, topK = 8): Promise<{ quer
   return getJson(res);
 }
 
-export async function getTechSummary(symbol = "BTCUSDT", interval = "1h", limit = 48): Promise<{ interval: string; limit: number; tech_context: string }> {
+export async function getTechSummary(symbol = "BTCUSDT", interval = DEFAULT_TIMEFRAME, limit = 48): Promise<{ interval: string; limit: number; tech_context: string }> {
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/market/btc/tech-summary?${params}`);
   return getJson(res);

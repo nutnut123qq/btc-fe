@@ -5,8 +5,9 @@ import { getCurrentRegime, getRegimeSummary, buildRegimes } from "@/lib/api";
 import { MarketRegimeDto, RegimeSummaryDto } from "@/lib/types";
 import { RefreshCw, Activity, Layers, ArrowUpCircle, ArrowDownCircle, MinusCircle, Maximize, Minimize2 } from "lucide-react";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 
-export function RegimeBadge({ symbol = "BTCUSDT", timeframe = "1h" }: { symbol?: string; timeframe?: string }) {
+export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME }: { symbol?: string; timeframe?: ActiveTimeframe }) {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [currentRegime, setCurrentRegime] = useState<MarketRegimeDto | null>(null);
   const [summary, setSummary] = useState<RegimeSummaryDto | null>(null);

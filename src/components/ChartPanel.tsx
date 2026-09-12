@@ -22,16 +22,8 @@ import {
 } from "@/lib/api";
 import { BtcCandlestickChart } from "./BtcCandlestickChart";
 import { ema, rsi, convertToHeikinAshi } from "@/lib/indicators";
-import { intervalToMs } from "@/lib/timeframe";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, intervalToMs, type ActiveTimeframe } from "@/lib/timeframe";
 import { getSessionKey } from "@/lib/sessionAuth";
-
-const TIMEFRAMES = [
-  { label: "M1", value: "1m" },
-  { label: "M5", value: "5m" },
-  { label: "M15", value: "15m" },
-  { label: "M30", value: "30m" },
-  { label: "D1", value: "1d" },
-] as const;
 
 const FEATURE_TYPES = [
   { label: "Open", value: "open" },
@@ -71,10 +63,17 @@ const PATTERN_TYPES = [
   { label: "Three Inside Down", value: "ThreeInsideDown" },
 ] as const;
 
-export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
+export function ChartPanel({
+  symbol = "BTCUSDT",
+  timeframe = DEFAULT_TIMEFRAME,
+  onTimeframeChange,
+}: {
+  symbol?: string;
+  timeframe?: ActiveTimeframe;
+  onTimeframeChange?: (timeframe: ActiveTimeframe) => void;
+}) {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [candles, setCandles] = useState<KlineOHLC[]>([]);
-  const [timeframe, setTimeframe] = useState<string>("15m");
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "jumping">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
@@ -109,7 +108,7 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   const opTokenRef = useRef(0);
 
-  const load = useCallback(async (tf: string, limit = 1000) => {
+  const load = useCallback(async (tf: ActiveTimeframe, limit = 1000) => {
     const token = ++opTokenRef.current;
     setStatus("loading");
     setErrorMsg(null);
@@ -275,17 +274,17 @@ export function ChartPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
     <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 items-center">
-        {TIMEFRAMES.map((tf) => (
+        {ACTIVE_TIMEFRAMES.map((tf) => (
           <button
-            key={tf.value}
-            onClick={() => setTimeframe(tf.value)}
+            key={tf}
+            onClick={() => onTimeframeChange?.(tf)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-              timeframe === tf.value
+              timeframe === tf
                 ? "bg-teal-600 border-teal-500 text-white"
                 : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
             }`}
           >
-            {tf.label}
+            {tf}
           </button>
         ))}
 

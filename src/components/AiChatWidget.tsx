@@ -5,12 +5,13 @@ import { Bot, X, Send, Sparkles, Loader2 } from "lucide-react";
 import { streamAiChat } from "@/lib/api";
 import type { AiCapabilitiesDto, AiChatMessage } from "@/lib/types";
 import { canUseAiExplanation, getLlmUiState } from "@/lib/researchUi";
+import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 
 const QUICK_CHIPS = [
   { id: "forecast", label: "🔍 Giải thích dự báo hiện tại", prompt: "Giải thích dự báo định lượng hiện tại và nêu rõ dữ liệu nào đang có." },
   { id: "smc", label: "📈 Phân tích FVG & VPVR POC", prompt: "Vùng hỗ trợ/kháng cự FVG và Point of Control (POC) hiện tại ở đâu?" },
   { id: "archetype", label: "🔄 Tỷ lệ thắng Archetype", prompt: "Cửa sổ nến hiện tại khớp với mẫu nến archetype nào và xác suất chuyển đổi tiếp theo?" },
-  { id: "confluence", label: "⚡ Đánh giá Confluence 4 khung", prompt: "Hội tụ đa khung thời gian Confluence đạt bao nhiêu điểm? Có xung đột xu hướng không?" },
+  { id: "confluence", label: "⚡ Đánh giá Confluence 3 khung", prompt: "Hội tụ các khung 1h, 4h và 1d đạt bao nhiêu điểm? Có xung đột xu hướng không?" },
 ];
 
 const currentTimestampMs = () => Date.now();
@@ -84,7 +85,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
     try {
       await streamAiChat({
         symbol: "BTCUSDT",
-        timeframe: "1h",
+        timeframe: DEFAULT_TIMEFRAME,
         prompt: textToSend,
         signal: abortController.signal,
         onToken: (token) => {

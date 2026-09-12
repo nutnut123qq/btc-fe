@@ -27,6 +27,7 @@ import type {
   BackfillStartInfo,
   KlineGapAuditItem,
 } from "@/lib/types";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, isActiveTimeframe, type ActiveTimeframe } from "@/lib/timeframe";
 
 function ageLabel(seconds: number | null): string {
   if (seconds == null) return "--";
@@ -50,7 +51,7 @@ export function DataManagementPanel({
   contractCompatible?: boolean;
 }) {
   const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
-  const [selectedTf, setSelectedTf] = useState("1h");
+  const [selectedTf, setSelectedTf] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [auditData, setAuditData] = useState<DataAuditResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
@@ -80,14 +81,14 @@ export function DataManagementPanel({
     }
   }, [selectedSymbol]);
 
-  const handleBackfill = async (fillGaps = false, timeframe = selectedTf) => {
+  const handleBackfill = async (fillGaps = false, timeframe: ActiveTimeframe = selectedTf) => {
     if (fillGaps && !window.confirm(`Chạy backfill gaps cho ${selectedSymbol} (${timeframe})?`)) return;
     setActionLoading(true);
     setMessage(null);
     try {
       const res: BackfillStartInfo = await backfillKlines({
         symbol: selectedSymbol,
-        timeframe: timeframe === "all" ? undefined : timeframe,
+        timeframe,
         fillGaps,
         requestsPerMinuteLimit: 300,
         wait: false,
@@ -219,15 +220,12 @@ export function DataManagementPanel({
 
           <select
             value={selectedTf}
-            onChange={(e) => setSelectedTf(e.target.value)}
+            onChange={(e) => setSelectedTf(e.target.value as ActiveTimeframe)}
             className="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1 text-gray-200"
           >
-            <option value="1m">1m</option>
-            <option value="5m">5m</option>
-            <option value="15m">15m</option>
-            <option value="1h">1h</option>
-            <option value="4h">4h</option>
-            <option value="1d">1d</option>
+            {ACTIVE_TIMEFRAMES.map((timeframe) => (
+              <option key={timeframe} value={timeframe}>{timeframe}</option>
+            ))}
           </select>
 
           <button
@@ -293,9 +291,14 @@ export function DataManagementPanel({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/50">
-                {auditData.timeframes?.map((tf) => (
-                  <tr key={tf.timeframe} className="hover:bg-gray-800/30">
-                    <td className="p-2 font-bold text-gray-200">{tf.timeframe}</td>
+                {auditData.timeframes?.map((tf) => {
+                  const active = isActiveTimeframe(tf.timeframe);
+                  return (
+                  <tr key={tf.timeframe} className={active ? "hover:bg-gray-800/30" : "bg-gray-950/40 text-gray-500"}>
+                    <td className="p-2 font-bold text-gray-200">
+                      {tf.timeframe}
+                      {!active && <span className="ml-1 text-[9px] font-normal text-gray-500">lịch sử</span>}
+                    </td>
                     <td className="p-2 text-right text-gray-300">{tf.totalKlines?.toLocaleString()}</td>
                     <td className={`p-2 text-right ${tf.missingBars > 0 ? "text-amber-400" : "text-emerald-400"}`}>
                       {tf.missingBars.toLocaleString()}
@@ -328,17 +331,19 @@ export function DataManagementPanel({
                     <td className="p-2 text-center">
                       <button
                         onClick={() => {
-                          setSelectedTf(tf.timeframe);
-                          void handleBackfill(true, tf.timeframe);
+                          if (isActiveTimeframe(tf.timeframe)) {
+                            void handleBackfill(true, tf.timeframe);
+                          }
                         }}
-                        disabled={actionLoading || !adminUnlocked || !contractCompatible}
+                        disabled={actionLoading || !adminUnlocked || !contractCompatible || !active}
                         className="px-2 py-0.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 rounded text-[10px] font-semibold transition-colors"
                       >
                         Lấp gaps
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             <div className="border-t border-gray-800 bg-gray-950/50 p-2">
@@ -358,7 +363,7 @@ export function DataManagementPanel({
                       <button
                         type="button"
                         onClick={() => void handleRetryGap(gap)}
-                        disabled={actionLoading || !adminUnlocked || !contractCompatible}
+                        disabled={actionLoading || !adminUnlocked || !contractCompatible || !isActiveTimeframe(gap.timeframe)}
                         className="rounded border border-current px-2 py-1 font-semibold disabled:opacity-50"
                       >
                         Retry có xác nhận

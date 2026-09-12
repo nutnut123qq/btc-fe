@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { BarChart3, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import { getBacktestRuns, getBacktestRunDetail, runEnsembleBacktest, optimizeEnsembleWeights } from "@/lib/api";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import type { BacktestRunSummary, BacktestTradeItem, WeightOptimizationResultDto, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -27,7 +28,7 @@ export function BacktestScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [ensTimeframe, setEnsTimeframe] = useState("1h");
+  const [ensTimeframe, setEnsTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [ensMinConf, setEnsMinConf] = useState(0.55);
   const [ensFee, setEnsFee] = useState(5);
   const [ensCapital, setEnsCapital] = useState(10000);
@@ -341,11 +342,10 @@ export function BacktestScreen() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Timeframe</label>
-                <select value={ensTimeframe} onChange={e => setEnsTimeframe(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-md px-3 py-1.5 text-sm">
-                  <option value="15m">15m</option>
-                  <option value="30m">30m</option>
-                  <option value="1h">1h</option>
-                  <option value="4h">4h</option>
+                <select value={ensTimeframe} onChange={e => setEnsTimeframe(e.target.value as ActiveTimeframe)} className="w-full bg-gray-950 border border-gray-800 rounded-md px-3 py-1.5 text-sm">
+                  {ACTIVE_TIMEFRAMES.map((timeframe) => (
+                    <option key={timeframe} value={timeframe}>{timeframe}</option>
+                  ))}
                 </select>
               </div>
               <div>

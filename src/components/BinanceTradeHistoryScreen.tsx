@@ -387,6 +387,7 @@ export function BinanceTradeHistoryScreen() {
               <option value="all">Tất cả Khung</option>
               <option value="4h">4 Giờ (4h - Primary)</option>
               <option value="1h">1 Giờ (1h)</option>
+              <option value="1d">1 Ngày (1d)</option>
             </select>
           </div>
 

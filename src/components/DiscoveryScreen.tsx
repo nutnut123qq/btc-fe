@@ -7,6 +7,7 @@ import { parseRuleConditions } from "@/lib/formatRuleCondition";
 import { RuleConditionsDisplay } from "./RuleConditionsDisplay";
 import { RuleDiscoverySummary } from "./RuleDiscoverySummary";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 
 import type { SequenceRule } from "@/lib/types";
 
@@ -19,7 +20,7 @@ const SYMBOL_OPTIONS = [
 export function DiscoveryScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [symbol, setSymbol] = useState("BTCUSDT");
-  const timeframe = "1h";
+  const timeframe = DEFAULT_TIMEFRAME;
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
   const [loading, setLoading] = useState(false);

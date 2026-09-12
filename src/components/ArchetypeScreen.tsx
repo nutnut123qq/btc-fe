@@ -30,9 +30,10 @@ import { ArchetypeRankingsView } from "./archetypes/ArchetypeRankingsView";
 import { ArchetypePredictContainer } from "./archetypes/ArchetypePredictContainer";
 import { ArchetypeDetailModal } from "./archetypes/ArchetypeDetailModal";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 
 const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
-const TIMEFRAME_OPTIONS = ["15m", "30m", "1h", "4h", "1d"];
+const TIMEFRAME_OPTIONS = [...ACTIVE_TIMEFRAMES];
 const WINDOW_SIZES = [10, 15, 20, 25];
 type ArchetypeSubTab = "gallery" | "match" | "rankings" | "transitions" | "predict";
 
@@ -42,19 +43,19 @@ export function ArchetypeScreen() {
   const [tabErrors, setTabErrors] = useState<Partial<Record<ArchetypeSubTab, string>>>({});
 
   // Gallery State
-  const [galleryTf, setGalleryTf] = useState("1h");
+  const [galleryTf, setGalleryTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [galleryWs, setGalleryWs] = useState(15);
   const [gallerySort, setGallerySort] = useState("winRate");
   const [archetypes, setArchetypes] = useState<ArchetypeDto[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
 
   // Match State
-  const [matchTf, setMatchTf] = useState("1h");
+  const [matchTf, setMatchTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [matchData, setMatchData] = useState<ArchetypeMatchDto[]>([]);
   const [matchLoading, setMatchLoading] = useState(false);
 
   // Rankings State
-  const [rankingsTf, setRankingsTf] = useState("1h");
+  const [rankingsTf, setRankingsTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [rankingsWs, setRankingsWs] = useState(15);
   const [rankingsHorizon, setRankingsHorizon] = useState("4h");
   const rankingsSort = "winRate";
@@ -66,7 +67,7 @@ export function ArchetypeScreen() {
   const [occurrences, setOccurrences] = useState<ArchetypeOccurrenceDto[]>([]);
 
   // Transitions State
-  const [transTf, setTransTf] = useState("1h");
+  const [transTf, setTransTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [transWs, setTransWs] = useState(15);
   const [matrix, setMatrix] = useState<TransitionMatrixDto | null>(null);
   const [transLoading, setTransLoading] = useState(false);
@@ -75,7 +76,7 @@ export function ArchetypeScreen() {
   const [arcTransLoading, setArcTransLoading] = useState(false);
 
   // Predict State
-  const [predictTf, setPredictTf] = useState("1h");
+  const [predictTf, setPredictTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [predictWs, setPredictWs] = useState(15);
   const [predictLoading, setPredictLoading] = useState(false);
   const [nextPred, setNextPred] = useState<TransitionPredictionDto | null>(null);

@@ -1064,7 +1064,8 @@ export type ReadyHealthDto = {
 
 export type FreshnessKlineDto = {
   timeframe: string;
-  status: "fresh" | "stale" | "missing";
+  status: "fresh" | "stale" | "missing" | "inactive";
+  active: boolean;
   latestOpenTimeUtc: string | null;
   ageSeconds: number | null;
   maxAgeSeconds: number;

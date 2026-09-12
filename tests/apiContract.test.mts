@@ -131,9 +131,29 @@ test("freshness contract requires latest candle age and bounded status", () => {
     status: "degraded", databaseReachable: true, checkedAtUtc: "2026-08-31T00:00:00Z", symbol: "BTCUSDT",
     klines: [{ timeframe: "1h", status: "stale", latestOpenTimeUtc: "2026-08-30T22:00:00Z", ageSeconds: 7200, maxAgeSeconds: 5400 }],
   };
-  assert.equal(requireFreshnessHealth(response).status, "degraded");
+  const parsed = requireFreshnessHealth(response);
+  assert.equal(parsed.status, "degraded");
+  assert.equal((parsed.klines as Array<Record<string, unknown>>)[0].active, true);
   assert.throws(() => requireFreshnessHealth({ ...response, klines: [{ ...response.klines[0], ageSeconds: undefined }] }), /ageSeconds/);
   assert.throws(() => requireFreshnessHealth({ ...response, klines: [{ ...response.klines[0], status: "unknown" }] }), /status is invalid/);
+});
+
+test("freshness contract accepts inactive minute history without degrading active health", () => {
+  const response = {
+    status: "healthy", databaseReachable: true, checkedAtUtc: "2026-09-12T00:00:00Z", symbol: "BTCUSDT",
+    klines: [
+      { timeframe: "1m", status: "inactive", active: false, latestOpenTimeUtc: "2026-09-01T00:00:00Z", ageSeconds: 950400, maxAgeSeconds: 1200 },
+      { timeframe: "4h", status: "fresh", active: true, latestOpenTimeUtc: "2026-09-11T20:00:00Z", ageSeconds: 14400, maxAgeSeconds: 28800 },
+    ],
+  };
+
+  const parsed = requireFreshnessHealth(response);
+  assert.equal(parsed.status, "healthy");
+  assert.equal((parsed.klines as Array<Record<string, unknown>>)[0].status, "inactive");
+  assert.throws(
+    () => requireFreshnessHealth({ ...response, klines: [{ ...response.klines[0], active: true }] }),
+    /inactive status must match active=false/,
+  );
 });
 
 test("worker heartbeat contract fails closed on missing nullable fields", () => {

@@ -79,8 +79,16 @@ export function requireFreshnessHealth(value: unknown): Record<string, unknown> 
     const context = `health freshness.klines[${index}]`;
     const kline = requireRecord(item, context);
     requireNonBlankString(kline.timeframe, `${context}.timeframe`);
-    if (!new Set(["fresh", "stale", "missing"]).has(String(kline.status))) {
+    if (!new Set(["fresh", "stale", "missing", "inactive"]).has(String(kline.status))) {
       throw new Error(`INVALID_API_RESPONSE: ${context}.status is invalid`);
+    }
+    if (kline.active === undefined && kline.status !== "inactive") {
+      kline.active = true;
+    } else if (typeof kline.active !== "boolean") {
+      throw new Error(`INVALID_API_RESPONSE: ${context}.active must be boolean`);
+    }
+    if ((kline.status === "inactive") !== (kline.active === false)) {
+      throw new Error(`INVALID_API_RESPONSE: ${context}.inactive status must match active=false`);
     }
     requireNullableString(kline.latestOpenTimeUtc, `${context}.latestOpenTimeUtc`);
     requireNullableNumber(kline.ageSeconds, `${context}.ageSeconds`);

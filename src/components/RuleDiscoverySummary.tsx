@@ -6,6 +6,7 @@ import {
   parseDiscoveryDescription,
   type DiscoveredRuleLike,
 } from "@/lib/formatRuleDiscovery";
+import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 
 type RuleDiscoverySummaryProps = {
   rule: DiscoveredRuleLike;
@@ -59,7 +60,7 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
     parsed.profitFactor != null && !Number.isNaN(parsed.profitFactor)
       ? parsed.profitFactor.toFixed(2)
       : "—";
-  const horizon = formatFutureHorizon(rule.timeframe ?? "1h", futureBars);
+  const horizon = formatFutureHorizon(rule.timeframe ?? DEFAULT_TIMEFRAME, futureBars);
 
   return (
     <div

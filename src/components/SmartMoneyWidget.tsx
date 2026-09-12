@@ -3,8 +3,15 @@
 import { useEffect, useState } from "react";
 import { getSmartMoneyStructures } from "../lib/api";
 import type { SmartMoneyStructureDto } from "../lib/types";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
 
-export function SmartMoneyWidget({ symbol = "BTCUSDT", timeframe = "1h" }) {
+export function SmartMoneyWidget({
+  symbol = "BTCUSDT",
+  timeframe = DEFAULT_TIMEFRAME,
+}: {
+  symbol?: string;
+  timeframe?: ActiveTimeframe;
+}) {
   const [structures, setStructures] = useState<SmartMoneyStructureDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

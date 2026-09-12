@@ -5,6 +5,7 @@ import { LineChart, RefreshCw, Activity, ArrowUpRight, ArrowDownRight, LayoutLis
 import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades } from "@/lib/api";
 import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
+import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
 
 function formatPct(v: number) {
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
@@ -152,12 +153,7 @@ export function PaperTradeScreen() {
 
           <div className="flex items-center gap-1.5 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
             <span className="text-xs text-gray-400 font-medium px-1">Khung:</span>
-            {[
-              { id: "all", label: "Tất cả" },
-              { id: "4h", label: "4h" },
-              { id: "1h", label: "1h" },
-              { id: "30m", label: "30m" },
-            ].map((tf) => (
+            {[{ id: "all", label: "Tất cả (kể cả lịch sử)" }, ...ACTIVE_TIMEFRAMES.map((timeframe) => ({ id: timeframe, label: timeframe }))].map((tf) => (
               <button
                 key={tf.id}
                 onClick={() => setSelectedTf(tf.id)}

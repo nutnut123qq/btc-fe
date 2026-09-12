@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Settings, RefreshCw } from "lucide-react";
-import { AlertSettingsDto, KLINE_OPTIONS } from "@/lib/types";
+import { AlertSettingsDto } from "@/lib/types";
 import { getAlertSettings, putAlertSettings } from "@/lib/api";
 import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
 import { DataManagementPanel } from "./DataManagementPanel";
@@ -10,6 +10,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { SessionAccessPanel } from "./SessionAccessPanel";
 import { SystemStatusPanel } from "./SystemStatusPanel";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, normalizeActiveTimeframe } from "@/lib/timeframe";
 
 const ALERT_USER_ID = "default";
 
@@ -23,7 +24,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
   const [enabled, setEnabled] = useState(false);
   const [priceAbove, setPriceAbove] = useState("");
   const [priceBelow, setPriceBelow] = useState("");
-  const [klineInterval, setKlineInterval] = useState<string>("1m");
+  const [klineInterval, setKlineInterval] = useState<string>(DEFAULT_TIMEFRAME);
   const [cooldownMinutes, setCooldownMinutes] = useState(30);
 
   const load = useCallback(async () => {
@@ -35,13 +36,13 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
         setEnabled(data.enabled);
         setPriceAbove(data.priceAboveUsd != null ? String(data.priceAboveUsd) : "");
         setPriceBelow(data.priceBelowUsd != null ? String(data.priceBelowUsd) : "");
-        setKlineInterval(data.klineInterval || "1m");
+        setKlineInterval(normalizeActiveTimeframe(data.klineInterval));
         setCooldownMinutes(typeof data.cooldownMinutes === "number" ? data.cooldownMinutes : 30);
       } else {
         setEnabled(false);
         setPriceAbove("");
         setPriceBelow("");
-        setKlineInterval("1m");
+        setKlineInterval(DEFAULT_TIMEFRAME);
         setCooldownMinutes(30);
       }
     } catch (e) {
@@ -198,7 +199,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
                 onChange={(e) => setKlineInterval(e.target.value)}
                 className="w-full rounded-lg bg-gray-950 border border-gray-700 px-3 py-2 text-gray-200 focus:outline-none focus:border-teal-600"
               >
-                {KLINE_OPTIONS.map((o) => (
+                {ACTIVE_TIMEFRAMES.map((o) => (
                   <option key={o} value={o}>
                     {o}
                   </option>

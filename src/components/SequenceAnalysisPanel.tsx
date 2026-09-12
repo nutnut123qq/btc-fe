@@ -8,8 +8,7 @@ import {
   ValidateCandlesResponse,
 } from "@/lib/types";
 import { getMarketStructure, getSequenceScenarios, validateCandles } from "@/lib/api";
-
-const TIMEFRAMES = ["15m", "1h", "4h", "1d"] as const;
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 
 function TrendBadge({ trend }: { trend: string }) {
   const map: Record<string, { cls: string; icon: React.ReactNode }> = {
@@ -25,15 +24,22 @@ function TrendBadge({ trend }: { trend: string }) {
   );
 }
 
-export function SequenceAnalysisPanel({ symbol = "BTCUSDT" }: { symbol?: string }) {
-  const [timeframe, setTimeframe] = useState<string>("1h");
+export function SequenceAnalysisPanel({
+  symbol = "BTCUSDT",
+  timeframe = DEFAULT_TIMEFRAME,
+  onTimeframeChange,
+}: {
+  symbol?: string;
+  timeframe?: ActiveTimeframe;
+  onTimeframeChange?: (timeframe: ActiveTimeframe) => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [structure, setStructure] = useState<MarketStructureResponse | null>(null);
   const [scenarios, setScenarios] = useState<SequenceScenariosResponse | null>(null);
   const [validation, setValidation] = useState<ValidateCandlesResponse | null>(null);
 
-  const load = useCallback(async (tf: string) => {
+  const load = useCallback(async (tf: ActiveTimeframe) => {
     setLoading(true);
     setError(null);
     try {
@@ -63,10 +69,10 @@ export function SequenceAnalysisPanel({ symbol = "BTCUSDT" }: { symbol?: string 
           <Activity className="w-4 h-4 text-teal-400" /> Phân tích chuỗi & cấu trúc
         </h3>
         <div className="flex gap-1 ml-auto">
-          {TIMEFRAMES.map((tf) => (
+          {ACTIVE_TIMEFRAMES.map((tf) => (
             <button
               key={tf}
-              onClick={() => setTimeframe(tf)}
+              onClick={() => onTimeframeChange?.(tf)}
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 timeframe === tf
                   ? "bg-teal-600 border-teal-500 text-white"

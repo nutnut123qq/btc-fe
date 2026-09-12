@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import type { ArchetypeDto } from "@/lib/types";
 import { ArchetypeCard } from "./ArchetypeCard";
+import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
 
 interface ArchetypeGalleryViewProps {
   timeframe: string;
@@ -35,7 +36,7 @@ export function ArchetypeGalleryView({
         <div>
           <label className="text-xs text-gray-400 block mb-1">Timeframe</label>
           <div className="flex gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
-            {["1h", "4h", "1d"].map((tf) => (
+            {ACTIVE_TIMEFRAMES.map((tf) => (
               <button
                 key={tf}
                 onClick={() => onTimeframeChange(tf)}

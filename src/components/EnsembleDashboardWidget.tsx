@@ -9,6 +9,7 @@ import {
   EnsemblePredictionDto,
   PredictionEvaluationSummaryDto,
 } from "../lib/types";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
 
 interface EnsembleLayer {
   layerName: string;
@@ -22,10 +23,10 @@ interface EnsembleLayer {
 
 export function EnsembleDashboardWidget({
   symbol = "BTCUSDT",
-  timeframe = "1h",
+  timeframe = DEFAULT_TIMEFRAME,
 }: {
   symbol?: string;
-  timeframe?: string;
+  timeframe?: ActiveTimeframe;
 }) {
   const [showExperimental, setShowExperimental] = useState(false);
   const [ensemble, setEnsemble] = useState<EnsemblePredictionDto | null>(null);

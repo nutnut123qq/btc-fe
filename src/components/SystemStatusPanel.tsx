@@ -16,9 +16,15 @@ function ageLabel(seconds: number | null): string {
 function statusClass(status: string): string {
   return status === "healthy" || status === "ready" || status === "fresh"
     ? "text-emerald-300 bg-emerald-950/50 border-emerald-800"
+    : status === "inactive"
+      ? "text-gray-400 bg-gray-950/50 border-gray-800"
     : status === "degraded" || status === "stale"
       ? "text-amber-300 bg-amber-950/50 border-amber-800"
       : "text-rose-300 bg-rose-950/50 border-rose-800";
+}
+
+function freshnessStatusLabel(status: FreshnessHealthDto["klines"][number]["status"]): string {
+  return status === "inactive" ? "không theo dõi" : status;
 }
 
 export function SystemStatusPanel() {
@@ -103,7 +109,7 @@ export function SystemStatusPanel() {
               {freshness && freshness.klines.length > 0 ? freshness.klines.map((item) => (
                 <div key={item.timeframe} className={`rounded border px-2 py-1.5 ${statusClass(item.status)}`}>
                   <span className="font-semibold">{item.timeframe}</span>
-                  <span className="ml-1">{item.status}</span>
+                  <span className="ml-1">{freshnessStatusLabel(item.status)}</span>
                   <div className="mt-0.5 text-[10px] opacity-80">Nến cuối: {ageLabel(item.ageSeconds)} trước</div>
                 </div>
               )) : <span className="text-gray-500">Không có dữ liệu freshness.</span>}

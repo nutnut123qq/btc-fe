@@ -3,8 +3,15 @@
 import { useEffect, useState } from "react";
 import { getVolumeProfile } from "../lib/api";
 import type { VolumeProfileDto } from "../lib/types";
+import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
 
-export function VolumeProfileWidget({ symbol = "BTCUSDT", timeframe = "1h" }) {
+export function VolumeProfileWidget({
+  symbol = "BTCUSDT",
+  timeframe = DEFAULT_TIMEFRAME,
+}: {
+  symbol?: string;
+  timeframe?: ActiveTimeframe;
+}) {
   const [data, setData] = useState<VolumeProfileDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

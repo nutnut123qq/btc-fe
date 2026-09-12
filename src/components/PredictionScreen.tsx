@@ -7,13 +7,13 @@ import type { PredictionResult, ModelPredictionItem, AvailableModel, PredictionA
 import { WINDOW_SIZES } from "@/lib/types";
 import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
 import { getSessionKey } from "@/lib/sessionAuth";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 
 const SYMBOL_OPTIONS = [
   { value: "BTCUSDT", label: "BTC/USDT" },
   { value: "ETHUSDT", label: "ETH/USDT" },
   { value: "SOLUSDT", label: "SOL/USDT" },
 ];
-const TIMEFRAME_OPTIONS = ["15m", "30m", "1h", "4h", "1d"];
 const HORIZON_OPTIONS = ["1h", "4h", "1d"];
 
 function labelText(label: number) {
@@ -35,9 +35,9 @@ function formatTime(ms: number) {
 export function PredictionScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [symbol, setSymbol] = useState("BTCUSDT");
-  const [timeframe, setTimeframe] = useState("1h");
+  const [timeframe, setTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [windowSize, setWindowSize] = useState(5);
-  const [horizon, setHorizon] = useState("1h");
+  const [horizon, setHorizon] = useState("4h");
   const [modelName, setModelName] = useState("");
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -158,10 +158,10 @@ export function PredictionScreen() {
             <label className="text-xs text-gray-400 block mb-1">Timeframe</label>
             <select
               value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
+              onChange={(e) => setTimeframe(e.target.value as ActiveTimeframe)}
               className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm"
             >
-              {TIMEFRAME_OPTIONS.map((tf) => (
+              {ACTIVE_TIMEFRAMES.map((tf) => (
                 <option key={tf} value={tf}>{tf}</option>
               ))}
             </select>
