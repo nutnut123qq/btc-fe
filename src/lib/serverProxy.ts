@@ -114,6 +114,7 @@ export async function proxyApiRequest(
       } catch (error) {
         lastError = error;
         if (isTimeoutError(error) || attempt === maxAttempts) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 150 * attempt * attempt));
       }
     }
     if (!upstreamResponse) throw lastError;
