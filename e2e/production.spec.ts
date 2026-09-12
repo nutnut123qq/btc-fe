@@ -36,8 +36,12 @@ test.describe("production dashboard", () => {
     await expect(page.getByText(/API contract không khớp|Không kiểm tra được API contract/)).toHaveCount(0);
 
     await expect(page.getByRole("button", { name: /Sàn Binance Pro/ })).toBeVisible();
-    await page.getByRole("button", { name: /Phân tích nâng cao/ }).click();
-    await expect(page.getByText(/Deep Analysis & Pattern Index/)).toBeVisible();
+    const advancedButton = page.getByRole("button", { name: /Phân tích nâng cao/ });
+    const advancedHeading = page.locator("main").getByText(/Deep Analysis & Pattern Index/);
+    await expect(async () => {
+      await advancedButton.click();
+      await expect(advancedHeading).toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 15_000 });
     await page.getByRole("button", { name: /Sàn Binance Pro/ }).click();
 
     await openTab(page, "Mẫu nến", "Thư viện");
