@@ -206,6 +206,7 @@ test("startup meta pins Phase 3 contract and rejects incomplete metadata", () =>
   };
   assert.equal(requireAppMeta(meta).apiContractVersion, EXPECTED_API_CONTRACT_VERSION);
   assert.equal(isApiContractCompatible(meta), true);
+  assert.equal(isApiContractCompatible({ ...meta, apiContractVersion: "2026-08-phase3" }), true);
   assert.equal(isApiContractCompatible({ ...meta, apiContractVersion: "2026-08-phase2" }), false);
   assert.equal(canUseApiMutations("compatible"), true);
   assert.equal(canUseApiMutations("mismatch"), false);

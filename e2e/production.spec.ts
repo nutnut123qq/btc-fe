@@ -33,6 +33,7 @@ test.describe("production dashboard", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Bitcoin AI Analyst" })).toBeVisible();
+    await expect(page.getByText(/Đang kiểm tra API contract/)).toHaveCount(0, { timeout: 30_000 });
     await expect(page.getByText(/API contract không khớp|Không kiểm tra được API contract/)).toHaveCount(0);
 
     await expect(page.getByRole("button", { name: /Sàn Binance Pro/ })).toBeVisible();

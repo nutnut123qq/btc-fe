@@ -178,6 +178,10 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
 }
 
 export const EXPECTED_API_CONTRACT_VERSION = "2026-09-hourly-timeframes";
+const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
+  EXPECTED_API_CONTRACT_VERSION,
+  "2026-08-phase3",
+]);
 
 export function requireAppMeta(value: unknown): Record<string, unknown> {
   const record = requireRecord(value, "app meta");
@@ -188,7 +192,7 @@ export function requireAppMeta(value: unknown): Record<string, unknown> {
 }
 
 export function isApiContractCompatible(value: { apiContractVersion: string }): boolean {
-  return value.apiContractVersion === EXPECTED_API_CONTRACT_VERSION;
+  return ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS.has(value.apiContractVersion);
 }
 
 export type ApiContractState = "checking" | "compatible" | "mismatch" | "unavailable";
