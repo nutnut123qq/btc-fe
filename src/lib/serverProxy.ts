@@ -102,7 +102,7 @@ export async function proxyApiRequest(
       redirect: "manual",
     });
 
-    const maxAttempts = method === "GET" || method === "HEAD" ? 3 : 1;
+    const maxAttempts = method === "GET" || method === "HEAD" ? 5 : 1;
     let upstreamResponse: Response | undefined;
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

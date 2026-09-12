@@ -75,11 +75,11 @@ test("proxy forwards a mutation body once without retrying upstream failures", a
   assert.equal(calls, 1);
 });
 
-test("proxy retries transient GET transport failures within three attempts", async () => {
+test("proxy retries transient GET transport failures within five attempts", async () => {
   let calls = 0;
   await withServer((request, response) => {
     calls++;
-    if (calls < 3) {
+    if (calls < 5) {
       request.socket.destroy();
       return;
     }
@@ -93,7 +93,23 @@ test("proxy retries transient GET transport failures within three attempts", asy
     );
     assert.equal(response.status, 200);
   });
-  assert.equal(calls, 3);
+  assert.equal(calls, 5);
+});
+
+test("proxy never retries a mutation after a transport failure", async () => {
+  let calls = 0;
+  await withServer((request) => {
+    calls++;
+    request.socket.destroy();
+  }, async (baseUrl) => {
+    const response = await proxyApiRequest(
+      new Request("http://localhost/api/order", { method: "POST", body: "{}" }),
+      ["order"],
+      { overrideBackendUrl: baseUrl }
+    );
+    assert.equal(response.status, 502);
+  });
+  assert.equal(calls, 1);
 });
 
 test("proxy rejects traversal and encodes reserved characters in path segments", async () => {
