@@ -75,6 +75,27 @@ test("proxy forwards a mutation body once without retrying upstream failures", a
   assert.equal(calls, 1);
 });
 
+test("proxy retries one transient GET transport failure", async () => {
+  let calls = 0;
+  await withServer((request, response) => {
+    calls++;
+    if (calls === 1) {
+      request.socket.destroy();
+      return;
+    }
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ ok: true }));
+  }, async (baseUrl) => {
+    const response = await proxyApiRequest(
+      new Request("http://localhost/api/health/ready"),
+      ["health", "ready"],
+      { overrideBackendUrl: baseUrl }
+    );
+    assert.equal(response.status, 200);
+  });
+  assert.equal(calls, 2);
+});
+
 test("proxy rejects traversal and encodes reserved characters in path segments", async () => {
   assert.throws(() => sanitizePathSegments(["..", "admin"]), /Invalid path segment/);
   assert.throws(() => sanitizePathSegments(["safe/subpath"]), /Invalid path segment/);

@@ -17,6 +17,10 @@ export interface ProxyOptions {
   overrideBackendUrl?: string;
 }
 
+function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+}
+
 export function getUpstreamBaseUrl(overrideUrl?: string): string {
   const rawUrl = overrideUrl ?? process.env.BACKEND_INTERNAL_URL;
   if (!rawUrl || !rawUrl.trim()) {
@@ -89,13 +93,24 @@ export async function proxyApiRequest(
       if (buffer.byteLength > 0) body = buffer;
     }
 
-    const upstreamResponse = await fetch(targetUrl, {
+    const startedAt = Date.now();
+    const send = (budgetMs: number) => fetch(targetUrl, {
       method,
       headers: forwardHeaders,
       body,
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: AbortSignal.timeout(budgetMs),
       redirect: "manual",
     });
+
+    let upstreamResponse: Response;
+    try {
+      upstreamResponse = await send(timeoutMs);
+    } catch (error) {
+      if ((method !== "GET" && method !== "HEAD") || isTimeoutError(error)) throw error;
+      const remainingMs = timeoutMs - (Date.now() - startedAt);
+      if (remainingMs <= 0) throw error;
+      upstreamResponse = await send(remainingMs);
+    }
 
     return new Response(upstreamResponse.body, {
       status: upstreamResponse.status,
@@ -103,7 +118,7 @@ export async function proxyApiRequest(
       headers: filterResponseHeaders(upstreamResponse.headers, proxyTag),
     });
   } catch (error: unknown) {
-    const isTimeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+    const isTimeout = isTimeoutError(error);
     const status = isTimeout ? 504 : 502;
     return Response.json(
       {
