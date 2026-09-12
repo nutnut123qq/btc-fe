@@ -11,9 +11,9 @@ test("local build uses next start config and local-safe server rewrites", async 
   const rewrites = await config.rewrites!();
   assert.ok(Array.isArray(rewrites));
   assert.deepEqual(rewrites, [
-    { source: "/api/:path*", destination: "http://127.0.0.1:5197/api/:path*" },
     { source: "/hubs/:path*", destination: "http://127.0.0.1:5197/hubs/:path*" },
   ]);
+  assert.equal(rewrites.some((r) => r.source.startsWith("/api")), false);
 });
 
 test("standalone and Docker backend routing are explicit build settings", async () => {
@@ -21,7 +21,8 @@ test("standalone and Docker backend routing are explicit build settings", async 
   assert.equal(config.output, "standalone");
   const rewrites = await config.rewrites!();
   assert.ok(Array.isArray(rewrites));
-  assert.equal(rewrites[0]?.destination, "http://backend:5197/api/:path*");
+  assert.equal(rewrites[0]?.destination, "http://backend:5197/hubs/:path*");
+  assert.equal(rewrites.some((r) => r.source.startsWith("/api")), false);
 });
 
 test("browser API and SignalR URLs stay same-origin", async () => {

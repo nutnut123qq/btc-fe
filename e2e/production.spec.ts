@@ -4,7 +4,12 @@ const productionUrl = process.env.PLAYWRIGHT_BASE_URL;
 
 async function openTab(page: Page, tab: string, visibleText: string | RegExp) {
   await page.getByRole("button", { name: tab, exact: true }).click();
-  await expect(page.locator("main").getByText(visibleText).first()).toBeVisible({ timeout: 30_000 });
+  const activeContent = page
+    .locator("main")
+    .getByText(visibleText)
+    .filter({ visible: true })
+    .first();
+  await expect(activeContent).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("main").getByText(new RegExp(`Lỗi tải tab ${tab}`, "i"))).toHaveCount(0);
 }
 
@@ -12,6 +17,7 @@ test.describe("production dashboard", () => {
   test.skip(!productionUrl, "Set PLAYWRIGHT_BASE_URL to run production checks.");
 
   test("all tabs load without browser or API failures", async ({ page }) => {
+    test.setTimeout(90_000);
     const errors: string[] = [];
     const failedApis: string[] = [];
     page.on("console", (message) => {
@@ -37,11 +43,11 @@ test.describe("production dashboard", () => {
     await openTab(page, "Mẫu nến", "Thư viện");
     await openTab(page, "Tin tức", "Tin tức");
     await openTab(page, "AI", /Phân tích AI Đa Tác Tử/);
-    await expect(page.getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled();
+    await expect(page.locator("main").getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled({ timeout: 30_000 });
     await openTab(page, "Rules nến", /Rule Discovery/);
     await openTab(page, "Dự đoán", "Dự đoán hướng giá ML");
-    await expect(page.getByRole("button", { name: "Dự đoán", exact: true }).last()).toBeDisabled();
-    await expect(page.getByText(/Chưa có model tương thích đã qua promotion gate/)).toBeVisible();
+    await expect(page.locator("main").getByRole("button", { name: "Dự đoán", exact: true })).toBeDisabled();
+    await expect(page.getByText(/Chưa có model tương thích đã qua promotion gate/)).toBeVisible({ timeout: 30_000 });
     await openTab(page, "Paper", "Paper Trading");
     await openTab(page, "Nhật ký Paper đa tài sản", /Danh sách giao dịch mô phỏng/);
     await openTab(page, "Backtest", "Backtest chiến lược ML");

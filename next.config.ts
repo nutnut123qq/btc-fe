@@ -16,10 +16,6 @@ export function createNextConfig(env: NextBuildEnv = process.env as NextBuildEnv
     async rewrites() {
       return [
         {
-          source: "/api/:path*",
-          destination: `${backendUrl}/api/:path*`,
-        },
-        {
           source: "/hubs/:path*",
           destination: `${backendUrl}/hubs/:path*`,
         },
