@@ -74,3 +74,9 @@ test("backend-unavailable mode remains read-only and console-clean", async ({ pa
   await page.waitForTimeout(750);
   expect(errors).toEqual([]);
 });
+
+test("upstream health canary is handled by the Node proxy", async ({ request }) => {
+  const response = await request.get("/api/_upstream-health");
+  expect(response.headers()["x-btc-proxy"]).toBe("node-canary");
+  expect([200, 502, 504]).toContain(response.status());
+});

@@ -9,6 +9,12 @@ type RouteContext = {
 
 async function handleProxy(request: Request, context: RouteContext) {
   const { path = [] } = await context.params;
+  if (path.length === 1 && path[0] === "_upstream-health") {
+    return proxyApiRequest(request, ["health", "ready"], {
+      customProxyHeader: "node-canary",
+      timeoutMs: 10_000,
+    });
+  }
   return proxyApiRequest(request, path);
 }
 
