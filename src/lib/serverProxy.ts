@@ -102,15 +102,21 @@ export async function proxyApiRequest(
       redirect: "manual",
     });
 
-    let upstreamResponse: Response;
-    try {
-      upstreamResponse = await send(timeoutMs);
-    } catch (error) {
-      if ((method !== "GET" && method !== "HEAD") || isTimeoutError(error)) throw error;
+    const maxAttempts = method === "GET" || method === "HEAD" ? 3 : 1;
+    let upstreamResponse: Response | undefined;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const remainingMs = timeoutMs - (Date.now() - startedAt);
-      if (remainingMs <= 0) throw error;
-      upstreamResponse = await send(remainingMs);
+      if (remainingMs <= 0) throw lastError ?? new DOMException("Proxy timeout", "TimeoutError");
+      try {
+        upstreamResponse = await send(remainingMs);
+        break;
+      } catch (error) {
+        lastError = error;
+        if (isTimeoutError(error) || attempt === maxAttempts) throw error;
+      }
     }
+    if (!upstreamResponse) throw lastError;
 
     return new Response(upstreamResponse.body, {
       status: upstreamResponse.status,

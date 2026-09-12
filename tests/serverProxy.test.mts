@@ -75,11 +75,11 @@ test("proxy forwards a mutation body once without retrying upstream failures", a
   assert.equal(calls, 1);
 });
 
-test("proxy retries one transient GET transport failure", async () => {
+test("proxy retries transient GET transport failures within three attempts", async () => {
   let calls = 0;
   await withServer((request, response) => {
     calls++;
-    if (calls === 1) {
+    if (calls < 3) {
       request.socket.destroy();
       return;
     }
@@ -93,7 +93,7 @@ test("proxy retries one transient GET transport failure", async () => {
     );
     assert.equal(response.status, 200);
   });
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });
 
 test("proxy rejects traversal and encodes reserved characters in path segments", async () => {
