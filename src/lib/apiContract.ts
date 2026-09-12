@@ -177,7 +177,7 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-08-phase3";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-09-hourly-timeframes";
 
 export function requireAppMeta(value: unknown): Record<string, unknown> {
   const record = requireRecord(value, "app meta");

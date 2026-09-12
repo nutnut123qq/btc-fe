@@ -4469,6 +4469,7 @@ export interface components {
             volume?: number;
         };
         KlineFreshness: {
+            active?: boolean;
             /** Format: int64 */
             ageSeconds?: number | null;
             /** Format: date-time */
@@ -4655,6 +4656,7 @@ export interface components {
             wsUrl?: string | null;
         };
         TimeframeAudit: {
+            active?: boolean;
             /** Format: int64 */
             candlePatterns?: number | null;
             /** Format: double */
