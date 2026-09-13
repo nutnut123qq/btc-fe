@@ -46,6 +46,12 @@ test.describe("production dashboard", () => {
     await page.getByRole("button", { name: /Sàn Binance Pro/ }).click();
 
     await openTab(page, "Mẫu nến", "Thư viện");
+    const archetypeEvidence = page.locator("section[aria-label^='Mẫu gốc của ']").first();
+    await expect(archetypeEvidence).toBeVisible({ timeout: 30_000 });
+    await expect(archetypeEvidence.getByTestId("archetype-evidence-card").first()).toBeVisible({ timeout: 30_000 });
+    await expect(archetypeEvidence.getByText("Nguồn OHLC: Klines", { exact: true })).toBeVisible();
+    await expect(archetypeEvidence.getByText(/OHLC không đủ|Thiếu OHLC/)).toHaveCount(0);
+    await expect(archetypeEvidence.getByText(/THẮNG|THUA/, { exact: true }).first()).toBeVisible();
     await openTab(page, "Tin tức", "Tin tức");
     await openTab(page, "AI", /Phân tích AI Đa Tác Tử/);
     await expect(page.locator("main").getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled({ timeout: 30_000 });
