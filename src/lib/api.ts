@@ -482,7 +482,7 @@ export async function getArchetypeOccurrences(id: number, params: {
   const res = await fetch(`${API_BASE}/api/archetypes/${id}/occurrences?${qs}`);
   const data: unknown = await getJson(res);
   const { record, items } = requireArrayField<import("./types").ArchetypeOccurrenceDto>(data, "items", "archetype occurrences");
-  return { ...record, items };
+  return { ...record, items } as import("./types").ArchetypeOccurrencesResponse;
 }
 
 export async function matchCurrentArchetype(params: {

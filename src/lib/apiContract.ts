@@ -177,9 +177,10 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-09-hourly-timeframes";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-09-archetype-evidence";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
+  "2026-09-hourly-timeframes",
   "2026-08-phase3",
 ]);
 

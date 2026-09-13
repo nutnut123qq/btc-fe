@@ -459,6 +459,7 @@ export type EquityCurvePoint = {
 // --- Archetype types ---
 
 export type ArchetypeOhlcBar = {
+  openTimeMs?: number;
   open: number;
   high: number;
   low: number;
@@ -521,6 +522,19 @@ export type ArchetypeOccurrenceDto = {
   distanceToCentroid: number;
   label: number;
   targetReturn: number | null;
+  outcomeAvailable: boolean;
+  ohlc: ArchetypeOhlcBar[];
+  ohlcComplete: boolean;
+};
+
+export type ArchetypeOccurrencesResponse = {
+  requestId: string;
+  archetypeId: number;
+  horizon: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  items: ArchetypeOccurrenceDto[];
 };
 
 export type ArchetypeRankingDto = {

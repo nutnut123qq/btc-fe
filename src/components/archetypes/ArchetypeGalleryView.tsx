@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import type { ArchetypeDto } from "@/lib/types";
 import { ArchetypeCard } from "./ArchetypeCard";
+import { ArchetypeEvidencePanel } from "./ArchetypeEvidencePanel";
 import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
 
 interface ArchetypeGalleryViewProps {
@@ -84,16 +85,21 @@ export function ArchetypeGalleryView({
           <RefreshCw className="w-8 h-8 animate-spin text-teal-500" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {archetypes.map((arc) => (
-            <ArchetypeCard
-              key={arc.id}
-              archetype={arc}
-              onClick={() => onSelectArchetype(arc.id)}
-            />
+            <div key={arc.id} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <ArchetypeCard
+                archetype={arc}
+                onClick={() => onSelectArchetype(arc.id)}
+              />
+              <ArchetypeEvidencePanel
+                key={`${arc.id}-${arc.bestOutcome?.horizon ?? "4h"}`}
+                archetype={arc}
+              />
+            </div>
           ))}
           {archetypes.length === 0 && (
-            <div className="col-span-3 text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500">
               Không tìm thấy mẫu nến
             </div>
           )}
