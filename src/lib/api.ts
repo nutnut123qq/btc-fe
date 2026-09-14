@@ -1,5 +1,6 @@
 import { isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, requireDataAudit, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireFreshnessHealth, requireGapRetry, requireLiveHealth, requireMutationContract, requireReadyHealth, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, requireWorkersHealth, safeApiErrorMessage } from "./apiContract";
 import { parseAiSseLine } from "./aiStream";
+import { assertHistoricalAnalogEnvelope } from "./historicalAnalog";
 import { authenticatedFetch } from "./sessionAuth";
 import { DEFAULT_TIMEFRAME } from "./timeframe";
 
@@ -503,6 +504,36 @@ export async function matchMultiWindow(symbol?: string, timeframe?: string) {
   const data: unknown = await getJson(res);
   const { record, items } = requireArrayField<import("./types").ArchetypeMatchDto>(data, "matches", "archetype matches");
   return { ...record, matches: items };
+}
+
+export async function getHistoricalAnalogs(params: {
+  symbol: string;
+  timeframe: string;
+  windowSize: number;
+  neighborCount: number;
+  page: number;
+  pageSize: number;
+  lookbackBars?: number;
+  roundTripCostPct?: number;
+  atrMultiplier?: number;
+}) {
+  const qs = new URLSearchParams({
+    symbol: params.symbol,
+    timeframe: params.timeframe,
+    windowSize: String(params.windowSize),
+    neighborCount: String(params.neighborCount),
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+  });
+  if (params.lookbackBars !== undefined) qs.set("lookbackBars", String(params.lookbackBars));
+  if (params.roundTripCostPct !== undefined) qs.set("roundTripCostPct", String(params.roundTripCostPct));
+  if (params.atrMultiplier !== undefined) qs.set("atrMultiplier", String(params.atrMultiplier));
+
+  const res = await fetch(`${API_BASE}/api/historical-analogs?${qs}`, { cache: "no-store" });
+  const data: unknown = await getJson(res);
+  const { record, items } = requireArrayField<import("./types").HistoricalAnalogItemDto>(data, "items", "historical analogs");
+  assertHistoricalAnalogEnvelope(record);
+  return { ...record, items } as import("./types").HistoricalAnalogResponse;
 }
 
 export async function getArchetypeRankings(params: {

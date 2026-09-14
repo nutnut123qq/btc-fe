@@ -558,6 +558,88 @@ export type ArchetypeOccurrencesResponse = {
   items: ArchetypeOccurrenceDto[];
 };
 
+export type HistoricalAnalogContextDto = {
+  values: Record<string, number | null>;
+  availableFeatureCount: number;
+};
+
+export type HistoricalAnalogQueryDto = {
+  startTimeMs: number;
+  endTimeMs: number;
+  ohlc: ArchetypeOhlcBar[];
+  context: HistoricalAnalogContextDto;
+};
+
+export type HistoricalAnalogOutcomeDto = {
+  barsAhead: number;
+  targetOpenTimeMs: number;
+  targetClose: number;
+  returnPct: number;
+  thresholdPct: number;
+  direction: -1 | 0 | 1;
+};
+
+export type HistoricalAnalogItemDto = {
+  rank: number;
+  windowId: string;
+  startTimeMs: number;
+  endTimeMs: number;
+  futureEndTimeMs: number;
+  shapeSimilarity: number;
+  contextSimilarity: number | null;
+  contextComparableFeatureCount: number;
+  atr14Pct: number;
+  thresholdPct: number;
+  ohlc: ArchetypeOhlcBar[];
+  futureOhlc: ArchetypeOhlcBar[];
+  outcomes: HistoricalAnalogOutcomeDto[];
+};
+
+export type HistoricalAnalogSummaryDto = {
+  barsAhead: number;
+  totalSamples: number;
+  upCount: number;
+  downCount: number;
+  neutralCount: number;
+  upRate: number;
+  downRate: number;
+  neutralRate: number;
+  avgReturnPct: number;
+  medianReturnPct: number;
+  dominantDirection: -1 | 0 | 1 | null;
+};
+
+export type HistoricalAnalogResponse = {
+  requestId: string;
+  contractVersion: "2026-09-historical-analogs";
+  method: "historical-analog-returns-shape-v1";
+  rankingMethod: "shape-similarity-desc-context-audit-only";
+  evaluationMethod: "fixed-horizon-close-to-close-economic-threshold";
+  symbol: string;
+  timeframe: string;
+  intervalMs: number;
+  windowSize: number;
+  lookbackBars: number;
+  neighborCount: number;
+  page: number;
+  pageSize: number;
+  total: number;
+  exclusionBars: number;
+  roundTripCostPct: number;
+  atrMultiplier: number;
+  rawCandidateCount: number;
+  independentCandidateCount: number;
+  effectiveSampleCount: number;
+  validation: {
+    status: "exploratory" | "unavailable";
+    isOutOfSampleValidated: false;
+    reason: string;
+  };
+  query: HistoricalAnalogQueryDto | null;
+  summaries: HistoricalAnalogSummaryDto[];
+  items: HistoricalAnalogItemDto[];
+};
+
 export type ArchetypeRankingDto = {
   rank: number;
   archetypeId: number;

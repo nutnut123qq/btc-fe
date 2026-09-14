@@ -5,7 +5,6 @@ import {
   getArchetypes,
   getArchetypeDetail,
   getArchetypeOccurrences,
-  matchMultiWindow,
   getArchetypeRankings,
   getTransitionMatrix,
   getTransitionsFrom,
@@ -15,7 +14,6 @@ import {
 import type {
   ArchetypeDto,
   ArchetypeDetailDto,
-  ArchetypeMatchDto,
   ArchetypeRankingDto,
   ArchetypeOccurrenceDto,
   TransitionMatrixDto,
@@ -24,7 +22,7 @@ import type {
   SequencePredictionDto,
 } from "@/lib/types";
 import { ArchetypeGalleryView } from "./archetypes/ArchetypeGalleryView";
-import { ArchetypeMatchView } from "./archetypes/ArchetypeMatchView";
+import { HistoricalAnalogView } from "./archetypes/HistoricalAnalogView";
 import { ArchetypeTransitionsView } from "./archetypes/ArchetypeTransitionsView";
 import { ArchetypeRankingsView } from "./archetypes/ArchetypeRankingsView";
 import { ArchetypePredictContainer } from "./archetypes/ArchetypePredictContainer";
@@ -35,11 +33,11 @@ import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 const TIMEFRAME_OPTIONS = [...ACTIVE_TIMEFRAMES];
 const WINDOW_SIZES = [10, 15, 20, 25];
-type ArchetypeSubTab = "gallery" | "match" | "rankings" | "transitions" | "predict";
+type ArchetypeSubTab = "gallery" | "analog" | "rankings" | "transitions" | "predict";
 
 export function ArchetypeScreen() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
-  const [activeSubTab, setActiveSubTab] = useState<ArchetypeSubTab>("gallery");
+  const [activeSubTab, setActiveSubTab] = useState<ArchetypeSubTab>("analog");
   const [tabErrors, setTabErrors] = useState<Partial<Record<ArchetypeSubTab, string>>>({});
 
   // Gallery State
@@ -48,11 +46,6 @@ export function ArchetypeScreen() {
   const [gallerySort, setGallerySort] = useState("memberCount");
   const [archetypes, setArchetypes] = useState<ArchetypeDto[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
-
-  // Match State
-  const [matchTf, setMatchTf] = useState<string>(DEFAULT_TIMEFRAME);
-  const [matchData, setMatchData] = useState<ArchetypeMatchDto[]>([]);
-  const [matchLoading, setMatchLoading] = useState(false);
 
   // Rankings State
   const [rankingsTf, setRankingsTf] = useState<string>(DEFAULT_TIMEFRAME);
@@ -101,20 +94,6 @@ export function ArchetypeScreen() {
       setGalleryLoading(false);
     }
   }, [gallerySort, galleryTf, galleryWs, selectedSymbol]);
-
-  const loadMatch = useCallback(async () => {
-    setMatchLoading(true);
-    setTabErrors((prev) => ({ ...prev, match: undefined }));
-    try {
-      const res = await matchMultiWindow(selectedSymbol, matchTf);
-      setMatchData(res.matches);
-    } catch (e) {
-      console.error(e);
-      setTabErrors((prev) => ({ ...prev, match: "Không thể tải kết quả khớp mẫu nến." }));
-    } finally {
-      setMatchLoading(false);
-    }
-  }, [matchTf, selectedSymbol]);
 
   const loadRankings = useCallback(async () => {
     setRankingsLoading(true);
@@ -204,10 +183,6 @@ export function ArchetypeScreen() {
   }, [activeSubTab, loadGallery]);
 
   useEffect(() => {
-    if (activeSubTab === "match") void loadMatch();
-  }, [activeSubTab, loadMatch]);
-
-  useEffect(() => {
     if (activeSubTab === "rankings") void loadRankings();
   }, [activeSubTab, loadRankings]);
 
@@ -221,7 +196,6 @@ export function ArchetypeScreen() {
 
   const retryActiveTab = () => {
     if (activeSubTab === "gallery") void loadGallery();
-    else if (activeSubTab === "match") void loadMatch();
     else if (activeSubTab === "rankings") void loadRankings();
     else if (activeSubTab === "transitions") void loadMatrix();
     else void loadPredictions();
@@ -250,8 +224,8 @@ export function ArchetypeScreen() {
 
         <div className="flex space-x-1 bg-gray-900 p-1 rounded-xl border border-gray-800 flex-1 sm:flex-initial">
           {[
-            { key: "gallery", label: "Thư viện" },
-            { key: "match", label: "Match Hiện tại" },
+            { key: "analog", label: "Analog lịch sử" },
+            { key: "gallery", label: "Thư viện (audit)" },
             { key: "rankings", label: "Bảng xếp hạng" },
             { key: "transitions", label: "Chuyển đổi" },
             { key: "predict", label: "Dự báo" },
@@ -300,14 +274,11 @@ export function ArchetypeScreen() {
           />
         )}
 
-        {activeSubTab === "match" && (
-          <ArchetypeMatchView
-            timeframe={matchTf}
+        {activeSubTab === "analog" && (
+          <HistoricalAnalogView
+            symbol={selectedSymbol}
             timeframeOptions={TIMEFRAME_OPTIONS}
-            matchData={matchData}
-            loading={matchLoading}
-            onTimeframeChange={setMatchTf}
-            onMatch={loadMatch}
+            windowSizes={WINDOW_SIZES}
           />
         )}
 
