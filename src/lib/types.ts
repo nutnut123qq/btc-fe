@@ -520,20 +520,41 @@ export type ArchetypeOccurrenceDto = {
   windowStartMs: number;
   windowEndMs: number;
   distanceToCentroid: number;
-  label: number;
-  targetReturn: number | null;
-  outcomeAvailable: boolean;
   ohlc: ArchetypeOhlcBar[];
   ohlcComplete: boolean;
+  futureOhlc: ArchetypeOhlcBar[];
+  futureOhlcComplete: boolean;
+  fixedHorizonOutcomes: ArchetypeFixedHorizonOutcomeDto[];
+};
+
+export type ArchetypeFixedHorizonOutcomeDto = {
+  barsAhead: number;
+  targetOpenTimeMs: number;
+  targetClose: number | null;
+  returnPct: number | null;
+  direction: number | null;
+  available: boolean;
+};
+
+export type ArchetypeFixedHorizonSummaryDto = {
+  barsAhead: number;
+  totalSamples: number;
+  upRate: number;
+  downRate: number;
+  sidewaysRate: number;
+  avgReturnPct: number;
+  dominantDirection: number | null;
 };
 
 export type ArchetypeOccurrencesResponse = {
   requestId: string;
   archetypeId: number;
-  horizon: string;
+  evaluationMethod: "fixed-horizon-close-to-close";
+  forwardBars: number[];
   page: number;
   pageSize: number;
   total: number;
+  summaries: ArchetypeFixedHorizonSummaryDto[];
   items: ArchetypeOccurrenceDto[];
 };
 

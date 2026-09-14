@@ -63,68 +63,15 @@ export function ArchetypeDetailModal({
               </div>
             </div>
 
-            <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {detail.outcomes.map((out) => (
-                <div
-                  key={out.horizon}
-                  className="bg-gray-950 border border-gray-800 rounded-xl p-4"
-                >
-                  <div className="text-sm font-medium mb-3 text-center border-b border-gray-800 pb-2">
-                    Horizon {out.horizon}
-                  </div>
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <div className="flex justify-between text-emerald-400 mb-1">
-                        <span>Tăng</span>
-                        <span>{(out.upRate * 100).toFixed(1)}%</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-900 rounded-full">
-                        <div
-                          className="h-full bg-emerald-500"
-                          style={{ width: `${out.upRate * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-rose-400 mb-1">
-                        <span>Giảm</span>
-                        <span>{(out.downRate * 100).toFixed(1)}%</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-900 rounded-full">
-                        <div
-                          className="h-full bg-rose-500"
-                          style={{ width: `${out.downRate * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-amber-400 mb-1">
-                        <span>Ngang</span>
-                        <span>{(out.sidewaysRate * 100).toFixed(1)}%</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-900 rounded-full">
-                        <div
-                          className="h-full bg-amber-500"
-                          style={{ width: `${out.sidewaysRate * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className={`text-center mt-4 text-lg font-bold ${
-                      out.avgReturnPct > 0 ? "text-emerald-400" : "text-rose-400"
-                    }`}
-                  >
-                    {(out.avgReturnPct).toFixed(2)}%
-                  </div>
-                  <div className="text-center text-gray-500 text-xs">Lợi nhuận TB</div>
-                </div>
-              ))}
-              {detail.outcomes.length === 0 && (
-                <div className="sm:col-span-3 py-8 text-center text-sm text-gray-500">
-                  Chưa có thống kê kết quả cho mẫu này
-                </div>
-              )}
+            <div className="col-span-2 rounded-xl border border-gray-800 bg-gray-950 p-5">
+              <h4 className="font-semibold text-gray-200">Cách kiểm chứng hiện tại</h4>
+              <p className="mt-2 text-sm leading-6 text-gray-400">
+                Kết quả được tính trực tiếp từ giá đóng cửa cây cuối mẫu đến giá đóng cửa sau 1, 3 và 6 nến.
+                Các thống kê Triple Barrier cũ không được dùng trong phần kiểm chứng này.
+              </p>
+              <p className="mt-3 text-xs text-gray-500">
+                ĐÚNG HƯỚNG nghĩa là hướng thực tế trùng hướng chủ đạo lịch sử của nhóm tại cùng mốc; đây không phải lợi nhuận của một giao dịch.
+              </p>
             </div>
           </div>
 
@@ -139,8 +86,9 @@ export function ArchetypeDetailModal({
                   <tr>
                     <th className="text-left py-2 px-2">Thời gian kết thúc</th>
                     <th className="text-center py-2 px-2">Khoảng cách</th>
-                    <th className="text-center py-2 px-2">Kết quả</th>
-                    <th className="text-right py-2 px-2">Lợi nhuận</th>
+                    <th className="text-right py-2 px-2">Sau 1 nến</th>
+                    <th className="text-right py-2 px-2">Sau 3 nến</th>
+                    <th className="text-right py-2 px-2">Sau 6 nến</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -152,31 +100,19 @@ export function ArchetypeDetailModal({
                       <td className="py-2 px-2 text-center text-gray-400">
                         {occ.distanceToCentroid.toFixed(3)}
                       </td>
-                      <td className="py-2 px-2 text-center">
-                        {occ.label === 1 ? (
-                          <span className="text-emerald-400">TĂNG</span>
-                        ) : occ.label === -1 ? (
-                          <span className="text-rose-400">GIẢM</span>
-                        ) : (
-                          <span className="text-amber-400">NGANG</span>
-                        )}
-                      </td>
-                      <td
-                        className={`py-2 px-2 text-right ${
-                          occ.targetReturn && occ.targetReturn > 0
-                            ? "text-emerald-400"
-                            : "text-rose-400"
-                        }`}
-                      >
-                        {occ.targetReturn
-                          ? (occ.targetReturn).toFixed(2) + "%"
-                          : "-"}
-                      </td>
+                      {[1, 3, 6].map((barsAhead) => {
+                        const result = (occ.fixedHorizonOutcomes ?? []).find((item) => item.barsAhead === barsAhead);
+                        return (
+                          <td key={barsAhead} className={`py-2 px-2 text-right ${(result?.returnPct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {result?.available && result.returnPct != null ? `${result.returnPct.toFixed(2)}%` : "—"}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                   {occurrences.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-gray-500">
+                      <td colSpan={5} className="py-6 text-center text-gray-500">
                         Chưa có lần xuất hiện gần đây
                       </td>
                     </tr>

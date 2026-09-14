@@ -473,10 +473,9 @@ export async function getArchetypeDetail(id: number) {
 }
 
 export async function getArchetypeOccurrences(id: number, params: {
-  horizon?: string; page?: number; pageSize?: number;
+  page?: number; pageSize?: number;
 }) {
   const qs = new URLSearchParams();
-  if (params.horizon) qs.set("horizon", params.horizon);
   if (params.page) qs.set("page", String(params.page));
   if (params.pageSize) qs.set("pageSize", String(params.pageSize));
   const res = await fetch(`${API_BASE}/api/archetypes/${id}/occurrences?${qs}`);

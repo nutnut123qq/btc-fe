@@ -73,9 +73,7 @@ export function ArchetypeGalleryView({
             onChange={(e) => onSortByChange(e.target.value)}
             className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-sm"
           >
-            <option value="winRate">Tỷ lệ thắng</option>
-            <option value="samples">Số mẫu</option>
-            <option value="recent">Gần đây</option>
+            <option value="memberCount">Số mẫu</option>
           </select>
         </div>
       </div>

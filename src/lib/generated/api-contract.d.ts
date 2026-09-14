@@ -607,7 +607,6 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    horizon?: string;
                     page?: number;
                     pageSize?: number;
                 };

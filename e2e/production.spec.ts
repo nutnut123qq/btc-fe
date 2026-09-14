@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const productionUrl = process.env.PLAYWRIGHT_BASE_URL;
+const requireLlm = process.env.PLAYWRIGHT_REQUIRE_LLM !== "0";
 
 async function openTab(page: Page, tab: string, visibleText: string | RegExp) {
   await page.getByRole("button", { name: tab, exact: true }).click();
@@ -49,12 +50,17 @@ test.describe("production dashboard", () => {
     const archetypeEvidence = page.locator("section[aria-label^='Mẫu gốc của ']").first();
     await expect(archetypeEvidence).toBeVisible({ timeout: 30_000 });
     await expect(archetypeEvidence.getByTestId("archetype-evidence-card").first()).toBeVisible({ timeout: 30_000 });
-    await expect(archetypeEvidence.getByText("Nguồn OHLC: Klines", { exact: true })).toBeVisible();
-    await expect(archetypeEvidence.getByText(/OHLC không đủ|Thiếu OHLC/)).toHaveCount(0);
-    await expect(archetypeEvidence.getByText(/THẮNG|THUA/, { exact: true }).first()).toBeVisible();
+    await expect(archetypeEvidence.getByText(/Close-to-close sau 1, 3 và 6 nến/)).toBeVisible();
+    await expect(archetypeEvidence.getByText("Nguồn: giá đóng cửa Klines", { exact: true })).toBeVisible();
+    await expect(archetypeEvidence.getByText(/OHLC không đủ|Thiếu OHLC|Nến tương lai chưa đủ/)).toHaveCount(0);
+    await expect(archetypeEvidence.getByText(/ĐÚNG HƯỚNG|SAI HƯỚNG/, { exact: true }).first()).toBeVisible();
     await openTab(page, "Tin tức", "Tin tức");
     await openTab(page, "AI", /Phân tích AI Đa Tác Tử/);
-    await expect(page.locator("main").getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled({ timeout: 30_000 });
+    if (requireLlm) {
+      await expect(page.locator("main").getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled({ timeout: 30_000 });
+    } else {
+      await expect(page.locator("main").getByText(/LLM OFF — phân tích đa tác tử chưa khả dụng/)).toBeVisible();
+    }
     await openTab(page, "Rules nến", /Rule Discovery/);
     await openTab(page, "Dự đoán", "Dự đoán hướng giá ML");
     await expect(page.locator("main").getByRole("button", { name: "Dự đoán", exact: true })).toBeDisabled();

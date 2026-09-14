@@ -10,59 +10,33 @@ interface ArchetypeCardProps {
 
 export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="bg-gray-950 border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-teal-500/50 transition-colors"
+      className="w-full rounded-xl border border-gray-800 bg-gray-950 p-4 text-left transition-colors hover:border-teal-500/50"
     >
-      <div className="flex justify-between items-center mb-3">
-        <span className="bg-gray-800 text-teal-400 px-2 py-1 rounded text-xs font-mono">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="rounded bg-gray-800 px-2 py-1 font-mono text-sm font-bold text-teal-400">
           {arc.archetypeCode}
         </span>
-        <span className="text-xs text-gray-400">{arc.memberCount} mẫu</span>
+        <span className="text-xs text-gray-500">{arc.timeframe} · {arc.windowSize} nến</span>
       </div>
-      <div className="h-20 mb-4 bg-gray-900 rounded p-2">
+
+      <div className="h-40 rounded-lg bg-gray-900 p-2">
         {arc.representativeOhlc && <ArchetypeGlyph bars={arc.representativeOhlc} />}
       </div>
-      {arc.bestOutcome && (
-        <div className="space-y-2 text-xs">
-          <div>
-            <div className="flex justify-between text-emerald-400 mb-1">
-              <span>Tăng</span>
-              <span>{(arc.bestOutcome.upRate * 100).toFixed(1)}%</span>
-            </div>
-            <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500"
-                style={{ width: `${arc.bestOutcome.upRate * 100}%` }}
-              />
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between text-rose-400 mb-1">
-              <span>Giảm</span>
-              <span>{(arc.bestOutcome.downRate * 100).toFixed(1)}%</span>
-            </div>
-            <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-rose-500"
-                style={{ width: `${arc.bestOutcome.downRate * 100}%` }}
-              />
-            </div>
-          </div>
-          <div className="flex justify-between text-gray-400 mt-3 pt-2 border-t border-gray-800">
-            <span>Lợi nhuận TB:</span>
-            <span
-              className={
-                arc.bestOutcome.avgReturnPct > 0
-                  ? "text-emerald-400"
-                  : "text-rose-400"
-              }
-            >
-              {(arc.bestOutcome.avgReturnPct).toFixed(2)}%
-            </span>
-          </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-gray-800 pt-3 text-xs">
+        <div className="rounded bg-gray-900 p-2">
+          <div className="text-gray-500">Số mẫu gốc</div>
+          <div className="mt-1 font-semibold text-gray-200">{arc.memberCount}</div>
         </div>
-      )}
-    </div>
+        <div className="rounded bg-gray-900 p-2">
+          <div className="text-gray-500">Độ phân tán</div>
+          <div className="mt-1 font-semibold text-gray-200">{arc.intraClusterDistance.toFixed(3)}</div>
+        </div>
+      </div>
+      <div className="mt-3 text-[11px] text-teal-400">Mở chi tiết mẫu</div>
+    </button>
   );
 }

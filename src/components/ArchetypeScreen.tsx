@@ -45,7 +45,7 @@ export function ArchetypeScreen() {
   // Gallery State
   const [galleryTf, setGalleryTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [galleryWs, setGalleryWs] = useState(15);
-  const [gallerySort, setGallerySort] = useState("winRate");
+  const [gallerySort, setGallerySort] = useState("memberCount");
   const [archetypes, setArchetypes] = useState<ArchetypeDto[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
 
@@ -140,7 +140,7 @@ export function ArchetypeScreen() {
     try {
       const [resDetail, resOcc] = await Promise.all([
         getArchetypeDetail(id),
-        getArchetypeOccurrences(id, { horizon: "4h", pageSize: 20 }),
+        getArchetypeOccurrences(id, { pageSize: 20 }),
       ]);
       setDetail(resDetail);
       setOccurrences(resOcc.items);
