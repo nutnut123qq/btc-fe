@@ -438,6 +438,7 @@ export function ChartPanel({
             smartMoney={showSmc ? smartMoney : null}
             patterns={showPatterns ? detectedPatterns : null}
             showFibonacci={showFibonacci}
+            timeframe={timeframe}
           />
         )}
         {status !== "loading" && status !== "error" && candles.length === 0 && (

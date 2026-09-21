@@ -1,18 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MarketTicker } from "@/lib/types";
-import { TrendingUp, TrendingDown, Search } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import type { MarketConnectionSnapshot } from "@/lib/marketTruth";
+import { isMarketStreamStale } from "@/lib/marketTruth";
 
 type Props = {
   selectedSymbol: string;
   ticker: MarketTicker | null;
-  onOpenSelector: () => void;
   loading?: boolean;
+  connection?: MarketConnectionSnapshot;
 };
 
-export function BinanceTickerHeader({ selectedSymbol, ticker, onOpenSelector, loading }: Props) {
+export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connection }: Props) {
+  const [clockMs, setClockMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setClockMs(Date.now()), 5_000);
+    return () => clearInterval(timer);
+  }, []);
   const isPositive = (ticker?.priceChangePercent ?? 0) >= 0;
   const baseAsset = selectedSymbol.replace(/USDT$/i, "");
+  const tickerAgeMs = ticker?.closeTimeMs ? Math.max(0, clockMs - ticker.closeTimeMs) : null;
+  const stale = connection
+    ? isMarketStreamStale(connection, clockMs) || tickerAgeMs == null || tickerAgeMs > 15_000
+    : tickerAgeMs == null || tickerAgeMs > 15_000;
+  const sourceLabel = ticker?.source === "websocket" ? "WebSocket" : "REST";
 
   const formatPrice = (val?: number) => {
     if (val == null) return "--";
@@ -31,28 +44,22 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, onOpenSelector, lo
 
   return (
     <div className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-4">
-      {/* Symbol & Pair Selector Button */}
+      {/* Active research symbol */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onOpenSelector}
-          className="group flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/60 transition-all cursor-pointer shadow-sm hover:border-teal-500/50"
-          title="Chọn mã giao dịch khác"
-        >
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700/60 shadow-sm">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-cyan-400 flex items-center justify-center font-bold text-xs text-gray-950 shadow-inner">
             {baseAsset.slice(0, 3)}
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm text-gray-100 group-hover:text-teal-300 transition-colors">
+              <span className="font-bold text-sm text-gray-100">
                 {baseAsset}
               </span>
               <span className="text-xs text-gray-400">/USDT</span>
             </div>
-            <span className="text-[10px] text-teal-400 flex items-center gap-0.5">
-              <Search className="w-2.5 h-2.5" /> Đổi mã
-            </span>
+            <span className="text-[10px] text-teal-400">Binance Spot · Tài sản nghiên cứu</span>
           </div>
-        </button>
+        </div>
 
         {/* Current Price */}
         <div className="border-l border-gray-800 pl-3">
@@ -62,8 +69,8 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, onOpenSelector, lo
               isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />
             )}
           </div>
-          <div className="text-[11px] text-gray-400">
-            Giá Binance Realtime
+          <div className={`text-[11px] ${stale ? "text-amber-400" : "text-gray-400"}`}>
+            {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`}
           </div>
         </div>
       </div>

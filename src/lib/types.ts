@@ -5,6 +5,8 @@ export type KlineOHLC = {
   low: number;
   close: number;
   volume: number;
+  /** Optional authoritative flag from the source. Absent means the UI derives lifecycle from open time + timeframe. */
+  isClosed?: boolean;
 };
 
 export type NewsItem = {
@@ -26,6 +28,13 @@ export type AlertItem = {
   createdAt: string;
   isRead: boolean;
   sourceKey: string | null;
+  evidenceKind?: "observed-event" | "validated-predictive" | string;
+  provenance?: string | null;
+  availableTimeMs?: number | null;
+  deliveryStatus?: "not-configured" | "pending" | "attempting" | "delivered" | "failed-at-most-once" | "historical-db-only" | string;
+  deliveryAttemptedAtUtc?: string | null;
+  deliveredAtUtc?: string | null;
+  deliveryError?: string | null;
   archivedAtUtc: string | null;
 };
 
@@ -36,6 +45,27 @@ export type AlertListResponse = {
 };
 
 export type ValidityStatus = "Valid" | "Legacy" | "Invalid";
+
+/** Product maturity describes the evidence behind a capability, not row validity. */
+export type CapabilityState =
+  | "descriptive"
+  | "experimental"
+  | "validated"
+  | "forward-observed"
+  | "retired";
+
+export type EvidenceFreshnessDto = {
+  status: "fresh" | "stale" | "missing" | "unknown";
+  asOfTimeMs?: number | null;
+  ageSeconds?: number | null;
+  reason?: string | null;
+};
+
+export type EvidenceIntervalDto = {
+  lower: number;
+  upper: number;
+  level?: number;
+};
 
 export type VersionedResearchRecord = {
   pipelineVersion: string;
@@ -299,6 +329,28 @@ export type SequenceRule = {
   action: string;
   priority: number;
   isAutoDiscovered?: boolean;
+  winRate?: number;
+  avgReturn?: number;
+  sampleCount?: number;
+  capabilityState?: CapabilityState | string;
+  methodVersion?: string;
+  discoveryRunId?: number | null;
+  selectionStartTimeMs?: number | null;
+  selectionEndTimeMs?: number | null;
+  evaluationStartTimeMs?: number | null;
+  evaluationEndTimeMs?: number | null;
+  selectionSampleCount?: number;
+  oosSampleCount?: number;
+  oosWinRate?: number | null;
+  oosWinRateCi95Low?: number | null;
+  oosWinRateCi95High?: number | null;
+  baselineWinRate?: number | null;
+  oosLift?: number | null;
+  oosGrossAvgReturnPct?: number | null;
+  oosNetAvgReturnPct?: number | null;
+  labelDeadZonePct?: number | null;
+  roundTripCostBps?: number | null;
+  rejectedReason?: string | null;
   createdAtUtc: string;
   updatedAtUtc?: string;
 };
@@ -312,6 +364,36 @@ export type SequenceRuleSignal = {
   closePrice: number;
   message: string;
   createdAtUtc: string;
+};
+
+export type RuleDiscoveryTrialSummary = {
+  trialNumber: number;
+  candidateKey: string;
+  status: "selected" | "rejected" | string;
+  rejectedReason: string | null;
+  selectionSamples: number;
+  evaluationSamples: number;
+};
+
+export type RuleDiscoveryRunResponse = {
+  symbol: string;
+  timeframe: string;
+  lookbackBars: number;
+  futureBars: number;
+  method: string;
+  runId: number | null;
+  candidateBudget: number;
+  trialCount: number;
+  selectionInterval: { startTimeMs: number; endTimeMs: number };
+  evaluationInterval: { startTimeMs: number; endTimeMs: number };
+  labelDeadZonePct: number;
+  roundTripCostBps: number;
+  barsAnalyzed: number;
+  candidatesFound: number;
+  savedToDb: number;
+  latencyMs: number;
+  rejected: number;
+  trialLedger: RuleDiscoveryTrialSummary[];
 };
 
 // --- Sequence / structure analysis (api/market/{market-structure,sequence-scenarios,validate-candles}) ---
@@ -607,13 +689,20 @@ export type HistoricalAnalogSummaryDto = {
   avgReturnPct: number;
   medianReturnPct: number;
   dominantDirection: -1 | 0 | 1 | null;
+  /** Optional OOS evidence. Absent means the API only returned descriptive history. */
+  baselineName?: string | null;
+  baselineScore?: number | null;
+  lift?: number | null;
+  liftUnit?: "fraction" | "percentage-points" | null;
+  liftConfidenceInterval?: EvidenceIntervalDto | null;
 };
 
 export type HistoricalAnalogResponse = {
   requestId: string;
-  contractVersion: "2026-09-historical-analogs";
-  method: "historical-analog-returns-shape-v1";
-  rankingMethod: "shape-similarity-desc-context-audit-only";
+  contractVersion: string;
+  method: string;
+  methodVersion?: string | null;
+  rankingMethod: string;
   evaluationMethod: "fixed-horizon-close-to-close-economic-threshold";
   symbol: string;
   timeframe: string;
@@ -630,9 +719,20 @@ export type HistoricalAnalogResponse = {
   rawCandidateCount: number;
   independentCandidateCount: number;
   effectiveSampleCount: number;
+  capabilityState?: CapabilityState;
+  freshness?: EvidenceFreshnessDto | null;
+  baselineName?: string | null;
+  baselineScore?: number | null;
+  lift?: number | null;
+  liftUnit?: "fraction" | "percentage-points" | null;
+  liftConfidenceInterval?: EvidenceIntervalDto | null;
+  coverage?: number | null;
+  abstentionRate?: number | null;
+  abstained?: boolean;
+  abstentionReason?: string | null;
   validation: {
-    status: "exploratory" | "unavailable";
-    isOutOfSampleValidated: false;
+    status: "exploratory" | "validated" | "unavailable";
+    isOutOfSampleValidated: boolean;
     reason: string;
   };
   query: HistoricalAnalogQueryDto | null;
@@ -804,6 +904,10 @@ export type ConfluenceSnapshotDto = {
   hasConflict: boolean;
   conflictDetails: string | null;
   createdAtUtc: string;
+  capabilityState?: CapabilityState;
+  isProbability?: false;
+  missingInputs?: string[];
+  freshness?: EvidenceFreshnessDto | null;
 };
 
 // --- Volume Profile ---
@@ -825,6 +929,13 @@ export type VolumeProfileDto = {
   valPrice: number;
   bins: VolumeBinDto[];
   createdAtUtc: string;
+  capabilityState?: CapabilityState;
+  estimatorKind?: string;
+  isApproximation?: boolean;
+  limitation?: string | null;
+  inputVolume?: number | null;
+  allocatedVolume?: number | null;
+  volumeConservationErrorPct?: number | null;
 };
 
 // --- Smart Money Concepts ---
@@ -841,6 +952,14 @@ export type SmartMoneyStructureDto = {
   isMitigated: boolean;
   description: string;
   createdAtUtc: string;
+  /** Price-geometry origin; legacy responses use timeMs for this value. */
+  originTimeMs?: number;
+  /** Earliest time the event was knowable without future candles. */
+  availableTimeMs?: number;
+  referenceTimeMs?: number | null;
+  mitigatedAtMs?: number | null;
+  calculationVersion?: string;
+  capabilityState?: CapabilityState;
 };
 
 export type SentimentSnapshotDto = {
@@ -872,7 +991,7 @@ export type EnsemblePredictionDto = VersionedResearchRecord & {
   timeframe: string;
   timeMs: number;
   entryPrice?: number;
-  finalDirection: "Bullish" | "Bearish" | "Sideways";
+  finalDirection: "Bullish" | "Bearish" | "Sideways" | "Unavailable";
   probUp: number;
   probDown: number;
   probSideways: number;
@@ -889,6 +1008,12 @@ export type EnsemblePredictionDto = VersionedResearchRecord & {
   maturity: "Experimental";
   promotionEligible: false;
   promotionReason: string;
+  capabilityState?: CapabilityState;
+  availability?: "Available" | "Unavailable";
+  availabilityReason?: string | null;
+  freshness?: EvidenceFreshnessDto | null;
+  /** False/absent means prob* and confidence are heuristic vote scores. */
+  isCalibratedProbability?: boolean;
 };
 
 export type PredictionEvaluationSummaryDto = {
@@ -990,6 +1115,9 @@ export type MarketTicker = {
   askPrice: number;
   count: number;
   closeTimeMs: number;
+  venue?: string;
+  source?: "rest" | "websocket";
+  receivedAtMs?: number;
 };
 
 export type MarketTrade = {
@@ -1013,6 +1141,9 @@ export type OrderBookDepth = {
   lastUpdateId: number;
   bids: OrderBookEntry[];
   asks: OrderBookEntry[];
+  venue?: string;
+  source?: "rest_snapshot" | "local_synchronized_book";
+  receivedAtMs?: number;
 };
 
 // --- Liquidation Heatmap Types ---
@@ -1036,6 +1167,12 @@ export type LiquidationSnapshotDto = {
   heatmapJson: string;
   heatmapBins?: LiquidationBinDto[];
   createdAtUtc: string;
+  capabilityState?: CapabilityState;
+  estimatorKind?: string;
+  isEstimate?: boolean;
+  assumptionsVersion?: string | null;
+  leverageTiers?: number[];
+  limitation?: string | null;
 };
 
 // --- Execution & Live Testnet Trading Types ---
@@ -1136,6 +1273,52 @@ export type TimeframeAuditSummary = {
   priceTargets: number | null;
   windowClassificationDatasets: number | null;
   topGaps: KlineGapAuditItem[];
+  active?: boolean;
+  quality?: KlineQualityAudit | null;
+  derivedTables?: DerivedTableAudit[] | null;
+};
+
+export type KlineQualityAudit = {
+  finalizedRows: number;
+  formingRows: number;
+  invalidOhlcvRows: number;
+  duplicateOpenTimeRows: number;
+  latestFinalizedCloseTimeMs: number | null;
+  latestFinalizedAgeSeconds: number | null;
+  isStale: boolean;
+};
+
+export type DerivedTableAudit = {
+  table: string;
+  rows: number;
+  latestSourceTimeMs: number | null;
+  latestAgeSeconds: number | null;
+  expectedOnePerFinalizedBar: boolean;
+  missingRows: number | null;
+};
+
+export type FuturesMetricQuality = {
+  rows: number;
+  duplicateOpenTimeRows: number;
+  latestOpenTimeMs: number | null;
+  latestAgeSeconds: number | null;
+  missingOpenInterest: number;
+  missingLongShortRatio: number;
+  missingTakerRatio: number;
+  missingFundingRate: number;
+  missingMarkPrice: number;
+};
+
+export type MarketMetricQuality = {
+  timeframe: string;
+  rows: number;
+  duplicateOpenTimeRows: number;
+  latestOpenTimeMs: number | null;
+  latestAgeSeconds: number | null;
+  missingFundingRate: number;
+  missingOpenInterest: number;
+  missingLongShortRatio: number;
+  missingLiquidations: number;
 };
 
 export type DataAuditResponse = {
@@ -1149,6 +1332,11 @@ export type DataAuditResponse = {
     maxDate: string | null;
   };
   rulesAlerts: { rules: number; signals: number; alerts: number };
+  derivatives?: {
+    futuresMetrics: FuturesMetricQuality;
+    marketMetrics: MarketMetricQuality[];
+    availabilityCaveat: string;
+  } | null;
 };
 
 export type BackfillStartInfo = {

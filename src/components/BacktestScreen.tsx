@@ -5,6 +5,7 @@ import { BarChart3, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react"
 import { getBacktestRuns, getBacktestRunDetail, runEnsembleBacktest, optimizeEnsembleWeights } from "@/lib/api";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "@/lib/marketScope";
 import type { BacktestRunSummary, BacktestTradeItem, WeightOptimizationResultDto, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -16,11 +17,11 @@ function formatTime(ms: number) {
   return new Date(ms).toLocaleString("vi-VN", { hour12: false });
 }
 
-const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+const SYMBOL_OPTIONS = ACTIVE_SYMBOLS;
 
 export function BacktestScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [activeTab, setActiveTab] = useState<"ml" | "ensemble">("ml");
   const [runs, setRuns] = useState<BacktestRunSummary[]>([]);
   const [selected, setSelected] = useState<(BacktestRunSummary & { trades: BacktestTradeItem[] }) | null>(null);

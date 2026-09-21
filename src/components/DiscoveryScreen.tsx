@@ -8,24 +8,25 @@ import { RuleConditionsDisplay } from "./RuleConditionsDisplay";
 import { RuleDiscoverySummary } from "./RuleDiscoverySummary";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
+import { CapabilityStateBadge } from "./CapabilityStateBadge";
+import { ruleEvidenceView } from "@/lib/evidencePresentation";
 
-import type { SequenceRule } from "@/lib/types";
+import type { CapabilityState, RuleDiscoveryRunResponse, SequenceRule } from "@/lib/types";
 
 const SYMBOL_OPTIONS = [
-  { value: "BTCUSDT", label: "BTC/USDT" },
-  { value: "ETHUSDT", label: "ETH/USDT" },
-  { value: "SOLUSDT", label: "SOL/USDT" },
+  { value: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
 ];
 
 export function DiscoveryScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
-  const [symbol, setSymbol] = useState("BTCUSDT");
+  const [symbol, setSymbol] = useState<string>(ACTIVE_SYMBOL);
   const timeframe = DEFAULT_TIMEFRAME;
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Record<string, number> | null>(null);
+  const [result, setResult] = useState<RuleDiscoveryRunResponse | null>(null);
   const [evaluating, setEvaluating] = useState(false);
   const [evalResult, setEvalResult] = useState<{ signals?: Array<{ ruleName: string; message: string }> } | null>(null);
 
@@ -51,7 +52,7 @@ export function DiscoveryScreen() {
     setError(null);
     setResult(null);
     try {
-      const res = await runDiscovery(symbol, timeframe, 2000, 5, 0.55, 15, 0.3, true);
+      const res = await runDiscovery(symbol, timeframe, 2000, 1, 0.50, 30, 0, true);
       setResult(res);
       await loadRules();
     } catch (e) {
@@ -148,10 +149,15 @@ export function DiscoveryScreen() {
 
       {result && (
         <div className="bg-gray-900/60 rounded-xl border border-teal-900/40 p-4 text-xs space-y-1">
-          <div className="text-teal-400 font-medium">Discovery hoàn tất</div>
+          <div className="text-teal-400 font-medium">Discovery OOS hoàn tất · chưa phải promotion</div>
           <div className="text-gray-400">
-            Bars: {result.barsAnalyzed} | Candidates: {result.candidatesFound} | Saved: {result.savedToDb} | {" "}
-            {result.latencyMs}ms
+            {result.method || "legacy/unversioned"} · {result.trialCount ?? "—"}/{result.candidateBudget ?? "—"} trials · {result.rejected ?? "—"} bị loại · {result.candidatesFound} survivor experimental
+          </div>
+          <div className="text-gray-500">
+            Selection: {formatInterval(result.selectionInterval)} · Held-out: {formatInterval(result.evaluationInterval)}
+          </div>
+          <div className="text-gray-500">
+            Label dead-zone {result.labelDeadZonePct?.toFixed(2) ?? "—"}% · execution cost {result.roundTripCostBps?.toFixed(0) ?? "—"} bps round-trip · survivor lưu ở trạng thái tắt
           </div>
         </div>
       )}
@@ -188,6 +194,8 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
   const [expanded, setExpanded] = useState(false);
   const [showRawJson, setShowRawJson] = useState(false);
   const conditions = parseRuleConditions(rule.conditionsJson);
+  const evidence = ruleEvidenceView(rule);
+  const capability = normalizeCapability(rule.capabilityState);
 
   return (
     <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-4 text-sm">
@@ -202,6 +210,10 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
               Auto
             </span>
           )}
+          <CapabilityStateBadge state={capability} />
+          <span className={`text-[10px] rounded border px-1.5 py-0.5 ${rule.isEnabled ? "border-rose-800 text-rose-300" : "border-gray-700 text-gray-400"}`}>
+            {rule.isEnabled ? "Đang phát alert" : "Tắt · không phát alert"}
+          </span>
         </div>
         <button onClick={() => setExpanded((v) => !v)} className="p-1 text-gray-500 hover:text-gray-300">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -222,6 +234,15 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
             <span>·</span>
             <span>Cần tối thiểu {rule.requiredBars} nến trong buffer</span>
           </div>
+          <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-3 space-y-1">
+            <div>Method: <span className="text-gray-300">{rule.methodVersion || "legacy/unversioned"}</span></div>
+            <div>Selection: <span className="text-gray-300">{formatMsRange(rule.selectionStartTimeMs, rule.selectionEndTimeMs)} · n={rule.selectionSampleCount ?? "—"}</span></div>
+            <div>Held-out: <span className="text-gray-300">{formatMsRange(rule.evaluationStartTimeMs, rule.evaluationEndTimeMs)} · n={rule.oosSampleCount ?? "—"}</span></div>
+            <div>OOS win: <span className="text-gray-300">{evidence.oosWinRate}</span> · Wilson 95% CI <span className="text-gray-300">{evidence.ci95}</span></div>
+            <div>Baseline: <span className="text-gray-300">{evidence.baselineWinRate}</span> · lift <span className="text-gray-300">{evidence.lift}</span></div>
+            <div>Net average sau chi phí: <span className="text-gray-300">{evidence.netAverage}</span> · cost {rule.roundTripCostBps?.toFixed(0) ?? "—"} bps</div>
+            {!evidence.hasOos && <div className="text-amber-300">Record cũ không có held-out evidence; chỉ dùng mô tả lịch sử.</div>}
+          </div>
           <RuleConditionsDisplay conditions={conditions} />
           <button
             type="button"
@@ -239,4 +260,19 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
       )}
     </div>
   );
+}
+
+function normalizeCapability(value?: string): CapabilityState {
+  return (["descriptive", "experimental", "validated", "forward-observed", "retired"] as const).includes(value as CapabilityState)
+    ? value as CapabilityState
+    : "descriptive";
+}
+
+function formatInterval(interval?: { startTimeMs: number; endTimeMs: number }): string {
+  return interval ? formatMsRange(interval.startTimeMs, interval.endTimeMs) : "Chưa có interval";
+}
+
+function formatMsRange(start?: number | null, end?: number | null): string {
+  if (typeof start !== "number" || typeof end !== "number" || start <= 0 || end <= 0) return "Chưa có interval";
+  return `${new Date(start).toLocaleDateString()} → ${new Date(end).toLocaleDateString()}`;
 }

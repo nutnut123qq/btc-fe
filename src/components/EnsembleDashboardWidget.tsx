@@ -10,6 +10,12 @@ import {
   PredictionEvaluationSummaryDto,
 } from "../lib/types";
 import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
+import {
+  isEnsembleUnavailable,
+  normalizeCapabilityState,
+  resolveEvidenceFreshness,
+} from "../lib/researchUi";
+import { CapabilityStateBadge } from "./CapabilityStateBadge";
 
 interface EnsembleLayer {
   layerName: string;
@@ -38,12 +44,24 @@ export function EnsembleDashboardWidget({
     setLoading(true);
     setError("");
     try {
-      const [history, evalRes] = await Promise.all([
+      const [historyResult, evaluationResult] = await Promise.allSettled([
         getEnsembleHistory(symbol, timeframe, 50, true),
         getEnsembleEvaluations(symbol, true),
       ]);
-      setEnsemble(history.find((item) => item.sourcePredictionId == null) ?? null);
-      setEvalSummary(evalRes);
+      if (historyResult.status === "fulfilled") {
+        setEnsemble(historyResult.value.find((item) => item.sourcePredictionId == null) ?? null);
+      } else {
+        setEnsemble(null);
+      }
+      if (evaluationResult.status === "fulfilled") {
+        setEvalSummary(evaluationResult.value);
+      } else {
+        setEvalSummary(null);
+      }
+      if (historyResult.status === "rejected" && evaluationResult.status === "rejected") {
+        const cause = historyResult.reason;
+        setError(cause instanceof Error ? cause.message : "Failed to load ensemble data");
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load ensemble data");
     } finally {
@@ -65,7 +83,8 @@ export function EnsembleDashboardWidget({
           <div>
             <div className="flex items-center gap-2 font-semibold text-amber-200">
               Ensemble challenger
-              <span className="rounded border border-amber-500/50 px-2 py-0.5 text-[10px] font-bold uppercase">Experimental / Legacy</span>
+              <CapabilityStateBadge state="experimental" />
+              <span className="text-[10px] font-bold uppercase text-gray-500">Legacy records</span>
             </div>
             <p className="mt-1 text-xs text-gray-400">Kết quả lịch sử chưa vượt promotion gate; chỉ mở số liệu trong phạm vi Lab.</p>
           </div>
@@ -98,6 +117,14 @@ export function EnsembleDashboardWidget({
       : "text-gray-300 bg-gray-400/10 border-gray-400/30";
 
   const layers = ensemble?.layers ?? [];
+  const unavailable = isEnsembleUnavailable(ensemble);
+  const capabilityState = normalizeCapabilityState(ensemble?.capabilityState, "experimental");
+  const freshness = ensemble
+    ? resolveEvidenceFreshness(ensemble.freshness, ensemble.timeMs, timeframe)
+    : null;
+  const scoreLabel = ensemble?.isCalibratedProbability
+    ? "Xác suất đã hiệu chỉnh"
+    : "Điểm đồng thuận heuristic";
 
   return (
     <div className="flex flex-col gap-6">
@@ -106,27 +133,33 @@ export function EnsembleDashboardWidget({
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-              <span className="bg-amber-600 text-xs px-2 py-1 rounded text-white uppercase font-bold tracking-wider">Experimental</span>
+              <CapabilityStateBadge state={capabilityState} />
               Ensemble challenger
             </h2>
             <div className="text-sm text-gray-400 mt-1">Nghiên cứu legacy cho {symbol} ({timeframe}); không phải tín hiệu production.</div>
             <div className="mt-1 text-xs text-amber-300">{ensemble.promotionReason}</div>
             <div className="mt-1 text-[11px] text-gray-500">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
+            {freshness?.status === "stale" && <div className="mt-1 text-[10px] font-black text-rose-300">STALE SNAPSHOT · không dùng làm quyết định mới</div>}
           </div>
           <div className={`px-4 py-2 rounded-full border ${dirColor} font-bold text-lg shadow-sm flex items-center gap-2`}>
-            {ensemble.finalDirection === "Bullish" && "🚀"}
-            {ensemble.finalDirection === "Bearish" && "🩸"}
-            {ensemble.finalDirection === "Sideways" && "⚖️"}
-            {ensemble.finalDirection}
+            {unavailable ? "UNAVAILABLE" : ensemble.finalDirection}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {unavailable ? (
+          <div role="status" className="mt-6 rounded-lg border border-amber-500/30 bg-amber-950/20 p-4">
+            <div className="text-sm font-bold text-amber-200">Không có kết luận ensemble khả dụng</div>
+            <p className="mt-1 text-xs leading-5 text-gray-400">
+              {ensemble.availabilityReason || ensemble.invalidReason || "Thiếu đầu vào thật hoặc đầu vào chưa qua evidence gate."}
+            </p>
+            <p className="mt-2 text-[11px] text-gray-500">Không thay thế dữ liệu thiếu bằng giá, xác suất hoặc điểm mặc định.</p>
+          </div>
+        ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Gauge & Probabilities */}
           <div className="flex flex-col justify-center items-center p-4 bg-gray-900 rounded-lg border border-gray-700/50 relative">
-            <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Độ Tin Cậy Tổng Thể</div>
+            <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">{scoreLabel}</div>
             <div className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-indigo-400 to-purple-400">
-              {(ensemble.ensembleConfidence * 100).toFixed(1)}%
+              {(ensemble.ensembleConfidence * 100).toFixed(1)}{ensemble.isCalibratedProbability ? "%" : " / 100"}
             </div>
             {ensemble.entryPrice && (
               <div className="text-xs text-gray-400 mt-2 font-mono">Giá vào snapshot: ${ensemble.entryPrice.toLocaleString()}</div>
@@ -134,32 +167,34 @@ export function EnsembleDashboardWidget({
           </div>
 
           <div className="flex flex-col justify-center p-4 bg-gray-900 rounded-lg border border-gray-700/50 gap-3">
-            <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Xác Suất Xu Hướng</div>
+            <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
+              {ensemble.isCalibratedProbability ? "Xác suất xu hướng đã hiệu chỉnh" : "Điểm bình chọn theo hướng · không phải xác suất"}
+            </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="w-16 text-sm text-green-400 font-semibold">TĂNG</span>
                 <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-green-500" style={{ width: `${ensemble.probUp * 100}%` }}></div>
                 </div>
-                <span className="w-12 text-right text-sm text-gray-300">{(ensemble.probUp * 100).toFixed(0)}%</span>
+                <span className="w-16 text-right text-sm text-gray-300">{(ensemble.probUp * 100).toFixed(0)}{ensemble.isCalibratedProbability ? "%" : "/100"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-16 text-sm text-red-400 font-semibold">GIẢM</span>
                 <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-red-500" style={{ width: `${ensemble.probDown * 100}%` }}></div>
                 </div>
-                <span className="w-12 text-right text-sm text-gray-300">{(ensemble.probDown * 100).toFixed(0)}%</span>
+                <span className="w-16 text-right text-sm text-gray-300">{(ensemble.probDown * 100).toFixed(0)}{ensemble.isCalibratedProbability ? "%" : "/100"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-16 text-sm text-gray-400 font-semibold">NGANG</span>
                 <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-gray-500" style={{ width: `${ensemble.probSideways * 100}%` }}></div>
                 </div>
-                <span className="w-12 text-right text-sm text-gray-300">{(ensemble.probSideways * 100).toFixed(0)}%</span>
+                <span className="w-16 text-right text-sm text-gray-300">{(ensemble.probSideways * 100).toFixed(0)}{ensemble.isCalibratedProbability ? "%" : "/100"}</span>
               </div>
             </div>
           </div>
-        </div>
+        </div>}
       </div>
       ) : (
         <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 text-sm text-gray-400">Không có snapshot ensemble cho {symbol} ({timeframe}); bảng đánh giá legacy vẫn được giữ bên dưới.</div>
@@ -220,7 +255,7 @@ export function EnsembleDashboardWidget({
               <tr>
                 <th className="p-3">Thời gian</th>
                 <th className="p-3">Khung</th>
-                <th className="p-3">Dự Báo AI</th>
+                <th className="p-3">Kết luận heuristic</th>
                 <th className="p-3">Giá Lúc Báo</th>
                 <th className="p-3">Giá Thực Tế 24h</th>
                 <th className="p-3">Biến Động</th>
@@ -246,7 +281,7 @@ export function EnsembleDashboardWidget({
                       <td className="p-3 font-semibold text-gray-300">{item.timeframe}</td>
                       <td className="p-3">
                         <span className={`font-bold ${item.finalDirection === "Bullish" ? "text-emerald-400" : item.finalDirection === "Bearish" ? "text-rose-400" : "text-gray-300"}`}>
-                          {item.finalDirection} ({(item.ensembleConfidence * 100).toFixed(0)}%)
+                          {item.finalDirection} ({(item.ensembleConfidence * 100).toFixed(0)} điểm)
                         </span>
                       </td>
                       <td className="p-3 font-mono">${item.entryPrice ? item.entryPrice.toLocaleString() : "N/A"}</td>
@@ -335,9 +370,9 @@ export function EnsembleDashboardWidget({
             <div className="flex items-center justify-between text-xs border-t border-gray-700 pt-3">
               <span className="text-gray-500" title="Trọng số">W: {layer.weight.toFixed(2)}</span>
               <div className="flex gap-2 font-mono">
-                <span className="text-green-400/80">{(layer.probUp * 100).toFixed(0)}%</span>
-                <span className="text-red-400/80">{(layer.probDown * 100).toFixed(0)}%</span>
-                <span className="text-gray-400/80">{(layer.probSideways * 100).toFixed(0)}%</span>
+                <span className="text-green-400/80" title="Điểm heuristic tăng">↑{(layer.probUp * 100).toFixed(0)}</span>
+                <span className="text-red-400/80" title="Điểm heuristic giảm">↓{(layer.probDown * 100).toFixed(0)}</span>
+                <span className="text-gray-400/80" title="Điểm heuristic đi ngang">→{(layer.probSideways * 100).toFixed(0)}</span>
               </div>
             </div>
           </div>

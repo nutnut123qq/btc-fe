@@ -13,6 +13,9 @@ type Props = {
 export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   const [depth, setDepth] = useState<OrderBookDepth | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [receivedAtMs, setReceivedAtMs] = useState<number | null>(null);
+  const [clockMs, setClockMs] = useState(() => Date.now());
   const [prevSymbol, setPrevSymbol] = useState(symbol);
 
   if (prevSymbol !== symbol) {
@@ -28,11 +31,18 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
       try {
         const data = await getOrderBookDepth(symbol, limit);
         if (isMounted && data) {
-          setDepth(data);
+          const now = Date.now();
+          setDepth({ ...data, venue: "Binance Spot", source: "rest_snapshot", receivedAtMs: now });
+          setReceivedAtMs(now);
+          setError("");
           setLoading(false);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Failed to load depth", err);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Không tải được REST depth snapshot");
+          setLoading(false);
+        }
       }
     };
 
@@ -48,6 +58,11 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
       clearInterval(interval);
     };
   }, [symbol, limit]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setClockMs(Date.now()), 1_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const maxTotal = useMemo(() => {
     if (!depth) return 1;
@@ -83,6 +98,8 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   const bestBid = depth?.bids[0]?.price;
   const spread = bestAsk != null && bestBid != null ? bestAsk - bestBid : 0;
   const spreadPct = bestAsk != null && bestAsk > 0 ? (spread / bestAsk) * 100 : 0;
+  const snapshotAgeMs = receivedAtMs == null ? null : Math.max(0, clockMs - receivedAtMs);
+  const stale = snapshotAgeMs == null || snapshotAgeMs > 5_000 || Boolean(error);
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
@@ -90,15 +107,23 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
       <div className="p-3 border-b border-gray-800 flex items-center justify-between bg-gray-900/90">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-teal-400" />
-          <h3 className="font-bold text-xs text-gray-100 uppercase tracking-wider">
-            Sổ lệnh (Order Book)
-          </h3>
+          <div>
+            <h3 className="font-bold text-xs text-gray-100 uppercase tracking-wider">Sổ lệnh</h3>
+            <p className={`text-[9px] ${stale ? "text-amber-400" : "text-gray-500"}`}>
+              Binance Spot · REST snapshot mỗi 2s · {snapshotAgeMs == null ? "chưa nhận" : `${(snapshotAgeMs / 1000).toFixed(0)}s trước`}
+            </p>
+          </div>
         </div>
         {spread > 0 && (
           <div className="text-[10px] text-gray-400">
             Spread: <span className="text-gray-200 font-mono">${spread.toFixed(2)}</span> ({spreadPct.toFixed(3)}%)
           </div>
         )}
+      </div>
+
+      <div className="border-b border-gray-800/60 bg-gray-950/50 px-3 py-1 text-[9px] leading-relaxed text-gray-500">
+        Không phải local order book đồng bộ theo sequence; mỗi lần tải là một ảnh chụp độc lập.
+        {error && <span className="ml-1 text-amber-400">Lần tải gần nhất lỗi: {error}</span>}
       </div>
 
       {/* Table Column Headers */}

@@ -35,7 +35,7 @@ test("analog envelope accepts unavailable query null and rejects method drift", 
 
 test("similarity and return formatting remains explicit", () => {
   assert.equal(HISTORICAL_ANALOG_CONTRACT_VERSION, "2026-09-historical-analogs");
-  assert.equal(formatSimilarity(0.9344), "93.4%");
+  assert.equal(formatSimilarity(0.9344), "93.4 / 100");
   assert.equal(formatSimilarity(null), "Không đủ context");
   assert.equal(formatSignedPercent(1.234), "+1.23%");
   assert.equal(formatSignedPercent(-0.4), "-0.40%");

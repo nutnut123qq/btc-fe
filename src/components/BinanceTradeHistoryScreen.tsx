@@ -31,6 +31,7 @@ import {
   PAPER_JOURNAL_LABEL,
   SIMULATION_LABEL,
 } from "@/lib/researchUi";
+import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 
 function formatUsdt(val: number | null | undefined): string {
   if (val === null || val === undefined) return "--";
@@ -40,7 +41,7 @@ function formatUsdt(val: number | null | undefined): string {
 function formatQty(val: number | null | undefined, symbol: string): string {
   if (val === null || val === undefined) return "--";
   const coin = symbol.replace("USDT", "");
-  const decimals = coin === "BTC" ? 4 : coin === "ETH" ? 4 : 2;
+  const decimals = coin === "BTC" ? 4 : 2;
   return `${val.toFixed(decimals)} ${coin}`;
 }
 
@@ -58,7 +59,7 @@ export function BinanceTradeHistoryScreen() {
   const [error, setError] = useState<string>("");
 
   // Filters State
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("all");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedSide, setSelectedSide] = useState<"all" | "long" | "short">("all");
   const [selectedStatus, setSelectedStatus] = useState<"all" | "open" | "closed">("all");
   const [selectedTf, setSelectedTf] = useState<string>("all");
@@ -74,7 +75,7 @@ export function BinanceTradeHistoryScreen() {
 
   // Binance public ticker is market data, not a user-data or execution stream.
   useEffect(() => {
-    const unsub = subscribeBinanceTickers(["BTCUSDT", "ETHUSDT", "SOLUSDT"], (t: BinanceLiveTicker) => {
+    const unsub = subscribeBinanceTickers([ACTIVE_SYMBOL], (t: BinanceLiveTicker) => {
       setLivePrices((prev) => {
         if (prev[t.symbol] === t.lastPrice) return prev;
         return { ...prev, [t.symbol]: t.lastPrice };
@@ -90,7 +91,7 @@ export function BinanceTradeHistoryScreen() {
 
       try {
         const filterParams: PaperTradeFilterParams = {
-          symbols: selectedSymbol === "all" ? undefined : selectedSymbol,
+          symbols: selectedSymbol,
           side: selectedSide,
           status: selectedStatus,
           timeframe: selectedTf,
@@ -130,7 +131,7 @@ export function BinanceTradeHistoryScreen() {
   }, [autoRefreshInterval, loadData]);
 
   const handleResetFilters = () => {
-    setSelectedSymbol("all");
+    setSelectedSymbol(ACTIVE_SYMBOL);
     setSelectedSide("all");
     setSelectedStatus("all");
     setSelectedTf("all");
@@ -332,10 +333,7 @@ export function BinanceTradeHistoryScreen() {
               }}
               className="w-full text-xs bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 text-gray-200 focus:outline-none focus:border-teal-500"
             >
-              <option value="all">Tất cả Coin</option>
               <option value="BTCUSDT">BTC/USDT</option>
-              <option value="ETHUSDT">ETH/USDT</option>
-              <option value="SOLUSDT">SOL/USDT</option>
             </select>
           </div>
 

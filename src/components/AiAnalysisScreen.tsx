@@ -63,7 +63,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       </ErrorBoundary>
 
       <p className="text-sm text-gray-400">
-        Phân tích đa góc nhìn cho BTC/USDT. ETH và SOL chưa được xác thực cho pipeline này.
+        Phân tích đa góc nhìn cho BTC/USDT trong phạm vi nghiên cứu hiện tại.
       </p>
 
       {llmState === "unknown" && (

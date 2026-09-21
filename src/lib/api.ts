@@ -246,7 +246,7 @@ export async function runDiscovery(
   minSamples = 15,
   minAvgReturnPct = 0.3,
   saveToDb = true
-) {
+): Promise<import("./types").RuleDiscoveryRunResponse> {
   const params = new URLSearchParams({
     symbol,
     timeframe,
@@ -258,7 +258,7 @@ export async function runDiscovery(
     saveToDb: String(saveToDb),
   });
   const res = await adminFetch(`${API_BASE}/api/discovery/run?${params}`, { method: "POST" });
-  return getJson(res);
+  return getJson(res) as Promise<import("./types").RuleDiscoveryRunResponse>;
 }
 
 export async function getDiscoveredRules(params?: { symbol?: string; timeframe?: string }) {

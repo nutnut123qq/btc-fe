@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { MarketTicker } from "@/lib/types";
 import { Search, Flame, TrendingUp, TrendingDown, X, Star } from "lucide-react";
+import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 
 type Props = {
   tickers: MarketTicker[];
@@ -24,7 +25,7 @@ export function SymbolWatchlistPanel({
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<FilterCategory>("all");
   const [favorites, setFavorites] = useState<Set<string>>(
-    () => new Set(["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"])
+    () => new Set([ACTIVE_SYMBOL])
   );
 
   const toggleFavorite = (e: React.MouseEvent, sym: string) => {
@@ -38,7 +39,7 @@ export function SymbolWatchlistPanel({
   };
 
   const filteredTickers = useMemo(() => {
-    let list = tickers;
+    let list = tickers.filter((ticker) => ticker.symbol.toUpperCase() === ACTIVE_SYMBOL);
 
     // Search query filter
     if (search.trim()) {
@@ -91,9 +92,9 @@ export function SymbolWatchlistPanel({
       <div className="p-3 border-b border-gray-800 flex items-center justify-between gap-2 bg-gray-900/90">
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-teal-400" />
-          <span className="font-bold text-sm text-gray-100">Thị trường Binance (Tất cả mã)</span>
+          <span className="font-bold text-sm text-gray-100">Thị trường Binance BTC</span>
           <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">
-            {tickers.length} cặp USDT
+            BTC/USDT
           </span>
         </div>
         {onClose && (
@@ -114,7 +115,7 @@ export function SymbolWatchlistPanel({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm coin (BTC, ETH, SOL, PEPE, DOGE...)"
+            placeholder="Tìm BTC"
             className="w-full bg-gray-900 border border-gray-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-teal-500 transition-colors"
             autoFocus={isModal}
           />

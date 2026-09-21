@@ -234,7 +234,7 @@ export function AppShell() {
         )}
         {visitedTabs.has("binanceHistory") && (
           <div className={activeTab === "binanceHistory" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Nhật ký Paper đa tài sản">
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Nhật ký Paper BTC">
               <BinanceTradeHistoryScreen />
             </ErrorBoundary>
           </div>

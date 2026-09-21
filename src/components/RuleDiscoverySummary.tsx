@@ -7,6 +7,8 @@ import {
   type DiscoveredRuleLike,
 } from "@/lib/formatRuleDiscovery";
 import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
+import { ruleEvidenceView } from "@/lib/evidencePresentation";
+import type { SequenceRule } from "@/lib/types";
 
 type RuleDiscoverySummaryProps = {
   rule: DiscoveredRuleLike;
@@ -47,19 +49,8 @@ function StatCell({
 export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySummaryProps) {
   const parsed = parseDiscoveryDescription(rule.description);
   const futureBars = parsed.futureBars ?? 3;
-  const winPct =
-    rule.winRate != null && !Number.isNaN(rule.winRate)
-      ? (rule.winRate * 100).toFixed(1)
-      : "—";
-  const avgPct =
-    rule.avgReturn != null && !Number.isNaN(rule.avgReturn)
-      ? rule.avgReturn.toFixed(2)
-      : "—";
-  const samples = rule.sampleCount != null ? String(rule.sampleCount) : "—";
-  const pf =
-    parsed.profitFactor != null && !Number.isNaN(parsed.profitFactor)
-      ? parsed.profitFactor.toFixed(2)
-      : "—";
+  const evidence = ruleEvidenceView(rule as SequenceRule);
+  const samples = rule.oosSampleCount != null ? String(rule.oosSampleCount) : "—";
   const horizon = formatFutureHorizon(rule.timeframe ?? DEFAULT_TIMEFRAME, futureBars);
 
   return (
@@ -69,7 +60,9 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
       <div className="flex items-start gap-2">
         <FlaskConical className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" aria-hidden />
         <div className="min-w-0 space-y-1">
-          <p className="text-xs font-medium text-teal-400/90">Tự động phát hiện từ lịch sử</p>
+          <p className="text-xs font-medium text-teal-400/90">
+            {evidence.hasOos ? "Selection lịch sử + held-out evaluation" : "Mô tả lịch sử · thiếu held-out evidence"}
+          </p>
           <p className="text-xs text-gray-400 leading-relaxed">
             Khi setup <span className="text-gray-200 font-medium">{rule.name}</span> khớp trên một
             nến, hệ thống đã thống kê giá BTC{" "}
@@ -82,15 +75,15 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
         <Clock className="w-3 h-3 shrink-0" aria-hidden />
         <span>
           Cửa sổ đo lường: <strong className="text-gray-400 font-normal">{futureBars} nến</strong>{" "}
-          tiếp theo · Thắng nếu giá tăng &gt; 0,3%
+          tiếp theo · dead-zone {rule.labelDeadZonePct?.toFixed(2) ?? "chưa khai báo"}% · cost {rule.roundTripCostBps?.toFixed(0) ?? "chưa khai báo"} bps
         </span>
       </div>
 
       <div className="flex flex-wrap gap-2 pl-6">
-        <StatCell label="Win rate" value={`${winPct}%`} sub="lần tăng rõ" tone="emerald" Icon={Target} />
-        <StatCell label="Avg" value={`${avgPct}%`} sub="mỗi lần khớp" tone="amber" Icon={Percent} />
-        <StatCell label="Mẫu" value={samples} sub="lần trong quá khứ" tone="gray" Icon={Hash} />
-        <StatCell label="PF" value={pf} sub="lãi / lỗ" tone="sky" Icon={Scale} />
+        <StatCell label="OOS win" value={evidence.oosWinRate} sub={`Wilson 95%: ${evidence.ci95}`} tone="emerald" Icon={Target} />
+        <StatCell label="Baseline" value={evidence.baselineWinRate} sub={`lift ${evidence.lift}`} tone="sky" Icon={Scale} />
+        <StatCell label="Net avg" value={evidence.netAverage} sub="sau cost khai báo" tone="amber" Icon={Percent} />
+        <StatCell label="OOS mẫu" value={samples} sub="held-out, không overlap" tone="gray" Icon={Hash} />
       </div>
     </div>
   );

@@ -110,12 +110,14 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-            Multi-Timeframe Confluence
+            Chỉ số hội tụ đa khung
             <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getDirectionColor(data.overallDirection)}`}>
               {directionMap[data.overallDirection] || data.overallDirection}
             </span>
           </h3>
-          <p className="text-xs text-zinc-500 mt-1">Tổng hợp tín hiệu từ đa khung thời gian ({symbol})</p>
+          <p className="text-xs text-zinc-500 mt-1">
+            Heuristic mô tả từ các thành phần ({symbol}) · không phải xác suất · {data.capabilityState ?? "descriptive"}
+          </p>
         </div>
         <button
           onClick={handleRecalculate}
@@ -130,6 +132,12 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
       {stale && (
         <div className="mb-4 rounded-lg border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
           Snapshot Confluence đã cũ ({formatDataAge(data.createdAtUtc)}); không dùng như tín hiệu hiện tại.
+        </div>
+      )}
+
+      {(data.missingInputs?.length ?? 0) > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+          Thiếu đầu vào: {data.missingInputs!.join(", ")}. Chỉ số không nên được dùng như tín hiệu đầy đủ.
         </div>
       )}
 
@@ -149,7 +157,8 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
             <span className={`text-4xl font-black ${scoreColor}`}>{Math.round(score)}</span>
             <span className="text-xs text-zinc-500 font-medium">/ 100</span>
           </div>
-          <span className="mt-3 text-sm font-medium text-zinc-400">Confluence Score</span>
+          <span className="mt-3 text-sm font-medium text-zinc-400">Heuristic index</span>
+          <span className="mt-1 text-[10px] text-zinc-600">isProbability = false</span>
         </div>
 
         <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-3">

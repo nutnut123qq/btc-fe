@@ -188,7 +188,7 @@ test.describe("production dashboard", () => {
     await expect(page.locator("main").getByRole("button", { name: "Dự đoán", exact: true })).toBeDisabled();
     await expect(page.getByText(/Chưa có model tương thích đã qua promotion gate/)).toBeVisible({ timeout: 30_000 });
     await openTab(page, "Paper", "Paper Trading");
-    await openTab(page, "Nhật ký Paper đa tài sản", /Danh sách giao dịch mô phỏng/);
+    await openTab(page, "Nhật ký Paper BTC", /Danh sách giao dịch mô phỏng/);
     await openTab(page, "Backtest", "Backtest chiến lược ML");
     await openTab(page, "Cảnh báo", "Cài đặt cảnh báo giá (BTC)");
 

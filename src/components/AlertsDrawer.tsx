@@ -10,6 +10,7 @@ import {
   deleteAlert,
   deleteAllAlerts,
 } from "@/lib/api";
+import { alertEvidenceView, formatEvidenceTime } from "@/lib/evidencePresentation";
 
 const ALERT_USER_ID = "default";
 
@@ -126,8 +127,9 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
             </div>
           )}
           <div className="space-y-2">
-            {alerts.map((a) => (
-              <div
+            {alerts.map((a) => {
+              const evidence = alertEvidenceView(a);
+              return <div
                 key={a.id}
                 className={`rounded-lg border px-3 py-2.5 text-sm ${
                   a.isRead
@@ -137,6 +139,12 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               >
                 <div className="font-semibold text-gray-100 text-sm">{a.title}</div>
                 <p className="mt-1 text-gray-400 text-xs leading-relaxed">{a.message}</p>
+                <div className="mt-2 rounded border border-gray-800 bg-gray-950/60 p-2 text-[10px] leading-relaxed text-gray-500">
+                  <div className={evidence.predictive ? "text-emerald-300" : "text-sky-300"}>{evidence.kindLabel}</div>
+                  <div>Available: {formatEvidenceTime(a.availableTimeMs)}</div>
+                  <div>Provenance: <span className="font-mono">{a.provenance || "legacy/unavailable"}</span></div>
+                  <div className={a.deliveryStatus === "failed-at-most-once" ? "text-amber-300" : ""}>{evidence.deliveryLabel}</div>
+                </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <span className="text-[11px] text-gray-600">
                     {new Date(a.createdAt).toLocaleString()}
@@ -159,8 +167,8 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              </div>;
+            })}
           </div>
         </div>
       </div>

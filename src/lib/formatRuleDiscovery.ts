@@ -6,6 +6,15 @@ export type DiscoveredRuleLike = {
   winRate?: number;
   avgReturn?: number;
   sampleCount?: number;
+  oosSampleCount?: number;
+  oosWinRate?: number | null;
+  oosWinRateCi95Low?: number | null;
+  oosWinRateCi95High?: number | null;
+  baselineWinRate?: number | null;
+  oosLift?: number | null;
+  oosNetAvgReturnPct?: number | null;
+  labelDeadZonePct?: number | null;
+  roundTripCostBps?: number | null;
 };
 
 export function parseDiscoveryDescription(description?: string | null): {
@@ -13,7 +22,7 @@ export function parseDiscoveryDescription(description?: string | null): {
   profitFactor?: number;
 } {
   if (!description) return {};
-  const future = description.match(/Future\s+(\d+)\s+bars/i);
+  const future = description.match(/(?:Future\s+|future=)(\d+)\s+bars/i);
   const pf = description.match(/PF=([\d.]+)/i);
   return {
     futureBars: future ? parseInt(future[1], 10) : undefined,

@@ -6,6 +6,7 @@ import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpen
 import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
 
 function formatPct(v: number) {
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
@@ -16,14 +17,11 @@ function formatTime(ms: number) {
 }
 
 const SYMBOL_OPTIONS = [
-  { id: "all", label: "Tất cả cặp" },
-  { id: "BTCUSDT", label: "BTC/USDT" },
-  { id: "ETHUSDT", label: "ETH/USDT" },
-  { id: "SOLUSDT", label: "SOL/USDT" },
+  { id: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
 ];
 
 export function PaperTradeScreen() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("all");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
   const [openTrades, setOpenTrades] = useState<PaperTradeItem[]>([]);
@@ -40,7 +38,7 @@ export function PaperTradeScreen() {
     setLoading(true);
     setError("");
     try {
-      const symbolParam = sym === "all" ? undefined : sym;
+      const symbolParam = sym;
       const timeframeParam = tf === "all" ? undefined : tf;
       const [sumRes, openRes, closedRes, eqRes] = await Promise.all([
         getPaperTradeSummary(symbolParam, timeframeParam),

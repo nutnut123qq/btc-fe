@@ -14,6 +14,7 @@ import {
 } from "lightweight-charts";
 import { KlineOHLC, VolumeProfileDto, SmartMoneyStructureDto, CandlePatternItem } from "@/lib/types";
 import { ema, bollinger, calculateFibonacciLevels } from "@/lib/indicators";
+import { latestCandleLifecycle } from "@/lib/marketTruth";
 
 type Props = {
   data: KlineOHLC[];
@@ -23,6 +24,7 @@ type Props = {
   smartMoney?: SmartMoneyStructureDto[] | null;
   patterns?: CandlePatternItem[] | null;
   showFibonacci?: boolean;
+  timeframe?: string;
 };
 
 function estimateBarSeconds(data: KlineOHLC[]): number {
@@ -36,7 +38,7 @@ function estimateBarSeconds(data: KlineOHLC[]): number {
   return count > 0 ? Math.round(total / count) : 60;
 }
 
-export function BtcCandlestickChart({ data, height = 440, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci }: Props) {
+export function BtcCandlestickChart({ data, height = 440, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci, timeframe = "4h" }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
@@ -254,7 +256,8 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     // 2. Smart Money Concepts Markers
     if (smartMoney && smartMoney.length > 0) {
       smartMoney.forEach((smc) => {
-        const timeSec = Math.floor(smc.timeMs / 1000) as UTCTimestamp;
+        // Place causal event markers at the first knowable time. Origin remains available in the detail panel.
+        const timeSec = Math.floor((smc.availableTimeMs ?? smc.timeMs) / 1000) as UTCTimestamp;
         const isBull = smc.eventType.includes("BULL");
         if (smc.eventType.includes("FVG") || smc.eventType.includes("BOS") || smc.eventType.includes("CHOCH")) {
           markers.push({
@@ -348,6 +351,9 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
         <span className="text-gray-400">Giao diện kiểu sàn:</span> cuộn chuột = zoom trục thởi gian · giữ và kéo =
         xem vùng khác · giữ <kbd className="px-1 rounded bg-gray-800 text-gray-300">Shift</kbd> + cuộn = zoom
         giá · chạm (mobile): kéo / chụm.
+      </p>
+      <p className={`text-[11px] mt-1 px-1 ${latestCandleLifecycle(data, timeframe) === "forming" ? "text-amber-400" : "text-emerald-500"}`}>
+        Nến cuối: {latestCandleLifecycle(data, timeframe) === "forming" ? "đang hình thành; indicator hiển thị có thể còn thay đổi" : "đã đóng"}.
       </p>
     </div>
   );

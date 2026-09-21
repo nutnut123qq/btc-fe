@@ -35,9 +35,9 @@ export function SmartMoneyWidget({
 
   const [visibleCount, setVisibleCount] = useState(10);
 
-  if (loading) return <div className="p-4 rounded-lg bg-gray-800 animate-pulse text-gray-400">Loading Smart Money Data...</div>;
+  if (loading) return <div className="p-4 rounded-lg bg-gray-800 animate-pulse text-gray-400">Đang tải hình học giá SMC...</div>;
   if (error) return <div className="p-4 rounded-lg bg-red-900/50 text-red-400 border border-red-500/50">{error}</div>;
-  if (!structures.length) return <div className="p-4 rounded-lg bg-gray-800 text-gray-400 border border-gray-700">No Smart Money structures found.</div>;
+  if (!structures.length) return <div className="p-4 rounded-lg bg-gray-800 text-gray-400 border border-gray-700">Không có sự kiện hình học SMC.</div>;
 
   const visibleStructures = structures.slice(0, visibleCount);
 
@@ -48,10 +48,14 @@ export function SmartMoneyWidget({
           <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          Smart Money Concepts
+          Hình học giá SMC
         </h3>
-        <div className="text-xs text-gray-500">Recent Signals</div>
+        <div className="text-xs text-gray-500">Descriptive events</div>
       </div>
+
+      <p className="text-[11px] leading-relaxed text-gray-500">
+        BOS/CHOCH/FVG/swing là quy tắc hình học giá, không chứng minh dòng tiền tổ chức và không phải xác suất thắng.
+      </p>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
         {visibleStructures.map((st) => {
@@ -64,8 +68,11 @@ export function SmartMoneyWidget({
               <div className="flex justify-between items-start">
                 <span className="font-bold">{st.eventType.replace("_", " ")}</span>
                 <span className="text-xs opacity-70">
-                  {new Date(st.timeMs).toLocaleString()}
+                  origin {new Date(st.originTimeMs ?? st.timeMs).toLocaleString()}
                 </span>
+              </div>
+              <div className="text-[10px] opacity-70">
+                Có thể biết từ: {new Date(st.availableTimeMs ?? st.timeMs).toLocaleString()}
               </div>
               <div className="flex justify-between items-end mt-1">
                 <span className="opacity-90">{st.description}</span>

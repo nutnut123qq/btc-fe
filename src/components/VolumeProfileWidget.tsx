@@ -37,6 +37,15 @@ export function VolumeProfileWidget({
   if (error) return <div className="p-4 rounded-lg bg-red-900/50 text-red-400 border border-red-500/50">{error}</div>;
   if (!data) return null;
 
+  const estimatorKind = data.estimatorKind ?? "OHLCV_UNIFORM_RANGE";
+  const isApproximation = data.isApproximation ?? true;
+  const allocatedVolume = data.allocatedVolume ?? data.bins.reduce((sum, bin) => sum + bin.volume, 0);
+  const conservationErrorPct = data.volumeConservationErrorPct ?? (
+    data.inputVolume != null && data.inputVolume > 0
+      ? Math.abs(allocatedVolume - data.inputVolume) / data.inputVolume * 100
+      : null
+  );
+
   return (
     <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 space-y-4">
       <div className="flex items-center justify-between">
@@ -44,9 +53,20 @@ export function VolumeProfileWidget({
           <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          Volume Profile (VPVR)
+          Volume Profile ước lượng
         </h3>
-        <div className="text-xs text-gray-500">Lookback: 200 bars</div>
+        <div className="text-xs text-gray-500">Descriptive · Lookback: 200 bars</div>
+      </div>
+
+      <div className="rounded-lg border border-amber-800/40 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200/90">
+        {isApproximation ? "Ước lượng từ OHLCV: phân bổ volume nến theo các mức giá; không phải khối lượng giao dịch thực tế tại từng giá." : "Phân bổ volume theo dữ liệu giao dịch tại giá."}
+        <span className="ml-1 text-gray-400">Estimator: {estimatorKind}.</span>
+        {data.limitation && <span className="ml-1">{data.limitation}</span>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500">
+        <span>Allocated volume: {allocatedVolume.toLocaleString("en-US", { maximumFractionDigits: 2 })}</span>
+        <span>Conservation error: {conservationErrorPct == null ? "API chưa cung cấp input volume" : `${conservationErrorPct.toFixed(6)}%`}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-4">

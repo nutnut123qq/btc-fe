@@ -2,12 +2,21 @@ export type AnalogDirection = -1 | 0 | 1 | null;
 
 export const HISTORICAL_ANALOG_CONTRACT_VERSION = "2026-09-historical-analogs";
 export const HISTORICAL_ANALOG_RANKING_METHOD = "shape-similarity-desc-context-audit-only";
+export const HISTORICAL_ANALOG_CONTRACT_VERSIONS = new Set([
+  HISTORICAL_ANALOG_CONTRACT_VERSION,
+  "2026-09-historical-analogs-v2",
+]);
+export const HISTORICAL_ANALOG_RANKING_METHODS = new Set([
+  HISTORICAL_ANALOG_RANKING_METHOD,
+  "shape-similarity-v2-desc-context-audit-only",
+  "cosine-similarity-desc-point-in-time",
+]);
 
 export function assertHistoricalAnalogEnvelope(record: Record<string, unknown>): void {
-  if (record.contractVersion !== HISTORICAL_ANALOG_CONTRACT_VERSION) {
+  if (typeof record.contractVersion !== "string" || !HISTORICAL_ANALOG_CONTRACT_VERSIONS.has(record.contractVersion)) {
     throw new Error("historical analogs: unsupported contract version");
   }
-  if (record.rankingMethod !== HISTORICAL_ANALOG_RANKING_METHOD) {
+  if (typeof record.rankingMethod !== "string" || !HISTORICAL_ANALOG_RANKING_METHODS.has(record.rankingMethod)) {
     throw new Error("historical analogs: unsupported ranking method");
   }
   if (!Array.isArray(record.summaries)) {
@@ -27,7 +36,7 @@ export function getAnalogDirectionLabel(direction: AnalogDirection): string {
 
 export function formatSimilarity(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "Không đủ context";
-  return `${(value * 100).toFixed(1)}%`;
+  return `${(value * 100).toFixed(1)} / 100`;
 }
 
 export function formatSignedPercent(value: number): string {

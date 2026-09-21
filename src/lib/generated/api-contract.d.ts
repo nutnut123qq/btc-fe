@@ -1119,12 +1119,16 @@ export interface paths {
         post: {
             parameters: {
                 query?: {
+                    candidateBudget?: number;
                     futureBars?: number;
+                    labelDeadZonePct?: number;
                     lookbackBars?: number;
                     minAvgReturnPct?: number;
                     minSamples?: number;
                     minWinRate?: number;
+                    roundTripCostBps?: number;
                     saveToDb?: boolean;
+                    selectionFraction?: number;
                     symbol?: string;
                     timeframe?: string;
                 };
@@ -1943,6 +1947,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/historical-analogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    AsOfTimeMs?: number;
+                    AtrMultiplier?: number;
+                    LookbackBars?: number;
+                    MinimumMeanSimilarity?: number;
+                    NeighborCount?: number;
+                    Page?: number;
+                    PageSize?: number;
+                    RoundTripCostPct?: number;
+                    Symbol?: string;
+                    Timeframe?: string;
+                    WindowSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HistoricalAnalogResponse"];
+                        "text/json": components["schemas"]["HistoricalAnalogResponse"];
+                        "text/plain": components["schemas"]["HistoricalAnalogResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/Indexer/ml-dataset": {
         parameters: {
             query?: never;
@@ -1955,6 +2008,43 @@ export interface paths {
         post: {
             parameters: {
                 query?: {
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Indexer/rebuild-derived": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    confirm?: string;
                     symbol?: string;
                     timeframe?: string;
                 };
@@ -2462,6 +2552,7 @@ export interface paths {
                 query?: {
                     endDateUtc?: string;
                     fillGaps?: boolean;
+                    reconcileExisting?: boolean;
                     requestsPerMinuteLimit?: number;
                     startDateUtc?: string;
                     symbol?: string;
@@ -3656,6 +3747,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/specification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResearchSpecificationDto"];
+                        "text/json": components["schemas"]["ResearchSpecificationDto"];
+                        "text/plain": components["schemas"]["ResearchSpecificationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/Sentiment/current": {
         parameters: {
             query?: never;
@@ -4272,6 +4400,20 @@ export interface components {
             symbol?: string | null;
             timeframe?: string | null;
         };
+        ArchetypeOccurrenceOhlcDto: {
+            /** Format: double */
+            close?: number;
+            /** Format: double */
+            high?: number;
+            /** Format: double */
+            low?: number;
+            /** Format: double */
+            open?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            volume?: number;
+        };
         ArchetypeTransitionDto: {
             /** Format: double */
             avgBarsToTransition?: number;
@@ -4303,6 +4445,7 @@ export interface components {
             /** Format: date-time */
             endDateUtc?: string;
             fillGaps?: boolean;
+            reconcileExisting?: boolean;
             requestId?: string | null;
             /** Format: date-time */
             startDateUtc?: string;
@@ -4379,12 +4522,48 @@ export interface components {
             timeframe?: string | null;
         };
         DataAuditResponse: {
+            derivatives?: components["schemas"]["DerivativesAudit"];
             /** Format: date-time */
             generatedAtUtc?: string;
             news?: components["schemas"]["NewsAudit"];
             rulesAlerts?: components["schemas"]["RulesAlertsAudit"];
             symbol?: string | null;
             timeframes?: components["schemas"]["TimeframeAudit"][] | null;
+        };
+        DerivativeLineageQuality: {
+            /** Format: int64 */
+            asOfEligibleRows?: number;
+            /** Format: int64 */
+            completeRows?: number;
+            /** Format: int64 */
+            missingAvailableAt?: number;
+            /** Format: int64 */
+            missingMarketType?: number;
+            /** Format: int64 */
+            missingReceivedAt?: number;
+            /** Format: int64 */
+            missingSource?: number;
+            /** Format: int64 */
+            missingSourceEventTime?: number;
+            /** Format: int64 */
+            reconstructedRows?: number;
+        };
+        DerivativesAudit: {
+            availabilityCaveat?: string | null;
+            futuresMetrics?: components["schemas"]["FuturesMetricQuality"];
+            marketMetrics?: components["schemas"]["MarketMetricQuality"][] | null;
+        };
+        DerivedTableAudit: {
+            expectedOnePerFinalizedBar?: boolean;
+            /** Format: int64 */
+            latestAgeSeconds?: number | null;
+            /** Format: int64 */
+            latestSourceTimeMs?: number | null;
+            /** Format: int64 */
+            missingRows?: number | null;
+            /** Format: int64 */
+            rows?: number;
+            table?: string | null;
         };
         EnsembleBacktestRunRequestDto: {
             customWeights?: {
@@ -4434,6 +4613,42 @@ export interface components {
             symbol?: string | null;
             timeframe?: string | null;
         };
+        ExecutionCostSpecification: {
+            /** Format: double */
+            feeBpsPerSide?: number;
+            instrument?: string | null;
+            /** Format: double */
+            readonly oneWayCostBps?: number;
+            /** Format: double */
+            readonly roundTripCostBps?: number;
+            /** Format: double */
+            readonly roundTripCostFraction?: number;
+            /** Format: double */
+            readonly roundTripCostPct?: number;
+            /** Format: double */
+            slippageBpsPerSide?: number;
+        };
+        FuturesMetricQuality: {
+            /** Format: int64 */
+            duplicateOpenTimeRows?: number;
+            /** Format: int64 */
+            latestAgeSeconds?: number | null;
+            /** Format: int64 */
+            latestOpenTimeMs?: number | null;
+            lineage?: components["schemas"]["DerivativeLineageQuality"];
+            /** Format: int64 */
+            missingFundingRate?: number;
+            /** Format: int64 */
+            missingLongShortRatio?: number;
+            /** Format: int64 */
+            missingMarkPrice?: number;
+            /** Format: int64 */
+            missingOpenInterest?: number;
+            /** Format: int64 */
+            missingTakerRatio?: number;
+            /** Format: int64 */
+            rows?: number;
+        };
         HealthResponse: {
             /** Format: date-time */
             checkedAtUtc?: string;
@@ -4441,6 +4656,184 @@ export interface components {
             klines?: components["schemas"]["KlineFreshness"][] | null;
             status?: string | null;
             symbol?: string | null;
+        };
+        HistoricalAnalogContextDto: {
+            /** Format: int32 */
+            availableFeatureCount?: number;
+            values?: {
+                [key: string]: number;
+            } | null;
+        };
+        HistoricalAnalogEvidenceDto: {
+            artifactManifestSha256?: string | null;
+            /** Format: int32 */
+            evaluatedQueries?: number | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        HistoricalAnalogFreshnessDto: {
+            /** Format: double */
+            ageSeconds?: number | null;
+            /** Format: int64 */
+            asOfTimeMs?: number | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        HistoricalAnalogIntervalDto: {
+            /** Format: double */
+            level?: number;
+            /** Format: double */
+            lower?: number;
+            /** Format: double */
+            upper?: number;
+        };
+        HistoricalAnalogItemDto: {
+            /** Format: double */
+            atr14Pct?: number;
+            /** Format: int32 */
+            contextComparableFeatureCount?: number;
+            /** Format: double */
+            contextSimilarity?: number | null;
+            /** Format: int64 */
+            endTimeMs?: number;
+            /** Format: int64 */
+            futureEndTimeMs?: number;
+            futureOhlc?: components["schemas"]["ArchetypeOccurrenceOhlcDto"][] | null;
+            ohlc?: components["schemas"]["ArchetypeOccurrenceOhlcDto"][] | null;
+            outcomes?: components["schemas"]["HistoricalAnalogOutcomeDto"][] | null;
+            /** Format: int32 */
+            rank?: number;
+            /** Format: double */
+            shapeSimilarity?: number;
+            /** Format: int64 */
+            startTimeMs?: number;
+            /** Format: double */
+            thresholdPct?: number;
+            windowId?: string | null;
+        };
+        HistoricalAnalogOutcomeDto: {
+            /** Format: int32 */
+            barsAhead?: number;
+            /** Format: int32 */
+            direction?: number;
+            /** Format: double */
+            returnPct?: number;
+            /** Format: double */
+            targetClose?: number;
+            /** Format: int64 */
+            targetOpenTimeMs?: number;
+            /** Format: double */
+            thresholdPct?: number;
+        };
+        HistoricalAnalogQueryDto: {
+            /** Format: int64 */
+            availableAtTimeMs?: number;
+            context?: components["schemas"]["HistoricalAnalogContextDto"];
+            /** Format: int64 */
+            endTimeMs?: number;
+            ohlc?: components["schemas"]["ArchetypeOccurrenceOhlcDto"][] | null;
+            /** Format: int64 */
+            startTimeMs?: number;
+        };
+        HistoricalAnalogResponse: {
+            abstained?: boolean;
+            /** Format: double */
+            abstentionRate?: number | null;
+            abstentionReason?: string | null;
+            /** Format: double */
+            atrMultiplier?: number;
+            baselineName?: string | null;
+            /** Format: double */
+            baselineScore?: number | null;
+            capabilityState?: string | null;
+            contractVersion?: string | null;
+            /** Format: double */
+            coverage?: number | null;
+            /** Format: int64 */
+            decisionTimeMs?: number;
+            /** Format: int32 */
+            effectiveSampleCount?: number;
+            evaluationMethod?: string | null;
+            evidence?: components["schemas"]["HistoricalAnalogEvidenceDto"];
+            /** Format: int32 */
+            exclusionBars?: number;
+            freshness?: components["schemas"]["HistoricalAnalogFreshnessDto"];
+            /** Format: int32 */
+            independentCandidateCount?: number;
+            /** Format: int64 */
+            intervalMs?: number;
+            items?: components["schemas"]["HistoricalAnalogItemDto"][] | null;
+            /** Format: double */
+            lift?: number | null;
+            liftConfidenceInterval?: components["schemas"]["HistoricalAnalogIntervalDto"];
+            liftUnit?: string | null;
+            /** Format: int32 */
+            lookbackBars?: number;
+            /** Format: double */
+            meanSelectedSimilarity?: number | null;
+            method?: string | null;
+            methodVersion?: string | null;
+            /** Format: double */
+            minimumMeanSimilarity?: number;
+            /** Format: int32 */
+            neighborCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            readonly qualityGatePassed?: boolean;
+            query?: components["schemas"]["HistoricalAnalogQueryDto"];
+            rankingMethod?: string | null;
+            /** Format: int32 */
+            rawCandidateCount?: number;
+            requestId?: string | null;
+            /** Format: double */
+            roundTripCostPct?: number;
+            signalBarState?: string | null;
+            summaries?: components["schemas"]["HistoricalAnalogSummaryDto"][] | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+            /** Format: int32 */
+            total?: number;
+            validation?: components["schemas"]["HistoricalAnalogValidationDto"];
+            /** Format: int32 */
+            windowSize?: number;
+        };
+        HistoricalAnalogSummaryDto: {
+            /** Format: double */
+            avgReturnPct?: number;
+            /** Format: int32 */
+            barsAhead?: number;
+            baselineName?: string | null;
+            /** Format: double */
+            baselineScore?: number | null;
+            /** Format: int32 */
+            dominantDirection?: number | null;
+            /** Format: int32 */
+            downCount?: number;
+            /** Format: double */
+            downRate?: number;
+            /** Format: double */
+            lift?: number | null;
+            liftConfidenceInterval?: components["schemas"]["HistoricalAnalogIntervalDto"];
+            liftUnit?: string | null;
+            /** Format: double */
+            medianReturnPct?: number;
+            /** Format: int32 */
+            neutralCount?: number;
+            /** Format: double */
+            neutralRate?: number;
+            /** Format: int32 */
+            totalSamples?: number;
+            /** Format: int32 */
+            upCount?: number;
+            /** Format: double */
+            upRate?: number;
+        };
+        HistoricalAnalogValidationDto: {
+            isOutOfSampleValidated?: boolean;
+            reason?: string | null;
+            status?: string | null;
         };
         KlineDto: {
             /** Format: double */
@@ -4476,6 +4869,41 @@ export interface components {
             /** Format: int64 */
             maxAgeSeconds?: number;
             status?: string | null;
+            timeframe?: string | null;
+        };
+        KlineQualityAudit: {
+            /** Format: int64 */
+            duplicateOpenTimeRows?: number;
+            /** Format: int64 */
+            finalizedRows?: number;
+            /** Format: int64 */
+            formingRows?: number;
+            /** Format: int64 */
+            invalidOhlcvRows?: number;
+            isStale?: boolean;
+            /** Format: int64 */
+            latestFinalizedAgeSeconds?: number | null;
+            /** Format: int64 */
+            latestFinalizedCloseTimeMs?: number | null;
+        };
+        MarketMetricQuality: {
+            /** Format: int64 */
+            duplicateOpenTimeRows?: number;
+            /** Format: int64 */
+            latestAgeSeconds?: number | null;
+            /** Format: int64 */
+            latestOpenTimeMs?: number | null;
+            lineage?: components["schemas"]["DerivativeLineageQuality"];
+            /** Format: int64 */
+            missingFundingRate?: number;
+            /** Format: int64 */
+            missingLiquidations?: number;
+            /** Format: int64 */
+            missingLongShortRatio?: number;
+            /** Format: int64 */
+            missingOpenInterest?: number;
+            /** Format: int64 */
+            rows?: number;
             timeframe?: string | null;
         };
         MarketTickerDto: {
@@ -4607,6 +5035,24 @@ export interface components {
             updatedAt?: string;
             userId?: string | null;
         };
+        ResearchSpecificationDto: {
+            contractVersion?: string | null;
+            costs?: components["schemas"]["ExecutionCostSpecification"];
+            decisionTimeRule?: string | null;
+            /** Format: double */
+            directionLabelDeadZonePct?: number;
+            evidenceMaturity?: string | null;
+            /** Format: int32 */
+            horizonBars?: number;
+            horizonElapsed?: string | null;
+            marketType?: string | null;
+            outcomeDefinition?: string | null;
+            promotionEligible?: boolean;
+            promotionReason?: string | null;
+            sourceTimeframe?: string | null;
+            symbol?: string | null;
+            venue?: string | null;
+        };
         RulesAlertsAudit: {
             /** Format: int64 */
             alerts?: number;
@@ -4660,6 +5106,7 @@ export interface components {
             candlePatterns?: number | null;
             /** Format: double */
             dataCoveragePct?: number;
+            derivedTables?: components["schemas"]["DerivedTableAudit"][] | null;
             /** Format: int64 */
             expectedBars?: number | null;
             gapLedgerStatus?: string | null;
@@ -4681,6 +5128,7 @@ export interface components {
             pendingGapCount?: number;
             /** Format: int64 */
             priceTargets?: number | null;
+            quality?: components["schemas"]["KlineQualityAudit"];
             /** Format: int64 */
             technicalIndicators?: number | null;
             timeframe?: string | null;

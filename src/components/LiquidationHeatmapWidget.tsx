@@ -5,6 +5,7 @@ import { getLiquidationSnapshot } from "../lib/api";
 import type { LiquidationSnapshotDto, LiquidationBinDto } from "../lib/types";
 import { formatDataAge, isDataStale } from "../lib/freshness";
 import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "../lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "../lib/marketScope";
 
 interface LiquidationHeatmapWidgetProps {
   symbol?: string;
@@ -13,7 +14,7 @@ interface LiquidationHeatmapWidgetProps {
 }
 
 export function LiquidationHeatmapWidget({
-  symbol = "BTCUSDT",
+  symbol = ACTIVE_SYMBOL,
   timeframe = DEFAULT_TIMEFRAME,
   onSymbolChange,
 }: LiquidationHeatmapWidgetProps) {
@@ -99,20 +100,20 @@ export function LiquidationHeatmapWidget({
           </div>
           <div>
             <h3 className="font-bold text-gray-100 flex items-center gap-2 text-base">
-              Liquidation Heatmap Engine
+              Ước lượng vùng thanh lý
               <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Coinglass / Kingfisher Model
+                Descriptive estimate
               </span>
             </h3>
             <p className="text-xs text-gray-400">
-              Estimated liquidation clusters based on &Delta;OI, Leverage tiers (25x, 50x, 100x), & swept filtering
+              Mô hình giả định từ &Delta;OI, nấc đòn bẩy và swept filtering; không phải tổng thanh lý quan sát được
             </p>
           </div>
         </div>
 
         {/* Symbol Selector Pills */}
         <div className="flex items-center gap-1.5 bg-gray-950/70 p-1 rounded-xl border border-gray-800">
-          {["BTCUSDT", "ETHUSDT", "SOLUSDT"].map((s) => (
+          {ACTIVE_SYMBOLS.map((s) => (
             <button
               key={s}
               onClick={() => onSymbolChange && onSymbolChange(s)}
@@ -143,6 +144,11 @@ export function LiquidationHeatmapWidget({
 
       {!loading && !error && data && (
         <div className="space-y-4">
+          <div className="rounded-xl border border-amber-800/50 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200/90">
+            Estimator: {data.estimatorKind ?? "leverage-tier exposure model"} · assumptions {data.assumptionsVersion ?? "legacy/unversioned"} · leverage {(data.leverageTiers ?? [25, 50, 100]).join("x, ")}x.
+            <span className="ml-1">Các con số là estimated exposure, không phải observed liquidation totals.</span>
+            {data.limitation && <span className="ml-1">{data.limitation}</span>}
+          </div>
           {stale && (
             <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
               Dữ liệu liquidation đã cũ ({formatDataAge(data.timestampUtc)}). Các mức giá dưới đây chỉ là snapshot lịch sử, không phải thị trường hiện tại.
@@ -165,7 +171,7 @@ export function LiquidationHeatmapWidget({
 
             <div className="p-3 bg-rose-950/20 rounded-xl border border-rose-800/30">
               <div className="text-[11px] uppercase tracking-wider text-rose-400 font-medium mb-1 flex items-center justify-between">
-                <span>Longs at Risk (Below)</span>
+                <span>Estimated long exposure (Below)</span>
                 <span className="font-mono">{longPct.toFixed(1)}%</span>
               </div>
               <div className="text-lg font-bold font-mono text-rose-300">
@@ -178,7 +184,7 @@ export function LiquidationHeatmapWidget({
 
             <div className="p-3 bg-amber-950/20 rounded-xl border border-amber-800/30">
               <div className="text-[11px] uppercase tracking-wider text-amber-400 font-medium mb-1 flex items-center justify-between">
-                <span>Shorts at Risk (Above)</span>
+                <span>Estimated short exposure (Above)</span>
                 <span className="font-mono">{shortPct.toFixed(1)}%</span>
               </div>
               <div className="text-lg font-bold font-mono text-amber-300">
@@ -193,7 +199,7 @@ export function LiquidationHeatmapWidget({
           {/* Bias Badge Bar */}
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-gray-950/70 border border-gray-800 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-gray-400 font-medium">Dominant Liquidity Magnet:</span>
+              <span className="text-gray-400 font-medium">Estimated exposure imbalance:</span>
               <span className={`px-2.5 py-0.5 rounded-md font-bold border ${biasColor}`}>
                 {biasLabel}
               </span>
@@ -217,7 +223,7 @@ export function LiquidationHeatmapWidget({
                     : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                Hot Targets
+                High-estimate zones
               </button>
             </div>
           </div>
@@ -289,7 +295,7 @@ export function LiquidationHeatmapWidget({
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                   </svg>
-                  TOP SHORT SQUEEZE TARGETS (UPWARD MAGNETS)
+                  HIGH SHORT-EXPOSURE ESTIMATES ABOVE
                 </div>
                 {shortSqueezeTargets.length === 0 ? (
                   <div className="text-xs text-gray-500 italic py-2">No active short clusters nearby</div>
@@ -315,7 +321,7 @@ export function LiquidationHeatmapWidget({
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                   </svg>
-                  TOP LONG FLUSH TARGETS (DOWNWARD MAGNETS)
+                  HIGH LONG-EXPOSURE ESTIMATES BELOW
                 </div>
                 {longFlushTargets.length === 0 ? (
                   <div className="text-xs text-gray-500 italic py-2">No active long clusters nearby</div>

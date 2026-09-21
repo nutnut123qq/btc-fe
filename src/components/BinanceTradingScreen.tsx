@@ -19,7 +19,9 @@ import {
 } from "@/lib/api";
 import dynamic from "next/dynamic";
 import { BinanceTickerHeader } from "./BinanceTickerHeader";
-import { subscribeBinanceTickers, type BinanceLiveTicker } from "@/lib/binanceWs";
+import { subscribeBinanceConnection, subscribeBinanceTickers, type BinanceLiveTicker } from "@/lib/binanceWs";
+import type { MarketConnectionSnapshot } from "@/lib/marketTruth";
+import { latestCandleLifecycle } from "@/lib/marketTruth";
 import { SymbolWatchlistPanel } from "./SymbolWatchlistPanel";
 import { MarketTradesWidget } from "./MarketTradesWidget";
 import { OrderBookWidget } from "./OrderBookWidget";
@@ -28,6 +30,7 @@ import { RegimeBadge } from "./RegimeBadge";
 import { SentimentBadge } from "./SentimentBadge";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "@/lib/marketScope";
 
 // Code-splitting with dynamic imports to optimize First Contentful Paint & bundle size
 const BtcCandlestickChart = dynamic(
@@ -72,12 +75,18 @@ type RightTab = "trades" | "depth" | "ai";
 type BottomTab = "market_trades" | "paper_trades" | "smart_money" | "volume_profile" | "liquidation_heatmap";
 
 export function BinanceTradingScreen() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedTf, setSelectedTf] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [tickers, setTickers] = useState<MarketTicker[]>([]);
   const [klines, setKlines] = useState<KlineOHLC[]>([]);
   const [loadingKlines, setLoadingKlines] = useState<boolean>(true);
-  const [selectorOpen, setSelectorOpen] = useState<boolean>(false);
+  const [marketConnection, setMarketConnection] = useState<MarketConnectionSnapshot>({
+    state: "closed",
+    venue: "Binance Spot",
+    transport: "WebSocket",
+    lastMessageAtMs: null,
+    reconnectAttempts: 0,
+  });
   const showWatchlistSidebar = true;
 
   // Indicators toggle
@@ -107,7 +116,13 @@ export function BinanceTradingScreen() {
     try {
       const data = await getMarketTickers();
       if (Array.isArray(data)) {
-        setTickers(data);
+        const receivedAtMs = Date.now();
+        setTickers(data.filter((ticker) => ticker.symbol.toUpperCase() === ACTIVE_SYMBOL).map((ticker) => ({
+          ...ticker,
+          venue: "Binance Spot",
+          source: "rest" as const,
+          receivedAtMs,
+        })));
       }
     } catch (e) {
       console.error("Failed to load tickers", e);
@@ -126,7 +141,7 @@ export function BinanceTradingScreen() {
 
   // Live WebSocket Ticker Stream
   useEffect(() => {
-    const unsub = subscribeBinanceTickers(["BTCUSDT", "ETHUSDT", "SOLUSDT"], (liveTicker: BinanceLiveTicker) => {
+    const unsub = subscribeBinanceTickers([...ACTIVE_SYMBOLS], (liveTicker: BinanceLiveTicker) => {
       setTickers((prev) => {
         const idx = prev.findIndex((t) => t.symbol.toUpperCase() === liveTicker.symbol.toUpperCase());
         const existing = idx >= 0 ? prev[idx] : null;
@@ -143,6 +158,9 @@ export function BinanceTradingScreen() {
           askPrice: existing ? existing.askPrice : liveTicker.lastPrice,
           count: existing ? existing.count : 0,
           closeTimeMs: liveTicker.timestampMs,
+          venue: "Binance Spot",
+          source: "websocket",
+          receivedAtMs: Date.now(),
         };
         if (idx >= 0) {
           const next = [...prev];
@@ -154,6 +172,8 @@ export function BinanceTradingScreen() {
     });
     return unsub;
   }, []);
+
+  useEffect(() => subscribeBinanceConnection(setMarketConnection), []);
 
   // Load Klines and indicators for selected symbol
   const loadChartData = useCallback(async (sym = selectedSymbol, tf = selectedTf) => {
@@ -208,7 +228,7 @@ export function BinanceTradingScreen() {
       <BinanceTickerHeader
         selectedSymbol={selectedSymbol}
         ticker={activeTicker}
-        onOpenSelector={() => setSelectorOpen(true)}
+        connection={marketConnection}
       />
 
       {/* Main Grid: Watchlist (Left) + Chart/Bottom (Center) + Orderbook/Trades (Right) */}
@@ -299,6 +319,14 @@ export function BinanceTradingScreen() {
 
             {/* Candlestick Chart Area */}
             <div className="p-2 min-h-[460px] relative bg-gray-950">
+              {klines.length > 0 && (
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                  <span>Binance Spot · REST candles</span>
+                  <span className={`rounded border px-2 py-0.5 ${latestCandleLifecycle(klines, selectedTf) === "forming" ? "border-amber-700/60 bg-amber-950/30 text-amber-300" : "border-emerald-800/60 bg-emerald-950/30 text-emerald-300"}`}>
+                    Nến cuối: {latestCandleLifecycle(klines, selectedTf) === "forming" ? "đang hình thành — không phải nến chốt" : "đã đóng"}
+                  </span>
+                </div>
+              )}
               {loadingKlines && klines.length === 0 ? (
                 <div className="h-[440px] flex items-center justify-center text-xs text-gray-500 gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin text-teal-400" /> Đang tải biểu đồ nến {selectedSymbol}...
@@ -314,6 +342,7 @@ export function BinanceTradingScreen() {
                   volumeProfile={showVolumeProfile ? volumeProfile : null}
                   smartMoney={showSmartMoney ? smartMoney : null}
                   showFibonacci={showFibonacci}
+                  timeframe={selectedTf}
                 />
               )}
             </div>
@@ -484,7 +513,7 @@ export function BinanceTradingScreen() {
               {bottomTab === "smart_money" && (
                 <div className="space-y-2 text-xs">
                   <p className="text-gray-400">
-                    Các cấu trúc thị trường Smart Money Concepts (Order Blocks, Fair Value Gaps, Liquidity Sweeps) trên khung {selectedTf}:
+                    Hình học giá SMC (BOS/CHOCH/FVG/swing) trên khung {selectedTf}. Đây là nhãn mô tả, không phải bằng chứng về hoạt động tổ chức hay xác suất giao dịch:
                   </p>
                   {smartMoney && smartMoney.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -498,6 +527,9 @@ export function BinanceTradingScreen() {
                               <span className="text-[10px] text-gray-500 ml-2">{sm.timeframe}</span>
                               <div className="text-[11px] text-gray-300 mt-0.5">
                                 Giá: ${sm.price.toFixed(2)} {sm.lowPrice != null && sm.highPrice != null ? `(Zone: $${sm.lowPrice.toFixed(2)} - $${sm.highPrice.toFixed(2)})` : ""}
+                              </div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">
+                                Origin {new Date(sm.originTimeMs ?? sm.timeMs).toLocaleString("vi-VN")} · biết được từ {new Date(sm.availableTimeMs ?? sm.timeMs).toLocaleString("vi-VN")}
                               </div>
                             </div>
                             <span
@@ -602,23 +634,6 @@ export function BinanceTradingScreen() {
         </div>
       </div>
 
-      {/* Symbol Selector Modal */}
-      {selectorOpen && (
-        <div className="fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-xl animate-in fade-in zoom-in-95 duration-150">
-            <SymbolWatchlistPanel
-              tickers={tickers}
-              selectedSymbol={selectedSymbol}
-              onSelectSymbol={(sym) => {
-                setSelectedSymbol(sym);
-                setSelectorOpen(false);
-              }}
-              onClose={() => setSelectorOpen(false)}
-              isModal={true}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

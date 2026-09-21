@@ -149,6 +149,28 @@ export function requireDataAudit(value: unknown): Record<string, unknown> {
     requireNullableNumber(timeframe.minOpenTimeMs, `${context}.minOpenTimeMs`);
     requireNullableNumber(timeframe.maxOpenTimeMs, `${context}.maxOpenTimeMs`);
     requireNullableNumber(timeframe.latestCandleAgeSeconds, `${context}.latestCandleAgeSeconds`);
+    if (timeframe.quality !== undefined && timeframe.quality !== null) {
+      const quality = requireRecord(timeframe.quality, `${context}.quality`);
+      ["finalizedRows", "formingRows", "invalidOhlcvRows", "duplicateOpenTimeRows"].forEach((field) =>
+        requireFiniteNumber(quality[field], `${context}.quality.${field}`),
+      );
+      requireNullableNumber(quality.latestFinalizedCloseTimeMs, `${context}.quality.latestFinalizedCloseTimeMs`);
+      requireNullableNumber(quality.latestFinalizedAgeSeconds, `${context}.quality.latestFinalizedAgeSeconds`);
+      if (typeof quality.isStale !== "boolean") throw new Error(`INVALID_API_RESPONSE: ${context}.quality.isStale must be boolean`);
+    }
+    if (timeframe.derivedTables !== undefined && timeframe.derivedTables !== null) {
+      requireArray<Record<string, unknown>>(timeframe.derivedTables, `${context}.derivedTables`).forEach((raw, derivedIndex) => {
+        const derivedContext = `${context}.derivedTables[${derivedIndex}]`;
+        const derived = requireRecord(raw, derivedContext);
+        requireNonBlankString(derived.table, `${derivedContext}.table`);
+        requireFiniteNumber(derived.rows, `${derivedContext}.rows`);
+        requireNullableNumber(derived.latestSourceTimeMs, `${derivedContext}.latestSourceTimeMs`);
+        requireNullableNumber(derived.latestAgeSeconds, `${derivedContext}.latestAgeSeconds`);
+        requireNullableNumber(derived.missingRows, `${derivedContext}.missingRows`);
+        if (typeof derived.expectedOnePerFinalizedBar !== "boolean")
+          throw new Error(`INVALID_API_RESPONSE: ${derivedContext}.expectedOnePerFinalizedBar must be boolean`);
+      });
+    }
     const gaps = requireArray<Record<string, unknown>>(timeframe.topGaps, `${context}.topGaps`);
     gaps.forEach((item, gapIndex) => {
       const gapContext = `${context}.topGaps[${gapIndex}]`;
@@ -164,6 +186,26 @@ export function requireDataAudit(value: unknown): Record<string, unknown> {
       requireNullableString(gap.reason, `${gapContext}.reason`);
     });
   });
+  if (record.derivatives !== undefined && record.derivatives !== null) {
+    const derivatives = requireRecord(record.derivatives, "data audit.derivatives");
+    requireNonBlankString(derivatives.availabilityCaveat, "data audit.derivatives.availabilityCaveat");
+    const futures = requireRecord(derivatives.futuresMetrics, "data audit.derivatives.futuresMetrics");
+    ["rows", "duplicateOpenTimeRows", "missingOpenInterest", "missingLongShortRatio", "missingTakerRatio", "missingFundingRate", "missingMarkPrice"].forEach((field) =>
+      requireFiniteNumber(futures[field], `data audit.derivatives.futuresMetrics.${field}`),
+    );
+    requireNullableNumber(futures.latestOpenTimeMs, "data audit.derivatives.futuresMetrics.latestOpenTimeMs");
+    requireNullableNumber(futures.latestAgeSeconds, "data audit.derivatives.futuresMetrics.latestAgeSeconds");
+    requireArray<Record<string, unknown>>(derivatives.marketMetrics, "data audit.derivatives.marketMetrics").forEach((raw, index) => {
+      const context = `data audit.derivatives.marketMetrics[${index}]`;
+      const metric = requireRecord(raw, context);
+      requireNonBlankString(metric.timeframe, `${context}.timeframe`);
+      ["rows", "duplicateOpenTimeRows", "missingFundingRate", "missingOpenInterest", "missingLongShortRatio", "missingLiquidations"].forEach((field) =>
+        requireFiniteNumber(metric[field], `${context}.${field}`),
+      );
+      requireNullableNumber(metric.latestOpenTimeMs, `${context}.latestOpenTimeMs`);
+      requireNullableNumber(metric.latestAgeSeconds, `${context}.latestAgeSeconds`);
+    });
+  }
   return record;
 }
 
@@ -177,7 +219,7 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-09-archetype-fixed-horizon";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-09-research-evidence-v2";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
   "2026-09-archetype-evidence",

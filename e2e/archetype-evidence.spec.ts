@@ -38,7 +38,7 @@ test("gallery shows close-to-close evidence, six future candles and pagination",
     if (url.pathname === "/api/meta") {
       await route.fulfill({ json: {
         appVersion: "test",
-        apiContractVersion: "2026-09-archetype-fixed-horizon",
+        apiContractVersion: "2026-09-research-evidence-v2",
         dataPipelineVersion: "quant-pipeline-v3",
         evaluationVersion: "evaluation-v2",
         environment: "Research",

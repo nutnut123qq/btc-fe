@@ -28,6 +28,7 @@ import type {
   KlineGapAuditItem,
 } from "@/lib/types";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, isActiveTimeframe, type ActiveTimeframe } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 
 function ageLabel(seconds: number | null): string {
   if (seconds == null) return "--";
@@ -50,7 +51,7 @@ export function DataManagementPanel({
   adminUnlocked?: boolean;
   contractCompatible?: boolean;
 }) {
-  const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedTf, setSelectedTf] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [auditData, setAuditData] = useState<DataAuditResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -214,8 +215,6 @@ export function DataManagementPanel({
             className="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1 text-gray-200 font-bold"
           >
             <option value="BTCUSDT">BTC/USDT</option>
-            <option value="ETHUSDT">ETH/USDT</option>
-            <option value="SOLUSDT">SOL/USDT</option>
           </select>
 
           <select
@@ -372,6 +371,42 @@ export function DataManagementPanel({
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="border-t border-gray-800 bg-gray-950/70 p-3 space-y-2">
+              <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Chất lượng nến & lineage derived</div>
+              <div className="grid gap-2 md:grid-cols-3">
+                {auditData.timeframes.map((tf) => (
+                  <div key={`quality-${tf.timeframe}`} className="rounded border border-gray-800 bg-gray-900/50 p-2 text-[10px] text-gray-500">
+                    <div className="font-bold text-gray-300">{tf.timeframe}</div>
+                    {tf.quality ? (
+                      <>
+                        <div>Finalized {tf.quality.finalizedRows.toLocaleString()} · forming {tf.quality.formingRows.toLocaleString()}</div>
+                        <div className={tf.quality.invalidOhlcvRows || tf.quality.duplicateOpenTimeRows ? "text-rose-300" : "text-emerald-400"}>
+                          OHLCV lỗi {tf.quality.invalidOhlcvRows.toLocaleString()} · duplicate {tf.quality.duplicateOpenTimeRows.toLocaleString()}
+                        </div>
+                        <div className={tf.quality.isStale ? "text-amber-300" : "text-gray-500"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
+                      </>
+                    ) : <div className="text-amber-300">Backend cũ: chưa có quality audit</div>}
+                    <div className="mt-1 border-t border-gray-800 pt-1">
+                      {(tf.derivedTables ?? []).length > 0
+                        ? (tf.derivedTables ?? []).map((table) => (
+                          <div key={table.table}>{table.table}: {table.rows.toLocaleString()} rows · missing {table.missingRows ?? "n/a"} · age {ageLabel(table.latestAgeSeconds)}</div>
+                        ))
+                        : <span>Derived lineage chưa có</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-gray-800 bg-sky-950/10 p-3 text-[10px] text-gray-400">
+              <div className="font-bold uppercase tracking-wide text-sky-300">Derivatives audit</div>
+              {auditData.derivatives ? (
+                <div className="mt-1 space-y-1">
+                  <div>Futures raw: {auditData.derivatives.futuresMetrics.rows.toLocaleString()} rows · duplicate {auditData.derivatives.futuresMetrics.duplicateOpenTimeRows.toLocaleString()} · age {ageLabel(auditData.derivatives.futuresMetrics.latestAgeSeconds)}</div>
+                  <div>Missing fields: OI {auditData.derivatives.futuresMetrics.missingOpenInterest.toLocaleString()} · L/S {auditData.derivatives.futuresMetrics.missingLongShortRatio.toLocaleString()} · taker {auditData.derivatives.futuresMetrics.missingTakerRatio.toLocaleString()} · funding {auditData.derivatives.futuresMetrics.missingFundingRate.toLocaleString()} · mark {auditData.derivatives.futuresMetrics.missingMarkPrice.toLocaleString()}</div>
+                  <div className="text-amber-200">{auditData.derivatives.availabilityCaveat}</div>
+                </div>
+              ) : <div className="mt-1 text-amber-300">Backend cũ: chưa có derivatives quality audit; không suy diễn missing = 0.</div>}
             </div>
           </div>
         ) : (

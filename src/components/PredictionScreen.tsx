@@ -8,11 +8,10 @@ import { WINDOW_SIZES } from "@/lib/types";
 import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
 
 const SYMBOL_OPTIONS = [
-  { value: "BTCUSDT", label: "BTC/USDT" },
-  { value: "ETHUSDT", label: "ETH/USDT" },
-  { value: "SOLUSDT", label: "SOL/USDT" },
+  { value: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
 ];
 const HORIZON_OPTIONS = ["1h", "4h", "1d"];
 
@@ -34,7 +33,7 @@ function formatTime(ms: number) {
 
 export function PredictionScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
-  const [symbol, setSymbol] = useState("BTCUSDT");
+  const [symbol, setSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [timeframe, setTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [windowSize, setWindowSize] = useState(5);
   const [horizon, setHorizon] = useState("4h");

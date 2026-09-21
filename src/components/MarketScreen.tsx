@@ -14,14 +14,15 @@ import { LiquidationHeatmapWidget } from "./LiquidationHeatmapWidget";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ChevronDown, ChevronUp, BrainCircuit, LayoutGrid, Terminal } from "lucide-react";
 import { DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "@/lib/marketScope";
 
 export function MarketScreen() {
   const [viewMode, setViewMode] = useState<"binance" | "classic">("binance");
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedTimeframe, setSelectedTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [showEnsemble, setShowEnsemble] = useState(false);
 
-  const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+  const symbolOptions = ACTIVE_SYMBOLS;
 
   return (
     <div className="space-y-3">
@@ -56,7 +57,7 @@ export function MarketScreen() {
         </div>
 
         <span className="text-[11px] text-gray-500 hidden sm:inline">
-          {viewMode === "binance" ? "Dữ liệu khớp lệnh & nến realtime đa mã" : `${selectedSymbol.replace("USDT", "/USDT")} Deep Analysis & Pattern Index`}
+          {viewMode === "binance" ? "Dữ liệu khớp lệnh & nến realtime BTC/USDT" : `${selectedSymbol.replace("USDT", "/USDT")} Deep Analysis & Pattern Index`}
         </span>
       </div>
 

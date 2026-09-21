@@ -29,14 +29,15 @@ import { ArchetypePredictContainer } from "./archetypes/ArchetypePredictContaine
 import { ArchetypeDetailModal } from "./archetypes/ArchetypeDetailModal";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME } from "@/lib/timeframe";
+import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "@/lib/marketScope";
 
-const SYMBOL_OPTIONS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+const SYMBOL_OPTIONS = ACTIVE_SYMBOLS;
 const TIMEFRAME_OPTIONS = [...ACTIVE_TIMEFRAMES];
 const WINDOW_SIZES = [10, 15, 20, 25];
 type ArchetypeSubTab = "gallery" | "analog" | "rankings" | "transitions" | "predict";
 
 export function ArchetypeScreen() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [activeSubTab, setActiveSubTab] = useState<ArchetypeSubTab>("analog");
   const [tabErrors, setTabErrors] = useState<Partial<Record<ArchetypeSubTab, string>>>({});
 

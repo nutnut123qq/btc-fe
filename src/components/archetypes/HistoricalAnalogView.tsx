@@ -20,7 +20,14 @@ import type {
   HistoricalAnalogItemDto,
   HistoricalAnalogResponse,
 } from "@/lib/types";
+import {
+  formatCoverage,
+  formatLift,
+  normalizeCapabilityState,
+  resolveEvidenceFreshness,
+} from "@/lib/researchUi";
 import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
+import { CapabilityStateBadge } from "@/components/CapabilityStateBadge";
 import { ArchetypeGlyph } from "./ArchetypeGlyph";
 
 const PAGE_SIZE = 8;
@@ -121,7 +128,7 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
   const [timeframe, setTimeframe] = useState<string>(DEFAULT_TIMEFRAME);
   const [windowSize, setWindowSize] = useState(15);
   const [neighborCount, setNeighborCount] = useState(30);
-  const [roundTripCostPct, setRoundTripCostPct] = useState(0.15);
+  const [roundTripCostPct, setRoundTripCostPct] = useState(0.30);
   const [atrMultiplier, setAtrMultiplier] = useState(0.25);
   const [page, setPage] = useState(1);
   const [retryKey, setRetryKey] = useState(0);
@@ -189,6 +196,14 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
   const firstIndex = !data || data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const lastIndex = Math.min(page * PAGE_SIZE, data?.total ?? 0);
+  const capabilityState = normalizeCapabilityState(data?.capabilityState, "experimental");
+  const freshness = data
+    ? resolveEvidenceFreshness(data.freshness, data.query?.endTimeMs, data.timeframe)
+    : null;
+  const coverage = formatCoverage(data?.coverage);
+  const abstentionRate = formatCoverage(data?.abstentionRate);
+  const lift = formatLift(data?.lift, data?.liftUnit);
+  const canShowNeighborEvidence = data?.abstained !== true;
 
   const resetPage = (change: () => void) => {
     change();
@@ -207,9 +222,18 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
             <h2 className="flex items-center gap-2 text-base font-black text-gray-100">
               <Search className="h-5 w-5 text-teal-400" /> Historical Analog
             </h2>
-            <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[10px] font-black text-amber-300">
-              EXPERIMENTAL · CHƯA QUA OOS GATE
-            </span>
+            <CapabilityStateBadge state={capabilityState} />
+            <span className="text-[10px] font-bold text-gray-500">Chưa qua OOS gate</span>
+            {freshness?.status === "stale" && (
+              <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[10px] font-black text-rose-300">
+                STALE
+              </span>
+            )}
+            {data?.validation.status === "unavailable" && (
+              <span className="rounded-full border border-gray-500/30 bg-gray-500/10 px-2 py-1 text-[10px] font-black text-gray-400">
+                UNAVAILABLE
+              </span>
+            )}
           </div>
           <p className="mt-2 text-xs leading-5 text-gray-400">
             Lấy cửa sổ nến hiện tại làm truy vấn, tìm các đoạn lịch sử giống nhất rồi loại mẫu chồng lấn.
@@ -218,6 +242,11 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
           <p className="mt-1 text-[11px] font-semibold text-sky-300">
             Xếp hạng chỉ theo hình dạng; bối cảnh chỉ để đối chiếu, không tham gia xếp hạng.
           </p>
+          {data && (
+            <p className="mt-1 text-[10px] text-gray-500">
+              Method: {data.methodVersion || data.method} · freshness {freshness?.status ?? "unknown"}
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -264,14 +293,14 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
           </select>
         </label>
         <label className="text-[11px] text-gray-400">
-          Chi phí khứ hồi
+          Ngưỡng chi phí tham chiếu
           <select
             aria-label="Chi phí khứ hồi"
             value={roundTripCostPct}
             onChange={(event) => resetPage(() => setRoundTripCostPct(Number(event.target.value)))}
             className="mt-1 w-full rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 text-sm text-gray-100"
           >
-            {[0.1, 0.15, 0.2].map((value) => <option key={value} value={value}>{value.toFixed(2)}%</option>)}
+            {[0.15, 0.30, 0.45].map((value) => <option key={value} value={value}>{value.toFixed(2)}%</option>)}
           </select>
         </label>
         <label className="col-span-2 text-[11px] text-gray-400 sm:col-span-1">
@@ -325,12 +354,32 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
                 <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-teal-300">{data.effectiveSampleCount}</div><div className="text-gray-500">Mẫu hiệu lực</div></div>
               </div>
               <p className="text-[10px] leading-4 text-gray-500">
-                Vùng loại trừ: {data.exclusionBars} nến. TRUNG TÍNH khi |return| không vượt ngưỡng lớn hơn giữa chi phí {data.roundTripCostPct.toFixed(2)}% và {data.atrMultiplier.toFixed(2)} × ATR. Chưa gán nhãn hiệu quả giao dịch khi chưa qua kiểm định ngoài mẫu.
+                Vùng loại trừ: {data.exclusionBars} nến. TRUNG TÍNH khi |return| không vượt ngưỡng lớn hơn giữa tham chiếu chi phí {data.roundTripCostPct.toFixed(2)}% và {data.atrMultiplier.toFixed(2)} × ATR. Đây là ngưỡng phân loại, không phải chi phí đã trừ khỏi PnL.
               </p>
+              <div className="rounded-lg border border-gray-800 bg-gray-900 p-2 text-[10px]">
+                <div className="mb-2 font-bold uppercase text-gray-400">Bằng chứng evaluator</div>
+                <div className="grid grid-cols-2 gap-2 text-gray-500">
+                  <div>Baseline<strong className="block text-gray-200">{data.baselineName || "Chưa cung cấp"}</strong></div>
+                  <div>Lift so baseline<strong className="block text-gray-200">{lift ?? "Chưa cung cấp"}</strong></div>
+                  <div>Coverage<strong className="block text-gray-200">{coverage ?? "Chưa cung cấp"}</strong></div>
+                  <div>Abstention<strong className="block text-gray-200">{abstentionRate ?? "Chưa cung cấp"}</strong></div>
+                </div>
+                {data.liftConfidenceInterval && (
+                  <div className="mt-2 text-gray-500">
+                    CI{data.liftConfidenceInterval.level ? ` ${(data.liftConfidenceInterval.level * 100).toFixed(0)}%` : ""}: {formatLift(data.liftConfidenceInterval.lower, data.liftUnit)} → {formatLift(data.liftConfidenceInterval.upper, data.liftUnit)}
+                  </div>
+                )}
+              </div>
             </aside>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="analog-summary">
+          {data.abstained && (
+            <div role="status" className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-3 text-sm text-amber-200">
+              Hệ thống đã abstain: {data.abstentionReason || "chất lượng analog không đạt ngưỡng đã khai báo"}. Không diễn giải các tần suất bên dưới như bằng chứng dự báo.
+            </div>
+          )}
+
+          {canShowNeighborEvidence && <div className="grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="analog-summary">
             {data.summaries.map((summary) => (
               <div key={summary.barsAhead} className="rounded-xl border border-gray-800 bg-gray-950 p-3">
                 <div className="flex items-center justify-between gap-2">
@@ -338,16 +387,19 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
                   <span className={`text-xs font-black ${getDirectionTone(summary.dominantDirection)}`}>{getAnalogDirectionLabel(summary.dominantDirection)}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[10px]">
-                  <span className="rounded bg-emerald-500/10 px-1 py-1 text-emerald-300">Tăng {(summary.upRate * 100).toFixed(1)}%</span>
-                  <span className="rounded bg-amber-500/10 px-1 py-1 text-amber-300">Trung tính {(summary.neutralRate * 100).toFixed(1)}%</span>
-                  <span className="rounded bg-rose-500/10 px-1 py-1 text-rose-300">Giảm {(summary.downRate * 100).toFixed(1)}%</span>
+                  <span className="rounded bg-emerald-500/10 px-1 py-1 text-emerald-300">Tần suất tăng {(summary.upRate * 100).toFixed(1)}%</span>
+                  <span className="rounded bg-amber-500/10 px-1 py-1 text-amber-300">Tần suất trung tính {(summary.neutralRate * 100).toFixed(1)}%</span>
+                  <span className="rounded bg-rose-500/10 px-1 py-1 text-rose-300">Tần suất giảm {(summary.downRate * 100).toFixed(1)}%</span>
                 </div>
                 <div className="mt-2 text-[10px] text-gray-500">N={summary.totalSamples} · TB {formatSignedPercent(summary.avgReturnPct)} · Trung vị {formatSignedPercent(summary.medianReturnPct)}</div>
+                {(summary.baselineName || summary.lift != null) && (
+                  <div className="mt-1 text-[10px] text-sky-300">Baseline {summary.baselineName || "đã khai báo"} · lift {formatLift(summary.lift, summary.liftUnit) || "chưa đủ mẫu"}</div>
+                )}
               </div>
             ))}
-          </div>
+          </div>}
 
-          {data.items.length === 0 ? (
+          {!canShowNeighborEvidence ? null : data.items.length === 0 ? (
             <div className="flex min-h-52 items-center justify-center rounded-xl border border-gray-800 bg-gray-950 text-sm text-gray-500">
               Không tìm thấy analog lịch sử độc lập cho cấu hình này.
             </div>

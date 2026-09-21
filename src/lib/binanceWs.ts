@@ -1,3 +1,5 @@
+import type { MarketConnectionSnapshot, MarketConnectionState } from "./marketTruth";
+
 /**
  * Binance Live WebSocket Streaming Client (High-Concurrency Anti-Lag Engine)
  * =========================================================================
@@ -30,6 +32,7 @@ export interface BinanceLiveTrade {
 
 type TickerCallback = (ticker: BinanceLiveTicker) => void;
 type TradeCallback = (trade: BinanceLiveTrade) => void;
+type ConnectionCallback = (snapshot: MarketConnectionSnapshot) => void;
 
 class BinanceWebSocketManager {
   private ws: WebSocket | null = null;
@@ -38,10 +41,14 @@ class BinanceWebSocketManager {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
   private isConnecting = false;
+  private connectionState: MarketConnectionState = "closed";
+  private lastMessageAtMs: number | null = null;
+  private lastConnectionNotifyMs = 0;
+  private connectionSubscribers = new Set<ConnectionCallback>();
   private readonly maxReconnectDelay = 15000;
 
   // Active symbol list
-  private activeSymbols = new Set<string>(["BTCUSDT", "ETHUSDT", "SOLUSDT"]);
+  private activeSymbols = new Set<string>(["BTCUSDT"]);
 
   // Frame-throttling batch buffers
   private pendingTickers = new Map<string, BinanceLiveTicker>();
@@ -92,6 +99,29 @@ class BinanceWebSocketManager {
     };
   }
 
+  public subscribeConnection(cb: ConnectionCallback): () => void {
+    this.connectionSubscribers.add(cb);
+    cb(this.connectionSnapshot());
+    this.ensureConnection();
+    return () => this.connectionSubscribers.delete(cb);
+  }
+
+  private connectionSnapshot(): MarketConnectionSnapshot {
+    return {
+      state: this.connectionState,
+      venue: "Binance Spot",
+      transport: "WebSocket",
+      lastMessageAtMs: this.lastMessageAtMs,
+      reconnectAttempts: this.reconnectAttempts,
+    };
+  }
+
+  private setConnectionState(state: MarketConnectionState) {
+    this.connectionState = state;
+    const snapshot = this.connectionSnapshot();
+    this.connectionSubscribers.forEach((cb) => cb(snapshot));
+  }
+
   private getCombinedStreams(): string[] {
     const streams: string[] = [];
     for (const sym of this.activeSymbols) {
@@ -115,6 +145,7 @@ class BinanceWebSocketManager {
   private connect() {
     if (typeof window === "undefined") return;
     this.isConnecting = true;
+    this.setConnectionState(this.reconnectAttempts > 0 ? "reconnecting" : "connecting");
 
     try {
       const streams = this.getCombinedStreams();
@@ -125,15 +156,23 @@ class BinanceWebSocketManager {
       this.ws.onopen = () => {
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        this.setConnectionState("open");
       };
 
       this.ws.onmessage = (event) => {
         try {
+          const isFirstMessage = this.lastMessageAtMs == null;
+          this.lastMessageAtMs = Date.now();
           const payload = JSON.parse(event.data);
           const stream = payload.stream as string | undefined;
           const data = payload.data;
 
           if (!stream || !data) return;
+
+          if (this.connectionState !== "open" || isFirstMessage || this.lastMessageAtMs - this.lastConnectionNotifyMs >= 5_000) {
+            this.lastConnectionNotifyMs = this.lastMessageAtMs;
+            this.setConnectionState("open");
+          }
 
           if (stream.endsWith("@ticker")) {
             const sym = (data.s || "").toUpperCase();
@@ -181,10 +220,12 @@ class BinanceWebSocketManager {
       this.ws.onclose = () => {
         this.isConnecting = false;
         this.ws = null;
+        this.setConnectionState("reconnecting");
         this.scheduleReconnect();
       };
     } catch {
       this.isConnecting = false;
+      this.setConnectionState("reconnecting");
       this.scheduleReconnect();
     }
   }
@@ -291,4 +332,8 @@ export function subscribeBinanceTickers(
 
 export function subscribeBinanceTrade(symbol: string, callback: (trade: BinanceLiveTrade) => void): () => void {
   return binanceWsManager.subscribeTrade(symbol, callback);
+}
+
+export function subscribeBinanceConnection(callback: (snapshot: MarketConnectionSnapshot) => void): () => void {
+  return binanceWsManager.subscribeConnection(callback);
 }
