@@ -9,6 +9,7 @@ import { DataManagementPanel } from "./DataManagementPanel";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { SessionAccessPanel } from "./SessionAccessPanel";
 import { SystemStatusPanel } from "./SystemStatusPanel";
+import { TechnicalCapabilitiesPanel } from "./TechnicalCapabilitiesPanel";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, normalizeActiveTimeframe } from "@/lib/timeframe";
 
@@ -139,6 +140,10 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
 
       <ErrorBoundary fallbackTitle="Lỗi tải trạng thái hệ thống">
         <SystemStatusPanel />
+      </ErrorBoundary>
+
+      <ErrorBoundary fallbackTitle="Lỗi tải bản đồ năng lực kỹ thuật">
+        <TechnicalCapabilitiesPanel />
       </ErrorBoundary>
 
       {loading && <p className="text-gray-500 text-sm">Đang tải…</p>}

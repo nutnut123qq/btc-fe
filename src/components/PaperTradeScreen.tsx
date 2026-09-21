@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { LineChart, RefreshCw, Activity, ArrowUpRight, ArrowDownRight, LayoutList } from "lucide-react";
-import { getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades } from "@/lib/api";
-import type { PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
+import { getPaperObservations, getPaperTrades, getPaperTradeSummary, getPaperTradeEquityCurve, getOpenPaperTrades } from "@/lib/api";
+import type { PaperObservationListResponse, PaperTradeItem, PaperTradeSummary, EquityCurvePoint } from "@/lib/types";
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
@@ -27,6 +27,7 @@ export function PaperTradeScreen() {
   const [openTrades, setOpenTrades] = useState<PaperTradeItem[]>([]);
   const [closedTrades, setClosedTrades] = useState<PaperTradeItem[]>([]);
   const [equityPoints, setEquityPoints] = useState<EquityCurvePoint[]>([]);
+  const [observations, setObservations] = useState<PaperObservationListResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,18 +41,36 @@ export function PaperTradeScreen() {
     try {
       const symbolParam = sym;
       const timeframeParam = tf === "all" ? undefined : tf;
-      const [sumRes, openRes, closedRes, eqRes] = await Promise.all([
-        getPaperTradeSummary(symbolParam, timeframeParam),
-        getOpenPaperTrades(symbolParam),
-        getPaperTrades({ symbol: symbolParam, timeframe: timeframeParam, status: "closed", take: 100 }),
-        getPaperTradeEquityCurve(symbolParam, timeframeParam)
+      const [legacyResult, observationResult] = await Promise.allSettled([
+        Promise.all([
+          getPaperTradeSummary(symbolParam, timeframeParam),
+          getOpenPaperTrades(symbolParam),
+          getPaperTrades({ symbol: symbolParam, timeframe: timeframeParam, status: "closed", take: 100 }),
+          getPaperTradeEquityCurve(symbolParam, timeframeParam),
+        ]),
+        getPaperObservations(symbolParam, 25),
       ]);
-      setSummary(sumRes);
-      setOpenTrades(openRes.items ?? []);
-      setClosedTrades(closedRes.items ?? []);
-      setEquityPoints(eqRes.points ?? []);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Tải dữ liệu paper trading thất bại");
+      const errors: string[] = [];
+      if (legacyResult.status === "fulfilled") {
+        const [sumRes, openRes, closedRes, eqRes] = legacyResult.value;
+        setSummary(sumRes);
+        setOpenTrades(openRes.items ?? []);
+        setClosedTrades(closedRes.items ?? []);
+        setEquityPoints(eqRes.points ?? []);
+      } else {
+        setSummary(null);
+        setOpenTrades([]);
+        setClosedTrades([]);
+        setEquityPoints([]);
+        errors.push(legacyResult.reason instanceof Error ? legacyResult.reason.message : "Tải lịch sử replay thất bại");
+      }
+      if (observationResult.status === "fulfilled") {
+        setObservations(observationResult.value);
+      } else {
+        setObservations(null);
+        errors.push(observationResult.reason instanceof Error ? observationResult.reason.message : "Tải forward journal thất bại");
+      }
+      setError(errors.join(" · "));
     } finally {
       setLoading(false);
     }
@@ -187,6 +206,52 @@ export function PaperTradeScreen() {
           <h3 className="text-sm font-semibold text-amber-300">Ensemble đang được quarantine</h3>
           <p className="text-xs text-gray-400 mt-1">Pipeline ensemble legacy chưa qua promotion gate; Paper Journal không tạo tín hiệu mới từ pipeline này.</p>
         </div>
+      </div>
+
+      <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-200">Forward observation journal · BTCUSDT 4h cố định</h3>
+            <p className="text-xs text-gray-500 mt-1">Độc lập với bộ lọc lịch sử phía trên. Bản ghi append-only tại thời điểm quyết định; fill, outcome và PnL chỉ hiện khi được quan sát thật.</p>
+          </div>
+          <span className={`text-[11px] px-2 py-1 rounded-full border ${observations?.available ? "border-emerald-700/60 bg-emerald-950/40 text-emerald-300" : "border-amber-700/60 bg-amber-950/40 text-amber-300"}`}>
+            {observations?.available ? `${observations.items.length} bản ghi` : "Chưa khả dụng"}
+          </span>
+        </div>
+        {!observations?.available ? (
+          <div className="text-xs text-amber-300/90">{observations?.reason ?? "Chưa có registry forward observation."}</div>
+        ) : observations.items.length === 0 ? (
+          <div className="text-sm text-gray-500 py-3">Chưa có quyết định forward nào được ghi.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="text-gray-400 border-b border-gray-800/60">
+                <tr>
+                  <th className="text-left py-2 px-2">Nến đóng</th>
+                  <th className="text-left py-2 px-2">Khung</th>
+                  <th className="text-left py-2 px-2">Quyết định</th>
+                  <th className="text-left py-2 px-2">Lý do / model</th>
+                  <th className="text-right py-2 px-2">Quote thật</th>
+                  <th className="text-right py-2 px-2">Fill</th>
+                  <th className="text-right py-2 px-2">Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                {observations.items.map((item) => (
+                  <tr key={item.decisionId} className="border-b border-gray-800/30">
+                    <td className="py-2 px-2 text-gray-400 whitespace-nowrap">{formatTime(item.signalBarCloseTimeMs)}</td>
+                    <td className="py-2 px-2 text-gray-400">{item.timeframe}</td>
+                    <td className="py-2 px-2"><span className={`px-2 py-0.5 rounded font-medium ${item.decision === "abstain" ? "bg-amber-500/15 text-amber-300" : "bg-teal-500/15 text-teal-300"}`}>{item.decision}</span></td>
+                    <td className="py-2 px-2 text-gray-400">{item.abstentionReason ?? item.modelVersion ?? "-"}</td>
+                    <td className="py-2 px-2 text-right text-gray-300">{item.quotePrice == null ? "-" : item.quotePrice.toLocaleString()}</td>
+                    <td className="py-2 px-2 text-right text-gray-400">{item.fillPrice == null ? "Chưa có" : item.fillPrice.toLocaleString()}</td>
+                    <td className="py-2 px-2 text-right text-gray-400">{item.outcomeReturn == null ? "Chưa có" : formatPct(item.outcomeReturn * 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards Row */}

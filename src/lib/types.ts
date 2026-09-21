@@ -54,6 +54,35 @@ export type CapabilityState =
   | "forward-observed"
   | "retired";
 
+export type OperationalStatus = "operational" | "degraded" | "unavailable";
+export type EvidenceTarget =
+  | "data-integrity"
+  | "calculation-correctness"
+  | "predictive"
+  | "economic-simulation"
+  | "prospective-observation"
+  | "operational-delivery";
+
+export type TechnicalCapabilityItem = {
+  id: string;
+  name: string;
+  category: string;
+  operationalStatus: OperationalStatus;
+  evidenceStage: CapabilityState;
+  evidenceTarget: EvidenceTarget;
+  intendedUse: string;
+  limitation: string;
+  endpoint: string;
+  version: string;
+};
+
+export type TechnicalCapabilitiesResponse = {
+  contractVersion: string;
+  symbol: "BTCUSDT";
+  generatedAtUtc: string;
+  items: TechnicalCapabilityItem[];
+};
+
 export type EvidenceFreshnessDto = {
   status: "fresh" | "stale" | "missing" | "unknown";
   asOfTimeMs?: number | null;
@@ -467,6 +496,40 @@ export type PaperTradeItem = {
   clientOrderId?: string | null;
   commission?: number | null;
   tags?: string[];
+};
+
+export type PaperObservationItem = {
+  id: string;
+  decisionId: string;
+  recorderVersion: string;
+  symbol: string;
+  timeframe: string;
+  signalBarOpenTimeMs: number;
+  signalBarCloseTimeMs: number;
+  observedAtUtc: string;
+  availableTimeMs: number;
+  modelVersion: string | null;
+  decision: string;
+  confidence: number | null;
+  abstentionReason: string | null;
+  quoteSource: string;
+  quotePrice: number | null;
+  quoteReceivedAtUtc: string | null;
+  quoteReceivedTimeMs: number | null;
+  configProvenanceJson: string;
+  evidenceProvenanceJson: string;
+  fillPrice: number | null;
+  fillObservedAtUtc: string | null;
+  outcomeReturn: number | null;
+  outcomeObservedAtUtc: string | null;
+  outcomeHorizon: string | null;
+};
+
+export type PaperObservationListResponse = {
+  symbol: string;
+  available: boolean;
+  reason: string | null;
+  items: PaperObservationItem[];
 };
 
 export type BreakdownBySymbolItem = {

@@ -3156,6 +3156,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/paper-observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    take?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaperObservationListResponse"];
+                        "text/json": components["schemas"]["PaperObservationListResponse"];
+                        "text/plain": components["schemas"]["PaperObservationListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/paper-trades": {
         parameters: {
             query?: never;
@@ -3269,6 +3320,57 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/paper-trades/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    take?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaperObservationListResponse"];
+                        "text/json": components["schemas"]["PaperObservationListResponse"];
+                        "text/plain": components["schemas"]["PaperObservationListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3736,6 +3838,130 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TechnicalCapabilitiesResponse"];
+                        "text/json": components["schemas"]["TechnicalCapabilitiesResponse"];
+                        "text/plain": components["schemas"]["TechnicalCapabilitiesResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResearchEvidenceCatalogResponse"];
+                        "text/json": components["schemas"]["ResearchEvidenceCatalogResponse"];
+                        "text/plain": components["schemas"]["ResearchEvidenceCatalogResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/evidence/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResearchEvidenceDetailDto"];
+                        "text/json": components["schemas"]["ResearchEvidenceDetailDto"];
+                        "text/plain": components["schemas"]["ResearchEvidenceDetailDto"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
                 };
             };
         };
@@ -4400,6 +4626,12 @@ export interface components {
             symbol?: string | null;
             timeframe?: string | null;
         };
+        ApiErrorEnvelope: {
+            code?: string | null;
+            message?: string | null;
+            requestId?: string | null;
+            retryable?: boolean;
+        };
         ArchetypeOccurrenceOhlcDto: {
             /** Format: double */
             close?: number;
@@ -4612,6 +4844,21 @@ export interface components {
         EvaluateEnsembleRequest: {
             symbol?: string | null;
             timeframe?: string | null;
+        };
+        EvidenceIntegrityDto: {
+            manifestHashVerified?: boolean;
+            reportHashEmbedded?: boolean;
+            reportHashVerified?: boolean;
+            verificationMode: string;
+            verified?: boolean;
+        };
+        EvidenceIntegritySummaryDto: {
+            /** Format: int32 */
+            publishedArtifactCount?: number;
+            /** Format: int32 */
+            rejectedArtifactCount?: number;
+            /** Format: int32 */
+            scannedArtifactCount?: number;
         };
         ExecutionCostSpecification: {
             /** Format: double */
@@ -4977,6 +5224,51 @@ export interface components {
             /** Format: double */
             total?: number;
         };
+        PaperObservationDto: {
+            abstentionReason?: string | null;
+            /** Format: int64 */
+            availableTimeMs: number;
+            /** Format: double */
+            confidence?: number | null;
+            configProvenanceJson: string;
+            decision: string;
+            decisionId: string;
+            evidenceProvenanceJson: string;
+            /** Format: date-time */
+            fillObservedAtUtc?: string | null;
+            /** Format: double */
+            fillPrice?: number | null;
+            /** Format: uuid */
+            id: string;
+            modelVersion?: string | null;
+            /** Format: date-time */
+            observedAtUtc: string;
+            outcomeHorizon?: string | null;
+            /** Format: date-time */
+            outcomeObservedAtUtc?: string | null;
+            /** Format: double */
+            outcomeReturn?: number | null;
+            /** Format: double */
+            quotePrice?: number | null;
+            /** Format: date-time */
+            quoteReceivedAtUtc?: string | null;
+            /** Format: int64 */
+            quoteReceivedTimeMs?: number | null;
+            quoteSource: string;
+            recorderVersion: string;
+            /** Format: int64 */
+            signalBarCloseTimeMs: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs: number;
+            symbol: string;
+            timeframe: string;
+        };
+        PaperObservationListResponse: {
+            available: boolean;
+            items: components["schemas"]["PaperObservationDto"][];
+            reason?: string | null;
+            symbol: string;
+        };
         PatternSearchItem: {
             /** Format: double */
             distance?: number;
@@ -5034,6 +5326,147 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             userId?: string | null;
+        };
+        ProblemDetails: {
+            detail?: string | null;
+            instance?: string | null;
+            /** Format: int32 */
+            status?: number | null;
+            title?: string | null;
+            type?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        ResearchEvidenceArtifactDto: {
+            /** Format: int64 */
+            bytes?: number;
+            role: string;
+            /** Format: int64 */
+            rowCount?: number | null;
+            sha256: string;
+        };
+        ResearchEvidenceBaselineDto: {
+            description: string;
+            id: string;
+        };
+        ResearchEvidenceCatalogItemDto: {
+            /** Format: date-time */
+            createdAtUtc?: string | null;
+            evidenceTier: string;
+            id: string;
+            integrity: components["schemas"]["EvidenceIntegrityDto"];
+            kind: string;
+            limitations: string[];
+            manifestSha256: string;
+            reportSha256: string;
+            status: string;
+            summary: string;
+            symbol: string;
+            timeframe: string;
+            title: string;
+        };
+        ResearchEvidenceCatalogResponse: {
+            contractVersion: string;
+            /** Format: date-time */
+            generatedAtUtc: string;
+            integrity: components["schemas"]["EvidenceIntegritySummaryDto"];
+            items: components["schemas"]["ResearchEvidenceCatalogItemDto"][];
+            symbol: string;
+        };
+        ResearchEvidenceCoverageDto: {
+            /** Format: int64 */
+            eligibleRows?: number | null;
+            /** Format: int64 */
+            evaluatedRows?: number | null;
+            /** Format: int32 */
+            foldCount?: number | null;
+            /** Format: double */
+            ratio?: number | null;
+        };
+        ResearchEvidenceDatasetDto: {
+            datasetSha256?: string | null;
+            /** Format: int64 */
+            firstDecisionTimeMs?: number | null;
+            /** Format: int64 */
+            lastDecisionTimeMs?: number | null;
+            /** Format: int64 */
+            rowCount?: number | null;
+            source: string;
+        };
+        ResearchEvidenceDetailDto: {
+            artifacts: components["schemas"]["ResearchEvidenceArtifactDto"][];
+            baselines: components["schemas"]["ResearchEvidenceBaselineDto"][];
+            conclusion: string;
+            coverage: components["schemas"]["ResearchEvidenceCoverageDto"];
+            /** Format: date-time */
+            createdAtUtc?: string | null;
+            dataset: components["schemas"]["ResearchEvidenceDatasetDto"];
+            evidenceTier: string;
+            findings: components["schemas"]["ResearchEvidenceFindingDto"][];
+            hypothesis: string;
+            id: string;
+            integrity: components["schemas"]["EvidenceIntegrityDto"];
+            kind: string;
+            limitations: string[];
+            manifestSha256: string;
+            metrics: components["schemas"]["ResearchEvidenceMetricDto"][];
+            protocol: components["schemas"]["ResearchEvidenceProtocolDto"];
+            provenance: components["schemas"]["ResearchEvidenceProvenanceDto"];
+            reportSha256: string;
+            status: string;
+            summary: string;
+            symbol: string;
+            timeframe: string;
+            title: string;
+            uncertainty: components["schemas"]["ResearchEvidenceUncertaintyDto"][];
+        };
+        ResearchEvidenceFindingDto: {
+            id: string;
+            label: string;
+            /** Format: double */
+            lower?: number | null;
+            metricName: string;
+            /** Format: int64 */
+            sampleSize?: number | null;
+            status: string;
+            /** Format: double */
+            upper?: number | null;
+            /** Format: double */
+            value?: number | null;
+        };
+        ResearchEvidenceMetricDto: {
+            baseline?: string | null;
+            interpretation?: string | null;
+            label: string;
+            name: string;
+            unit: string;
+            /** Format: double */
+            value?: number | null;
+        };
+        ResearchEvidenceProtocolDto: {
+            chronologicalOos?: boolean | null;
+            decisionTime?: string | null;
+            evaluatorVersion?: string | null;
+            multipleTesting?: string | null;
+            outcomePriceBasis?: string | null;
+        };
+        ResearchEvidenceProvenanceDto: {
+            contractVersion?: string | null;
+            evaluatorSha256?: string | null;
+            experiment?: string | null;
+            gitCommit?: string | null;
+            gitDirty?: boolean | null;
+            researchContractSha256?: string | null;
+        };
+        ResearchEvidenceUncertaintyDto: {
+            /** Format: double */
+            confidenceLevel?: number | null;
+            familywise?: boolean;
+            /** Format: double */
+            lower?: number | null;
+            name: string;
+            /** Format: double */
+            upper?: number | null;
         };
         ResearchSpecificationDto: {
             contractVersion?: string | null;
@@ -5099,6 +5532,26 @@ export interface components {
             streamEnabled?: boolean;
             tradingMode?: string | null;
             wsUrl?: string | null;
+        };
+        TechnicalCapabilitiesResponse: {
+            contractVersion: string;
+            evidenceCatalogEndpoint: string;
+            /** Format: date-time */
+            generatedAtUtc: string;
+            items: components["schemas"]["TechnicalCapabilityDto"][];
+            symbol: string;
+        };
+        TechnicalCapabilityDto: {
+            category: string;
+            endpoint: string;
+            evidenceStage: string;
+            evidenceTarget: string;
+            id: string;
+            intendedUse: string;
+            limitation: string;
+            name: string;
+            operationalStatus: string;
+            version: string;
         };
         TimeframeAudit: {
             active?: boolean;

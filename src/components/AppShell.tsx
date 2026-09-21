@@ -13,6 +13,7 @@ import {
   BarChart3,
   Shapes,
   ListOrdered,
+  FileCheck2,
 } from "lucide-react";
 import { MarketScreen } from "./MarketScreen";
 import { NewsScreen } from "./NewsScreen";
@@ -25,6 +26,7 @@ import { BacktestScreen } from "./BacktestScreen";
 import { PaperTradeScreen } from "./PaperTradeScreen";
 import { BinanceTradeHistoryScreen } from "./BinanceTradeHistoryScreen";
 import { ArchetypeScreen } from "./ArchetypeScreen";
+import { ResearchEvidenceScreen } from "./ResearchEvidenceScreen";
 import { AiChatWidget } from "./AiChatWidget";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { getAiCapabilities, getAppMeta, getUnreadCount, setApiContractCompatibility } from "@/lib/api";
@@ -40,6 +42,7 @@ const TABS = [
   { key: "ai", label: "AI", icon: Bot },
   { key: "rules", label: "Rules nến", icon: Layers },
   { key: "predict", label: "Dự đoán", icon: TrendingUp },
+  { key: "research", label: "Nghiên cứu", icon: FileCheck2 },
   { key: "paper", label: "Paper", icon: LineChart },
   { key: "binanceHistory", label: PAPER_JOURNAL_LABEL, icon: ListOrdered },
   { key: "backtest", label: "Backtest", icon: BarChart3 },
@@ -225,6 +228,13 @@ export function AppShell() {
             </ErrorBoundary>
           </div>
         )}
+        {visitedTabs.has("research") && (
+          <div className={activeTab === "research" ? "" : "hidden"}>
+            <ErrorBoundary fallbackTitle="Lỗi tải tab Nghiên cứu">
+              <ResearchEvidenceScreen />
+            </ErrorBoundary>
+          </div>
+        )}
         {visitedTabs.has("paper") && (
           <div className={activeTab === "paper" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab Paper Trading">
@@ -256,15 +266,17 @@ export function AppShell() {
       </main>
 
       <nav className="border-t border-gray-800 bg-gray-950 sticky bottom-0 z-40">
-        <div className="max-w-7xl mx-auto flex justify-around">
+        <div className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = activeTab === t.key;
             return (
               <button
+                type="button"
                 key={t.key}
                 onClick={() => handleTabChange(t.key)}
-                className={`flex flex-col items-center gap-0.5 py-2 px-4 flex-1 transition-colors ${
+                aria-current={active ? "page" : undefined}
+                className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors ${
                   active ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
                 }`}
               >

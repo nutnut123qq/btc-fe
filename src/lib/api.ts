@@ -1,8 +1,11 @@
 import { isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, requireDataAudit, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireFreshnessHealth, requireGapRetry, requireLiveHealth, requireMutationContract, requireReadyHealth, requireRecord, requireVersionedResearchItems, requireVersionedResearchRecord, requireWorkersHealth, safeApiErrorMessage } from "./apiContract";
 import { parseAiSseLine } from "./aiStream";
 import { assertHistoricalAnalogEnvelope } from "./historicalAnalog";
+import { parseTechnicalCapabilities } from "./technicalCapabilities";
+import { parsePaperObservations } from "./paperObservations";
 import { authenticatedFetch } from "./sessionAuth";
 import { DEFAULT_TIMEFRAME } from "./timeframe";
+import { parseResearchEvidenceCatalog, parseResearchEvidenceDetail } from "./researchEvidence";
 
 const API_BASE = "";
 let apiContractCompatible = false;
@@ -27,6 +30,24 @@ async function getJson(res: Response) {
     throw new Error(safeApiErrorMessage(text, res.status));
   }
   return res.json();
+}
+
+export async function getTechnicalCapabilities(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/research/capabilities`, { signal });
+  return parseTechnicalCapabilities(await getJson(res));
+}
+
+export async function getResearchEvidenceCatalog(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/research/evidence`, { signal, cache: "no-store" });
+  return parseResearchEvidenceCatalog(await getJson(res));
+}
+
+export async function getResearchEvidenceDetail(id: string, signal?: AbortSignal) {
+  if (!/^[a-f0-9]{64}$/i.test(id)) {
+    throw new Error("Evidence id không hợp lệ.");
+  }
+  const res = await fetch(`${API_BASE}/api/research/evidence/${encodeURIComponent(id)}`, { signal, cache: "no-store" });
+  return parseResearchEvidenceDetail(await getJson(res));
 }
 
 export async function getBtcKlines({
@@ -434,6 +455,12 @@ export async function getOpenPaperTrades(symbol?: string) {
   const data: unknown = await getJson(res);
   const { record, items } = requireArrayField<import("./types").PaperTradeItem>(data, "items", "open paper trades");
   return { ...record, items } as { symbol: string; count: number; items: import("./types").PaperTradeItem[] };
+}
+
+export async function getPaperObservations(symbol = "BTCUSDT", take = 25) {
+  const qs = new URLSearchParams({ symbol, take: String(take) });
+  const res = await fetch(`${API_BASE}/api/paper-trades/observations?${qs}`);
+  return parsePaperObservations(await getJson(res));
 }
 
 // --- Telegram ---
