@@ -174,6 +174,60 @@ test("descriptive technical bundle preserves coverage, exclusions and artifact r
   assert.equal(parsed.statisticalEvidence?.schema, "btc-technical-evidence-statistics/v1");
 });
 
+test("detail maps sensitivityAudit, reportExclusions and eventTypeDetail passthroughs and tolerates absence", () => {
+  const parsed = parseResearchEvidenceDetail({
+    ...item,
+    kind: "event",
+    evidenceTier: "descriptive",
+    sensitivityAudit: {
+      method: "one_axis_at_a_time",
+      resultSelection: false,
+      promotionAllowed: false,
+      variantCount: 1,
+      preRegisteredGrid: { declaredGridSha256: "d".repeat(64), executedVariantIds: ["technicalIndicators:rsi-period-21"] },
+      variants: [{
+        module: "technicalIndicators",
+        variantId: "rsi-period-21",
+        parameters: { rsiPeriod: 21 },
+        stored: 2,
+        eligible: 1,
+        excluded: 1,
+        realizedAtMaxHorizon: 1,
+        exclusionReasons: { unknown_availability: 1 },
+        overlapCandidatesExcluded: 0,
+        eligibleDecisionTimeJaccardVsBaseline: 0.5,
+        horizons: {
+          "1": {
+            elapsedTimeMs: 14_400_000,
+            realized: 1,
+            metrics: {
+              forwardReturn: { variant: { mean: 0.01 }, baselineMean: 0.008, meanDeltaVsBaseline: 0.002 },
+            },
+          },
+        },
+      }],
+    },
+    reportExclusions: { unknown_availability: 1 },
+    eventTypeDetail: { BOS_BULL: { eligible: 1, lifecycleCoverage: { supported: 0, unavailable: 1 }, timeToFirstTouchBars: null } },
+  });
+  assert.equal(parsed.sensitivityAudit?.variants[0].variantId, "rsi-period-21");
+  assert.equal(parsed.sensitivityAudit?.variants[0].eligibleDecisionTimeJaccardVsBaseline, 0.5);
+  assert.equal(parsed.sensitivityAudit?.variants[0].horizons["1"].metrics.forwardReturn.meanDeltaVsBaseline, 0.002);
+  assert.equal(parsed.sensitivityAudit?.declaredGridSha256, "d".repeat(64));
+  assert.deepEqual(parsed.sensitivityAudit?.executedVariantIds, ["technicalIndicators:rsi-period-21"]);
+  assert.deepEqual(parsed.reportExclusions, { unknown_availability: 1 });
+  assert.equal((parsed.eventTypeDetail?.BOS_BULL as Record<string, unknown>)?.eligible, 1);
+
+  const minimal = parseResearchEvidenceDetail({ ...item });
+  assert.equal(minimal.sensitivityAudit, null);
+  assert.equal(minimal.reportExclusions, null);
+  assert.equal(minimal.eventTypeDetail, null);
+
+  const partial = parseResearchEvidenceDetail({ ...item, sensitivityAudit: {} });
+  assert.deepEqual(partial.sensitivityAudit?.variants, []);
+  assert.equal(partial.sensitivityAudit?.method, null);
+});
+
 test("catalog rejects non-BTC evidence and duplicate ids", () => {
   assert.throws(() => parseResearchEvidenceCatalog({
     contractVersion: "v1",

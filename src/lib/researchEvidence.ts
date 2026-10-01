@@ -1,4 +1,5 @@
 import { parseTechnicalEvidenceProfiles, type TechnicalEvidenceProfiles } from "./evidenceProfiles.ts";
+import { parseTechnicalSensitivityAudit, type TechnicalSensitivityAudit } from "./sensitivityAudit.ts";
 import { parseTechnicalStatisticalEvidence, type TechnicalStatisticalEvidence } from "./statisticalEvidence.ts";
 
 export const RESEARCH_EVIDENCE_KINDS = ["model", "feature", "event", "economic", "forward"] as const;
@@ -179,6 +180,9 @@ export type ResearchEvidenceDetail = ResearchEvidenceSummary & {
   rows: Record<string, unknown>[];
   evidenceProfiles: TechnicalEvidenceProfiles | null;
   statisticalEvidence: TechnicalStatisticalEvidence | null;
+  sensitivityAudit: TechnicalSensitivityAudit | null;
+  reportExclusions: Record<string, unknown> | null;
+  eventTypeDetail: Record<string, unknown> | null;
   rawSections: Record<string, unknown>;
 };
 
@@ -473,6 +477,9 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
   const findingRows = objectRows(valueAt(source, "findings"), "findings");
   const evidenceProfilesRaw = valueAt(source, "evidenceProfiles");
   const statisticalEvidenceRaw = valueAt(source, "statisticalEvidence");
+  const sensitivityAuditRaw = valueAt(source, "sensitivityAudit");
+  const reportExclusionsRaw = valueAt(source, "reportExclusions");
+  const eventTypeDetailRaw = valueAt(source, "eventTypeDetail");
   const metrics = parseMetrics(valueAt(source, "metrics"), "metrics").map((metric) => {
     const interval = uncertaintyRows.find((item) => optionalString(item, "name") === metric.name);
     return interval ? {
@@ -574,6 +581,9 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
     rows: objectRows(valueAt(source, "rows", "predictions"), "evidence rows"),
     evidenceProfiles: evidenceProfilesRaw == null ? null : parseTechnicalEvidenceProfiles(evidenceProfilesRaw),
     statisticalEvidence: statisticalEvidenceRaw == null ? null : parseTechnicalStatisticalEvidence(statisticalEvidenceRaw),
+    sensitivityAudit: sensitivityAuditRaw == null ? null : parseTechnicalSensitivityAudit(sensitivityAuditRaw),
+    reportExclusions: reportExclusionsRaw == null ? null : record(reportExclusionsRaw, "report exclusion reasons"),
+    eventTypeDetail: eventTypeDetailRaw == null ? null : record(eventTypeDetailRaw, "event type detail"),
     rawSections: source,
   };
 }

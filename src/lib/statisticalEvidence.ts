@@ -45,6 +45,8 @@ export type StatisticalHypothesis = {
   rawPValue: number | null;
   adjustedQValue: number | null;
   passesDeclaredFdr: boolean | null;
+  sufficientSample: boolean;
+  minimumNonOverlappingPairs: number;
   sampleDiagnostics: {
     nominalMatchedPairs: number;
     uniqueDecisionTimes: number;
@@ -212,15 +214,15 @@ function stability(value: unknown, label: string, expectedCount: number): Statis
 function hypothesis(value: unknown, index: number, alpha: number, bootstrapSamples: number): StatisticalHypothesis {
   const label = `statisticalEvidence.hypotheses[${index}]`;
   const source = object(value, label);
-  requireKeys(source, label, ["hypothesisId", "module", "eventType", "horizonBars", "metric", "status", "nullBaseline", "effectSize", "blockBootstrap", "rawPValue", "adjustedQValue", "passesDeclaredFdr", "sampleDiagnostics", "stability"]);
-  const module = nonBlank(source.module, `${label}.module`);
+  requireKeys(source, label, ["hypothesisId", "module", "eventType", "horizonBars", "metric", "status", "nullBaseline", "effectSize", "blockBootstrap", "rawPValue", "adjustedQValue", "passesDeclaredFdr", "sufficientSample", "minimumNonOverlappingPairs", "sampleDiagnostics", "stability"]);
+  const moduleName = nonBlank(source.module, `${label}.module`);
   const eventType = nonBlank(source.eventType, `${label}.eventType`);
   const horizonBars = integer(source.horizonBars, `${label}.horizonBars`, 1);
   if (![1, 3, 6].includes(horizonBars)) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label}.horizonBars is unsupported`);
   const metric = nonBlank(source.metric, `${label}.metric`);
   if (!STATISTICAL_METRICS.includes(metric as StatisticalMetric)) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label}.metric is unsupported`);
   const hypothesisId = nonBlank(source.hypothesisId, `${label}.hypothesisId`);
-  if (hypothesisId !== `${module}:${eventType}:${horizonBars}:${metric}`) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} identity does not reconcile`);
+  if (hypothesisId !== `${moduleName}:${eventType}:${horizonBars}:${metric}`) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} identity does not reconcile`);
   const status = nonBlank(source.status, `${label}.status`);
   if (status !== "tested" && status !== "insufficient_or_no_matched_sample") throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label}.status is unsupported`);
 
@@ -277,15 +279,21 @@ function hypothesis(value: unknown, index: number, alpha: number, bootstrapSampl
   const tested = status === "tested";
   if (tested && count < 2) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} tested status disagrees with its sample`);
   if (!tested && (adjustedQValue != null || passesDeclaredFdr != null)) throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} untested hypothesis cannot have adjusted inference`);
-  if (adjustedQValue != null && passesDeclaredFdr !== (adjustedQValue <= alpha)) {
-    throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} FDR status disagrees with declared alpha`);
+  const minimumNonOverlappingPairs = integer(source.minimumNonOverlappingPairs, `${label}.minimumNonOverlappingPairs`, 1);
+  if (typeof source.sufficientSample !== "boolean") throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label}.sufficientSample must be boolean`);
+  const sufficientSample = source.sufficientSample;
+  if (sufficientSample !== (nonOverlapping >= minimumNonOverlappingPairs)) {
+    throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} sufficientSample disagrees with non-overlapping count`);
+  }
+  if (adjustedQValue != null && passesDeclaredFdr !== (adjustedQValue <= alpha && sufficientSample)) {
+    throw new Error(`INVALID_STATISTICAL_EVIDENCE: ${label} FDR status disagrees with declared alpha and sufficiency gate`);
   }
 
   const stabilitySource = object(source.stability, `${label}.stability`);
   requireKeys(stabilitySource, `${label}.stability`, ["yearUtc", "regime"]);
   return {
     hypothesisId,
-    module,
+    module: moduleName,
     eventType,
     horizonBars,
     metric: metric as StatisticalMetric,
@@ -296,6 +304,8 @@ function hypothesis(value: unknown, index: number, alpha: number, bootstrapSampl
     rawPValue,
     adjustedQValue,
     passesDeclaredFdr: passesDeclaredFdr as boolean | null,
+    sufficientSample,
+    minimumNonOverlappingPairs,
     sampleDiagnostics: {
       nominalMatchedPairs,
       uniqueDecisionTimes,

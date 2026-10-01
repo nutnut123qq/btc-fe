@@ -43,6 +43,8 @@ function hypothesis(overrides: Record<string, unknown> = {}) {
     rawPValue: 0.01,
     adjustedQValue: 0.04,
     passesDeclaredFdr: true,
+    sufficientSample: true,
+    minimumNonOverlappingPairs: 2,
     sampleDiagnostics: {
       nominalMatchedPairs: 3,
       uniqueDecisionTimes: 3,
@@ -67,9 +69,9 @@ function fixture(hypotheses: unknown[] = [hypothesis()]) {
       hypothesisId: `${seed.module}:${seed.eventType}:${horizonBars}:${metric}`,
     }))));
   const moduleEventTypes = Object.fromEntries(identities.reduce<Map<string, string[]>>((byModule, item) => {
-    const module = String(item.module);
+    const moduleName = String(item.module);
     const eventType = String(item.eventType);
-    byModule.set(module, [...new Set([...(byModule.get(module) ?? []), eventType])]);
+    byModule.set(moduleName, [...new Set([...(byModule.get(moduleName) ?? []), eventType])]);
     return byModule;
   }, new Map()));
   const testable = expanded.filter((item) => (item as { status?: string }).status === "tested").length;
@@ -143,11 +145,49 @@ test("retains no-sample and insufficient hypotheses without turning them into po
     rawPValue: null,
     adjustedQValue: null,
     passesDeclaredFdr: null,
+    sufficientSample: false,
+    minimumNonOverlappingPairs: 2,
     sampleDiagnostics: { nominalMatchedPairs: 0, uniqueDecisionTimes: 0, maximumGreedyNonOverlappingOutcomeWindows: 0, observationsExcludedForMaximumNonOverlappingSet: 0, eventOrderAutocorrelationEffectiveSampleSize: { estimate: 0, positiveAutocorrelationLagsUsed: 0, maxLags: 20 }, independenceClaimed: false },
     stability: { yearUtc: stability(0), regime: stability(0) },
   });
   const parsed = parseTechnicalStatisticalEvidence(fixture([empty]));
   assert.equal(classifyStatisticalHypothesis(parsed.hypotheses[0], 0.05), "no_sample");
+});
+
+test("tested hypothesis below the non-overlap floor keeps q but loses the FDR flag", () => {
+  const gated = hypothesis({
+    minimumNonOverlappingPairs: 20,
+    sufficientSample: false,
+    passesDeclaredFdr: false,
+  });
+  const parsed = parseTechnicalStatisticalEvidence(fixture([gated]));
+  assert.equal(parsed.hypotheses[0].passesDeclaredFdr, false);
+  assert.equal(parsed.hypotheses[0].sufficientSample, false);
+  assert.equal(classifyStatisticalHypothesis(parsed.hypotheses[0], 0.05), "inconclusive");
+
+  assert.throws(
+    () => parseTechnicalStatisticalEvidence(fixture([hypothesis({ sufficientSample: true, minimumNonOverlappingPairs: 20 })])),
+    /sufficientSample disagrees/,
+  );
+  assert.throws(
+    () => parseTechnicalStatisticalEvidence(fixture([hypothesis({ minimumNonOverlappingPairs: 0 })])),
+    /minimumNonOverlappingPairs/,
+  );
+});
+
+test("fails closed on pre-gate artifacts that lack the sufficiency fields", () => {
+  const withoutSufficient: Record<string, unknown> = { ...hypothesis() };
+  delete withoutSufficient.sufficientSample;
+  const withoutFloor: Record<string, unknown> = { ...hypothesis() };
+  delete withoutFloor.minimumNonOverlappingPairs;
+  assert.throws(
+    () => parseTechnicalStatisticalEvidence(fixture([withoutSufficient])),
+    /missing required field\(s\): sufficientSample/,
+  );
+  assert.throws(
+    () => parseTechnicalStatisticalEvidence(fixture([withoutFloor])),
+    /missing required field\(s\): minimumNonOverlappingPairs/,
+  );
 });
 
 test("fails closed when required inference or quantitative reconciliation is invalid", () => {

@@ -176,6 +176,16 @@ function JsonRows({ title, rows }: { title: string; rows: Record<string, unknown
   );
 }
 
+function eventTypeDetailRows(detail: Record<string, unknown> | null): Record<string, unknown>[] {
+  if (!detail) return [];
+  return Object.entries(detail).map(([eventType, value]) => {
+    const row = typeof value === "object" && value !== null && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : { detail: value };
+    return { eventType, ...row };
+  });
+}
+
 function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvidenceDetail | null; loading: boolean; error: string | null }) {
   if (loading) return <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-6 text-sm text-gray-400">Đang kiểm tra và đọc artifact…</div>;
   if (error) return <div role="alert" className="rounded-xl border border-rose-900 bg-rose-950/30 p-4 text-sm text-rose-300">{error}</div>;
@@ -250,7 +260,7 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
 
       {detail.evidenceProfiles && <EvidenceProfilesPanel profiles={detail.evidenceProfiles} />}
       {detail.kind === "event" && detail.tier === "descriptive" && (
-        <StatisticalEvidencePanel evidence={detail.statisticalEvidence} />
+        <StatisticalEvidencePanel evidence={detail.statisticalEvidence} audit={detail.sensitivityAudit} />
       )}
 
       <section className="grid gap-4 lg:grid-cols-2">
@@ -265,6 +275,8 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
       </section>
       <JsonRows title="Fold drill-down" rows={detail.folds} />
       <JsonRows title="Prediction / event rows" rows={detail.rows} />
+      <JsonRows title="Report exclusion reasons" rows={detail.reportExclusions ? [detail.reportExclusions] : []} />
+      <JsonRows title="Event-type lifecycle & denominators" rows={eventTypeDetailRows(detail.eventTypeDetail)} />
     </article>
   );
 }

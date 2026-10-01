@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { TechnicalSensitivityAudit } from "@/lib/sensitivityAudit";
 import {
   classifyStatisticalHypothesis,
   type StatisticalDisplayStatus,
@@ -54,6 +55,7 @@ function HypothesisCard({ value, alpha }: { value: StatisticalHypothesis; alpha:
       <dt className="text-gray-600">Positive / tie / negative</dt><dd>{percent(value.effectSize.positiveFraction, 1)} / {percent(value.effectSize.tieFraction, 1)} / {percent(value.effectSize.negativeFraction, 1)}</dd>
       <dt className="text-gray-600">Raw p / adjusted q</dt><dd>{decimal(value.rawPValue)} / {decimal(value.adjustedQValue)}</dd>
       <dt className="text-gray-600">Pass declared FDR</dt><dd>{value.passesDeclaredFdr == null ? "Không test được" : value.passesDeclaredFdr ? "Có" : "Không"}</dd>
+      <dt className="text-gray-600">Đủ mẫu không chồng lấn (≥{value.minimumNonOverlappingPairs})</dt><dd>{value.sufficientSample ? "Có" : "Không"}</dd>
       <dt className="text-gray-600">Loại để lấy tập không chồng lấn</dt><dd>{value.sampleDiagnostics.observationsExcludedForMaximumNonOverlappingSet.toLocaleString("vi-VN")}</dd>
     </dl>
     <p className="mt-2 break-words rounded border border-gray-800/70 p-2 text-[10px] leading-4 text-gray-500">Null/baseline: {value.nullBaseline}</p>
@@ -61,7 +63,30 @@ function HypothesisCard({ value, alpha }: { value: StatisticalHypothesis; alpha:
   </article>;
 }
 
-export function StatisticalEvidencePanel({ evidence }: { evidence: TechnicalStatisticalEvidence | null }) {
+function SensitivityAuditSection({ audit }: { audit: TechnicalSensitivityAudit }) {
+  const horizonKeys = [...new Set(audit.variants.flatMap((variant) => Object.keys(variant.horizons)))]
+    .sort((a, b) => Number(a) - Number(b));
+  return <details className="mt-3 min-w-0 rounded-lg border border-gray-800 bg-gray-950/40 p-3 text-[10px]">
+    <summary className="cursor-pointer text-xs font-semibold text-gray-300">Sensitivity audit · per-variant ({audit.variants.length.toLocaleString("vi-VN")})</summary>
+    <p className="mt-2 break-words leading-4 text-gray-500">Audit {audit.method ?? "one-axis-at-a-time"}: mỗi variant re-run eligibility và đếm outcome độc lập. Delta là chênh lệch mean lịch sử vs baseline của contract — mô tả lịch sử, không phải chọn winner hay dự báo.{audit.declaredGridSha256 ? <> Grid <span className="break-all font-mono">{audit.declaredGridSha256}</span></> : null}</p>
+    {audit.variants.length === 0 ? <p className="mt-2 text-amber-300">Audit không công bố variant nào.</p> : <div className="mt-2 min-w-0 overflow-x-auto"><table className="w-full min-w-[720px]">
+      <thead className="border-b border-gray-800 text-gray-500"><tr><th className="p-2 text-left">Variant</th><th className="p-2 text-left">Parameters</th><th className="p-2 text-right">Stored</th><th className="p-2 text-right">Eligible</th><th className="p-2 text-right">Jaccard vs baseline</th>{horizonKeys.map((key) => <th key={key} className="p-2 text-right">h{key} Δ mean</th>)}</tr></thead>
+      <tbody>{audit.variants.map((variant, index) => <tr key={variant.variantId ?? `${variant.module ?? "variant"}-${index}`} className="border-b border-gray-800/50 align-top">
+        <td className="p-2"><div className="break-all font-mono text-gray-300">{variant.variantId ?? "—"}</div>{variant.module && <div className="break-all text-[9px] text-gray-600">{variant.module}</div>}</td>
+        <td className="max-w-56 break-all p-2 font-mono text-gray-500">{variant.parameters == null ? "—" : JSON.stringify(variant.parameters)}</td>
+        <td className="p-2 text-right text-gray-400">{variant.stored?.toLocaleString("vi-VN") ?? "—"}</td>
+        <td className="p-2 text-right text-gray-300">{variant.eligible?.toLocaleString("vi-VN") ?? "—"}</td>
+        <td className="p-2 text-right text-gray-300">{percent(variant.eligibleDecisionTimeJaccardVsBaseline, 1)}</td>
+        {horizonKeys.map((key) => {
+          const horizon = variant.horizons[key];
+          return <td key={key} className="p-2 text-right font-mono text-gray-400">{horizon ? Object.entries(horizon.metrics).map(([metric, value]) => <div key={metric} className="whitespace-nowrap">{metric} {percent(value.meanDeltaVsBaseline, 3)}</div>) : "—"}</td>;
+        })}
+      </tr>)}</tbody>
+    </table></div>}
+  </details>;
+}
+
+export function StatisticalEvidencePanel({ evidence, audit }: { evidence: TechnicalStatisticalEvidence | null; audit?: TechnicalSensitivityAudit | null }) {
   const [moduleKey, setModuleKey] = useState("all");
   const [statusKey, setStatusKey] = useState<StatisticalDisplayStatus | "all">("all");
   const modules = useMemo(() => [...new Set(evidence?.hypotheses.map((item) => item.module) ?? [])].sort(), [evidence]);
@@ -92,6 +117,8 @@ export function StatisticalEvidencePanel({ evidence }: { evidence: TechnicalStat
       <article className="min-w-0 rounded-lg border border-gray-800 bg-gray-950/40 p-3 text-[10px]"><strong className="text-xs text-gray-300">Method, null & cutoff semantics</strong><dl className="mt-2 grid grid-cols-[auto,minmax(0,1fr)] gap-1 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right"><dt className="text-gray-600">Baseline</dt><dd>{evidence.nullBaseline.method}</dd><dt className="text-gray-600">Regime keys</dt><dd>{evidence.nullBaseline.regimeKeys.join(", ")}</dd><dt className="text-gray-600">Causality</dt><dd>{evidence.nullBaseline.causality}</dd><dt className="text-gray-600">Interval</dt><dd>{evidence.dependence.intervalMethod}</dd><dt className="text-gray-600">Bootstrap</dt><dd>{evidence.dependence.bootstrapSamples.toLocaleString("vi-VN")} samples · block {evidence.dependence.configuredBlockSizeEvents}</dd><dt className="text-gray-600">Method version</dt><dd>{evidence.schema}</dd><dt className="text-gray-600">Spec hash</dt><dd title={evidence.specSha256} className="truncate font-mono">{evidence.specSha256}</dd><dt className="text-gray-600">Family definitions</dt><dd title={evidence.declaredFamily.technicalModuleContractDefinitionsSha256} className="truncate font-mono">{evidence.declaredFamily.technicalModuleContractDefinitionsSha256}</dd></dl><p className="mt-2 break-words text-amber-200/70">{evidence.nullBaseline.limitation}</p></article>
       <article className="min-w-0 rounded-lg border border-gray-800 bg-gray-950/40 p-3 text-[10px]"><strong className="text-xs text-gray-300">Multiple testing & sensitivity</strong><dl className="mt-2 grid grid-cols-[auto,minmax(0,1fr)] gap-1 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right"><dt className="text-gray-600">Method</dt><dd>{evidence.multipleTesting.method}</dd><dt className="text-gray-600">Declared q alpha</dt><dd>{percent(evidence.multipleTesting.declaredQAlpha, 1)}</dd><dt className="text-gray-600">Sensitivity variants</dt><dd>{evidence.sensitivityGrid.executedVariantIds.length}</dd><dt className="text-gray-600">Grid hash</dt><dd title={evidence.sensitivityGrid.declaredGridSha256 ?? undefined} className="truncate font-mono">{evidence.sensitivityGrid.declaredGridSha256 ?? "Chưa công bố"}</dd><dt className="text-gray-600">Outcome-driven selection</dt><dd>Không</dd><dt className="text-gray-600">Retain all variants</dt><dd>{evidence.sensitivityGrid.allExecutedVariantsRetained == null ? "Chưa công bố" : evidence.sensitivityGrid.allExecutedVariantsRetained ? "Có" : "Không"}</dd></dl><p className="mt-2 break-words text-amber-200/70">{evidence.multipleTesting.interpretation}</p><details className="mt-2"><summary className="cursor-pointer text-gray-400">Executed variant IDs ({evidence.sensitivityGrid.executedVariantIds.length})</summary>{evidence.sensitivityGrid.executedVariantIds.length === 0 ? <p className="mt-1 text-amber-300">Không có sensitivity variant được thực thi.</p> : <ul className="mt-1 space-y-1">{evidence.sensitivityGrid.executedVariantIds.map((id) => <li key={id} className="break-all font-mono text-gray-500">{id}</li>)}</ul>}</details></article>
     </div>
+
+    {audit && <SensitivityAuditSection audit={audit} />}
 
     <div className="mt-3 flex min-w-0 flex-wrap gap-3">
       <label className="min-w-0 text-[10px] uppercase tracking-wide text-gray-500">Module<select value={moduleKey} onChange={(event) => setModuleKey(event.target.value)} className="mt-1 block max-w-full rounded border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs normal-case text-gray-200"><option value="all">Tất cả module</option>{modules.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>

@@ -68,6 +68,12 @@ test.describe("research evidence center (live stack)", () => {
     await expect(hypothesis.getByText(/Raw p \/ adjusted q/)).toBeVisible();
     await expect(hypothesis.getByText(/Loại để lấy tập không chồng lấn/)).toBeVisible();
 
+    const sensitivity = panel.locator("details").filter({ hasText: "Sensitivity audit · per-variant" });
+    await expect(sensitivity).toBeVisible();
+    await sensitivity.locator("summary").click();
+    await expect(sensitivity.getByText(/Jaccard vs baseline/)).toBeVisible();
+    await expect(sensitivity.locator("tbody tr").first()).toBeVisible();
+
     const hashDd = page.locator('dd[title]').filter({ hasText: "…" }).first();
     await expect(hashDd).toBeVisible();
     expect(await hashDd.getAttribute("title")).toMatch(/^[a-f0-9]{64}$/);
