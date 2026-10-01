@@ -14,22 +14,39 @@ import {
 } from "lucide-react";
 import {
   getBacktestRuns,
+  getDataAudit,
+  getHealthWorkers,
   getPaperObservations,
   getResearchEvidenceCatalog,
   getResearchEvidenceDetail,
   getTechnicalCapabilities,
 } from "@/lib/api";
+import { buildTechnicalCoverageSummary } from "@/lib/dataCoverage";
 import {
   evidenceSectionLabel,
   type EvidenceMetric,
+  type ResearchEvidenceCatalog,
   type ResearchEvidenceDetail,
   type ResearchEvidenceKind,
   type ResearchEvidenceSummary,
   type ResearchEvidenceTier,
 } from "@/lib/researchEvidence";
-import type { BacktestRunSummary, PaperObservationListResponse, TechnicalCapabilitiesResponse, TechnicalCapabilityItem } from "@/lib/types";
+import type {
+  BacktestRunSummary,
+  DataAuditResponse,
+  PaperObservationListResponse,
+  TechnicalCapabilitiesResponse,
+  TechnicalCapabilityItem,
+  WorkersHealthDto,
+} from "@/lib/types";
+import { TechnicalEvidenceAdministration } from "./TechnicalEvidenceAdministration";
+import { CausalSmartMoneyAdministration } from "./CausalSmartMoneyAdministration";
+import { EvidenceProfilesPanel } from "./EvidenceProfilesPanel";
+import { DataQualityAdministration } from "./DataQualityAdministration";
+import { StatisticalEvidencePanel } from "./StatisticalEvidencePanel";
 
 type Section = "overview" | ResearchEvidenceKind;
+const EVIDENCE_READ_TIMEOUT_MS = 60_000;
 
 const SECTIONS: Array<{ key: Section; label: string }> = [
   { key: "overview", label: "Tổng quan" },
@@ -85,7 +102,7 @@ function shortHash(value: string | null): string {
   return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-8)}` : value;
 }
 
-function MetricCard({ metric }: { metric: EvidenceMetric }) {
+function MetricCard({ metric, descriptive }: { metric: EvidenceMetric; descriptive: boolean }) {
   return (
     <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-3">
       <div className="text-[11px] uppercase tracking-wide text-gray-500">{metric.label}</div>
@@ -95,7 +112,7 @@ function MetricCard({ metric }: { metric: EvidenceMetric }) {
         {metric.baselineValue != null && <div>Baseline: {formatValue(metric.baselineValue, metric.unit)}</div>}
         {metric.lift != null && <div>Lift: {formatValue(metric.lift, metric.unit)}</div>}
         {(metric.intervalLow != null || metric.intervalHigh != null) && (
-          <div>Khoảng tin cậy: [{formatValue(metric.intervalLow, metric.unit)}, {formatValue(metric.intervalHigh, metric.unit)}]</div>
+          <div>{descriptive ? "Khoảng thống kê" : "Khoảng bất định"}: [{formatValue(metric.intervalLow, metric.unit)}, {formatValue(metric.intervalHigh, metric.unit)}]</div>
         )}
         {metric.sampleCount != null && <div>n = {metric.sampleCount.toLocaleString("vi-VN")}</div>}
         {metric.baseline && <div>So với: <span className="font-mono text-gray-400">{metric.baseline}</span></div>}
@@ -162,8 +179,9 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
   if (loading) return <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-6 text-sm text-gray-400">Đang kiểm tra và đọc artifact…</div>;
   if (error) return <div role="alert" className="rounded-xl border border-rose-900 bg-rose-950/30 p-4 text-sm text-rose-300">{error}</div>;
   if (!detail) return <div className="rounded-xl border border-gray-800 bg-gray-900/40 p-6 text-sm text-gray-500">Chọn một artifact để xem chuỗi bằng chứng.</div>;
-  const snapshotArtifact = detail.artifacts.find((artifact) => artifact.role === "datasetSnapshot") ?? null;
-  const predictionsArtifact = detail.artifacts.find((artifact) => artifact.role === "rowPredictions") ?? null;
+  const descriptive = detail.tier === "descriptive";
+  const snapshotArtifact = detail.artifacts.find((artifact) => artifact.role === "datasetSnapshot" || artifact.role === "snapshot") ?? null;
+  const predictionsArtifact = detail.artifacts.find((artifact) => artifact.role === "rowPredictions" || artifact.role === "ledger") ?? null;
   const predictionRowCount = detail.dataset?.predictionRowCount ?? predictionsArtifact?.rowCount ?? null;
   const predictionsSha256 = detail.dataset?.predictionsSha256 ?? predictionsArtifact?.sha256 ?? null;
   const immutable = detail.dataset?.immutable
@@ -182,6 +200,7 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
           <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3"><div className="text-[10px] uppercase text-gray-500">Câu hỏi nghiên cứu</div><p className="mt-1 text-sm text-gray-300">{detail.question ?? detail.hypothesis ?? "Artifact chưa khai báo câu hỏi nghiên cứu."}</p></div>
           <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3"><div className="text-[10px] uppercase text-gray-500">Kết luận được phép</div><p className="mt-1 text-sm text-gray-300">{detail.conclusion ?? detail.summary}</p></div>
         </div>
+        {descriptive && <div className="mt-3 rounded-lg border border-amber-800/70 bg-amber-950/30 p-3 text-xs leading-5 text-amber-200">Đây là bằng chứng mô tả các sự kiện đã quan sát. Giá trị và khoảng bên dưới không phải xác suất dự báo, tín hiệu giao dịch hay bằng chứng PnL.</div>}
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -190,7 +209,7 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
           {detail.dataset ? <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <dt className="text-gray-500">Nguồn</dt><dd className="text-right text-gray-300">{detail.dataset.source ?? "—"}</dd>
             <dt className="text-gray-500">Số dòng</dt><dd className="text-right text-gray-300">{detail.dataset.rowCount?.toLocaleString("vi-VN") ?? "—"}</dd>
-            <dt className="text-gray-500">Prediction rows</dt><dd className="text-right text-gray-300">{predictionRowCount?.toLocaleString("vi-VN") ?? "—"}</dd>
+            <dt className="text-gray-500">{descriptive ? "Dòng event / ledger" : "Prediction rows"}</dt><dd className="text-right text-gray-300">{predictionRowCount?.toLocaleString("vi-VN") ?? "—"}</dd>
             <dt className="text-gray-500">Quyết định đầu</dt><dd className="text-right text-gray-300">{detail.dataset.startTimeUtc ? formatDate(detail.dataset.startTimeUtc) : formatTimeMs(detail.dataset.firstDecisionTimeMs)}</dd>
             <dt className="text-gray-500">Quyết định cuối / cutoff</dt><dd className="text-right text-gray-300">{detail.dataset.cutoffTimeUtc ? formatDate(detail.dataset.cutoffTimeUtc) : detail.dataset.endTimeUtc ? formatDate(detail.dataset.endTimeUtc) : formatTimeMs(detail.dataset.lastDecisionTimeMs)}</dd>
             <dt className="text-gray-500">Snapshot hash</dt><dd title={detail.dataset.snapshotSha256 ?? undefined} className="text-right font-mono text-gray-400">{shortHash(detail.dataset.snapshotSha256)}</dd>
@@ -218,15 +237,20 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
       </section>}
 
       <section className="rounded-xl border border-gray-800 bg-gray-900/60 p-4">
-        <h3 className="flex items-center gap-2 text-sm font-semibold"><BarChart3 className="h-4 w-4 text-emerald-400" /> Kết quả, baseline và bất định</h3>
-        {detail.metrics.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{detail.metrics.map((metric, index) => <MetricCard key={`${metric.name}-${index}`} metric={metric} />)}</div> : <p className="mt-3 text-xs text-amber-300">Không có metric định lượng trong artifact.</p>}
-        {detail.uncertainty.length > 0 && <div className="mt-3 rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Uncertainty / interval</div><ul className="mt-2 space-y-1 text-gray-400">{detail.uncertainty.map((item) => <li key={item.name}><span className="font-mono text-gray-300">{item.name}</span>: [{formatValue(item.lower)}, {formatValue(item.upper)}]{item.confidenceLevel != null ? ` · ${(item.confidenceLevel * 100).toFixed(1)}%` : ""}{item.familywise ? " · familywise-adjusted" : ""}</li>)}</ul></div>}
+        <h3 className="flex items-center gap-2 text-sm font-semibold"><BarChart3 className="h-4 w-4 text-emerald-400" /> {descriptive ? "Thống kê mô tả, coverage và bất định" : "Kết quả, baseline và bất định"}</h3>
+        {detail.metrics.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{detail.metrics.map((metric, index) => <MetricCard key={`${metric.name}-${index}`} metric={metric} descriptive={descriptive} />)}</div> : <p className="mt-3 text-xs text-amber-300">Không có metric định lượng trong artifact.</p>}
+        {detail.uncertainty.length > 0 && <div className="mt-3 rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">{descriptive ? "Khoảng thống kê mô tả" : "Uncertainty / interval"}</div><ul className="mt-2 space-y-1 text-gray-400">{detail.uncertainty.map((item) => <li key={item.name}><span className="font-mono text-gray-300">{item.name}</span>: [{formatValue(item.lower)}, {formatValue(item.upper)}]{item.confidenceLevel != null ? ` · mức interval ${(item.confidenceLevel * 100).toFixed(1)}%` : ""}{item.familywise ? " · familywise-adjusted" : ""}</li>)}</ul>{descriptive && <p className="mt-2 text-amber-300/80">Mức interval mô tả độ bất định của thống kê lịch sử; không phải xác suất sự kiện tương lai.</p>}</div>}
         {detail.findings.length > 0 && <div className="mt-3 overflow-x-auto rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Kết luận theo trial / nhóm</div><table className="mt-2 w-full min-w-[640px]"><thead className="border-b border-gray-800 text-gray-500"><tr><th className="p-2 text-left">Finding</th><th className="p-2 text-left">Trạng thái</th><th className="p-2 text-right">Giá trị</th><th className="p-2 text-right">Khoảng</th><th className="p-2 text-right">n</th></tr></thead><tbody>{detail.findings.map((finding) => <tr key={finding.id} className="border-b border-gray-800/50"><td className="p-2"><div className="text-gray-300">{finding.label}</div><div className="font-mono text-[10px] text-gray-600">{finding.metricName}</div></td><td className="p-2 text-gray-400">{finding.status}</td><td className="p-2 text-right font-mono text-gray-300">{formatValue(finding.value)}</td><td className="p-2 text-right font-mono text-gray-400">[{formatValue(finding.lower)}, {formatValue(finding.upper)}]</td><td className="p-2 text-right text-gray-400">{finding.sampleSize?.toLocaleString("vi-VN") ?? "—"}</td></tr>)}</tbody></table></div>}
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Baselines</div>{detail.baselines.length ? <ul className="mt-2 list-disc space-y-1 pl-4 text-gray-400">{detail.baselines.map((baseline) => <li key={baseline.id}>{baseline.name}{baseline.description ? ` — ${baseline.description}` : ""}</li>)}</ul> : <p className="mt-2 text-amber-300">Chưa khai báo baseline.</p>}</div>
-          <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Coverage</div><p className="mt-2 text-gray-400">Evaluated {detail.coverage?.evaluatedRows?.toLocaleString("vi-VN") ?? "—"} / eligible {detail.coverage?.eligibleRows?.toLocaleString("vi-VN") ?? "—"} · ratio {detail.coverage?.ratio == null ? "—" : `${(detail.coverage.ratio * 100).toFixed(2)}%`} · folds {detail.coverage?.foldCount ?? "—"}</p></div>
+          <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Coverage & exclusions</div><p className="mt-2 text-gray-400">Evaluated {detail.coverage?.evaluatedRows?.toLocaleString("vi-VN") ?? "—"} / eligible {detail.coverage?.eligibleRows?.toLocaleString("vi-VN") ?? "—"} · ratio {detail.coverage?.ratio == null ? "—" : `${(detail.coverage.ratio * 100).toFixed(2)}%`} · folds {detail.coverage?.foldCount ?? "—"}</p><p className="mt-2 text-amber-300/80">Các trường hợp loại trừ chỉ được coi là đã công bố khi xuất hiện trong limitations/protocol của artifact; UI không tự suy diễn phần còn thiếu.</p></div>
         </div>
       </section>
+
+      {detail.evidenceProfiles && <EvidenceProfilesPanel profiles={detail.evidenceProfiles} />}
+      {detail.kind === "event" && detail.tier === "descriptive" && (
+        <StatisticalEvidencePanel evidence={detail.statisticalEvidence} />
+      )}
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-amber-900/70 bg-amber-950/20 p-4">
@@ -301,12 +325,76 @@ function CapabilityMatrix({ data }: { data: TechnicalCapabilitiesResponse | null
   </section>;
 }
 
+function ageLabel(seconds: number | null): string {
+  if (seconds == null) return "—";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3_600) return `${Math.round(seconds / 60)}m`;
+  if (seconds < 86_400) return `${(seconds / 3_600).toFixed(1)}h`;
+  return `${(seconds / 86_400).toFixed(1)}d`;
+}
+
+function coverageStatusClass(status: "available" | "partial" | "unavailable"): string {
+  if (status === "available") return "border-emerald-800 bg-emerald-950/30 text-emerald-300";
+  if (status === "partial") return "border-amber-800 bg-amber-950/30 text-amber-300";
+  return "border-rose-900 bg-rose-950/30 text-rose-300";
+}
+
+function TechnicalDataCoverage({ audit, workers, error }: {
+  audit: DataAuditResponse | null;
+  workers: WorkersHealthDto | null;
+  error: string | null;
+}) {
+  const summary = useMemo(() => buildTechnicalCoverageSummary(audit, workers), [audit, workers]);
+  return <section className="rounded-xl border border-gray-800 bg-gray-900/60 p-4" aria-labelledby="technical-data-coverage-title">
+    <div className="flex flex-wrap items-start justify-between gap-2">
+      <div><h3 id="technical-data-coverage-title" className="text-sm font-semibold text-gray-100">Data Administration · technical coverage</h3><p className="mt-1 text-[11px] leading-5 text-gray-500">BTCUSDT 1h/4h/1d; gaps, quality và inventory dẫn xuất được báo riêng. Legacy không được tính vào coverage đang hoạt động.</p></div>
+      <span className="rounded border border-gray-700 bg-gray-950 px-2 py-1 font-mono text-[10px] text-gray-400">{audit ? formatDate(audit.generatedAtUtc) : "audit unavailable"}</span>
+    </div>
+    {error && <div role="alert" className="mt-3 rounded-lg border border-rose-900 bg-rose-950/30 p-3 text-xs text-rose-300">{error}</div>}
+    <div className="mt-3 grid gap-3 md:grid-cols-3">
+      {summary.rows.map((row) => <article key={row.timeframe} className="rounded-lg border border-gray-800 bg-gray-950/50 p-3">
+        <div className="flex items-center justify-between gap-2"><strong className="text-sm text-gray-100">{row.timeframe}</strong><span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${coverageStatusClass(row.availability)}`}>{row.availability}</span></div>
+        {row.source ? <dl className="mt-3 grid grid-cols-2 gap-1.5 text-[11px]">
+          <dt className="text-gray-500">Coverage</dt><dd className="text-right text-gray-300">{row.source.dataCoveragePct.toFixed(2)}%</dd>
+          <dt className="text-gray-500">Missing bars</dt><dd className="text-right text-gray-300">{row.source.missingBars.toLocaleString("vi-VN")}</dd>
+          <dt className="text-gray-500">Gap ranges</dt><dd className="text-right text-gray-300">{row.source.gapRangeCount.toLocaleString("vi-VN")}</dd>
+          <dt className="text-gray-500">Ledger</dt><dd className="text-right text-gray-300">{row.source.gapLedgerStatus}</dd>
+          <dt className="text-gray-500">Finalized age</dt><dd className="text-right text-gray-300">{ageLabel(row.source.quality?.latestFinalizedAgeSeconds ?? row.source.latestCandleAgeSeconds)}</dd>
+          <dt className="text-gray-500">Invalid duration</dt><dd className={`text-right ${(row.source.quality?.invalidDurationRows ?? 0) > 0 ? "text-rose-300" : "text-gray-300"}`}>{row.source.quality?.invalidDurationRows?.toLocaleString("vi-VN") ?? "—"}</dd>
+          <dt className="text-gray-500">Indicators / patterns</dt><dd className="text-right text-gray-300">{row.source.technicalIndicators?.toLocaleString("vi-VN") ?? "—"} / {row.source.candlePatterns?.toLocaleString("vi-VN") ?? "—"}</dd>
+        </dl> : <p className="mt-3 text-xs text-rose-300">Không có audit row; mọi pipeline của khung này phải coi là unavailable.</p>}
+        {row.reasons.length > 0 && <ul className="mt-3 list-disc space-y-1 pl-4 text-[10px] leading-4 text-amber-200/80">{row.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+        {row.source?.derivedTables && <details className="mt-3 text-[10px] text-gray-500"><summary className="cursor-pointer text-gray-400">Pipeline inventory ({row.source.derivedTables.length})</summary><ul className="mt-2 space-y-1">{row.source.derivedTables.map((table) => <li key={table.table} className="flex justify-between gap-2"><span className="truncate">{table.table}</span><span className={(table.missingRows ?? 0) > 0 ? "text-amber-300" : "text-gray-400"}>{table.rows.toLocaleString("vi-VN")} rows{table.missingRows == null ? "" : ` · thiếu ${table.missingRows.toLocaleString("vi-VN")}`}</span></li>)}</ul></details>}
+      </article>)}
+    </div>
+    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+      <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Pipeline workers</div>{summary.technicalWorkers.length ? <ul className="mt-2 space-y-1.5">{summary.technicalWorkers.map((worker) => <li key={worker.name} className="flex flex-wrap items-center justify-between gap-2 text-gray-400"><span className="font-mono text-[10px]">{worker.name}</span><span className={worker.status === "healthy" ? "text-emerald-300" : worker.status === "stale" ? "text-amber-300" : "text-rose-300"}>{worker.status} · age {ageLabel(worker.ageSeconds)}</span></li>)}</ul> : <p className="mt-2 text-amber-300">Worker health chưa công bố; không suy ra pipeline đang chạy chỉ từ inventory.</p>}</div>
+      <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-3 text-xs"><div className="font-semibold text-gray-300">Legacy & exclusions</div>{summary.legacyTimeframes.length ? <p className="mt-2 text-gray-400">{summary.legacyTimeframes.map((row) => row.timeframe).join(", ")} · chỉ giữ để audit lịch sử, không thuộc scope replay 1h/4h/1d.</p> : <p className="mt-2 text-gray-400">Không có timeframe legacy trong phản hồi audit.</p>}<p className="mt-2 text-amber-300/80">Unavailable và partial vẫn là thiếu bằng chứng; UI không đổi chúng thành “đủ” bằng fallback realtime.</p></div>
+    </div>
+  </section>;
+}
+
+function EvidencePipelineStatus({ pipeline }: { pipeline: ResearchEvidenceCatalog["pipeline"] }) {
+  return <section className="min-w-0 max-w-full overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60 p-4" aria-label="Trạng thái pipeline evidence kỹ thuật">
+    <div className="flex min-w-0 flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h3 className="text-sm font-semibold text-gray-100">Descriptive evidence pipeline</h3><p className="mt-1 text-[11px] text-gray-500">Coverage artifact mô tả theo 1h/4h/1d; không phải xác suất dự báo.</p></div><span className={`min-w-0 break-all rounded border px-2 py-1 text-[10px] font-bold ${pipeline?.state === "succeeded" && pipeline.integrityVerified ? "border-emerald-800 text-emerald-300" : pipeline?.state === "running" ? "border-cyan-800 text-cyan-300" : "border-amber-800 text-amber-300"}`}>{pipeline?.state ?? "not reported"}</span></div>
+    {!pipeline ? <p className="mt-3 text-xs text-amber-300">Catalog chưa công bố pipeline metadata; UI không suy ra trạng thái từ artifact count.</p> : <>
+      <div className="mt-3 flex flex-wrap gap-2 text-[10px]"><span className="rounded border border-gray-800 px-2 py-1 text-gray-400">integrity {pipeline.integrityVerified ? "verified" : "unverified"}</span><span className="rounded border border-gray-800 px-2 py-1 text-gray-400">running {pipeline.running ? "yes" : "no"}</span><span className="rounded border border-gray-800 px-2 py-1 text-gray-400">lock {pipeline.locked ? "held" : "free"}</span></div>
+      <dl className="mt-3 grid min-w-0 gap-x-4 gap-y-1 text-[10px] sm:grid-cols-2 lg:grid-cols-5 [&>div]:min-w-0 [&_dd]:break-words"><div><dt className="text-gray-600">Started</dt><dd className="text-gray-400">{formatDate(pipeline.lastStartedAtUtc)}</dd></div><div><dt className="text-gray-600">Succeeded</dt><dd className="text-gray-400">{formatDate(pipeline.lastSucceededAtUtc)}</dd></div><div><dt className="text-gray-600">Failed</dt><dd className="text-gray-400">{formatDate(pipeline.lastFailedAtUtc)}</dd></div><div><dt className="text-gray-600">Updated</dt><dd className="text-gray-400">{formatDate(pipeline.updatedAtUtc)}</dd></div><div><dt className="text-gray-600">Stale after</dt><dd className="text-gray-400">{formatDate(pipeline.staleAfterUtc)}</dd></div></dl>
+      {pipeline.lastError && <p role="alert" className="mt-3 max-w-full break-words rounded border border-rose-900/70 bg-rose-950/30 p-2 text-[10px] text-rose-200 [overflow-wrap:anywhere]">Lỗi gần nhất: {pipeline.lastError}</p>}
+      {pipeline.timeframes.length ? <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-3">{pipeline.timeframes.map((row) => <article key={row.timeframe} className="min-w-0 max-w-full overflow-hidden rounded-lg border border-gray-800 bg-gray-950/60 p-3 text-xs"><div className="flex min-w-0 items-start justify-between gap-2"><strong className="shrink-0">{row.timeframe}</strong><span className={`min-w-0 break-words text-right ${row.semanticVerification ? "text-emerald-300" : "text-rose-300"}`}>{row.semanticVerification ? "semantic verified" : "semantic failed"}</span></div><dl className="mt-2 grid min-w-0 grid-cols-2 gap-1 text-[11px] [&>dd]:min-w-0 [&>dd]:break-words"><dt className="text-gray-500">Stored</dt><dd className="text-right">{row.stored.toLocaleString("vi-VN")}</dd><dt className="text-gray-500">Eligible</dt><dd className="text-right">{row.eligible.toLocaleString("vi-VN")}</dd><dt className="text-gray-500">Excluded</dt><dd className="text-right">{row.excluded.toLocaleString("vi-VN")}</dd><dt className="text-gray-500">Realized horizon</dt><dd className="text-right">{row.realizedAtMaxHorizon.toLocaleString("vi-VN")}</dd><dt className="text-gray-500">Cutoff</dt><dd className="text-right">{formatTimeMs(row.cutoffMs)}</dd></dl><div title={row.manifestSha256} className="mt-2 max-w-full truncate font-mono text-[9px] text-gray-600">{row.manifestSha256}</div></article>)}</div> : <p className="mt-3 break-words text-xs text-amber-300">Pipeline không công bố coverage theo timeframe ở trạng thái này.</p>}
+    </>}
+  </section>;
+}
+
 export function ResearchEvidenceScreen() {
   const [section, setSection] = useState<Section>("overview");
   const [catalog, setCatalog] = useState<Awaited<ReturnType<typeof getResearchEvidenceCatalog>> | null>(null);
   const [backtests, setBacktests] = useState<BacktestRunSummary[] | null>(null);
   const [observations, setObservations] = useState<PaperObservationListResponse | null>(null);
   const [capabilities, setCapabilities] = useState<TechnicalCapabilitiesResponse | null>(null);
+  const [dataAudit, setDataAudit] = useState<DataAuditResponse | null>(null);
+  const [workers, setWorkers] = useState<WorkersHealthDto | null>(null);
+  const [coverageError, setCoverageError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ResearchEvidenceDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -318,11 +406,14 @@ export function ResearchEvidenceScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [catalogResult, backtestResult, observationResult, capabilityResult] = await Promise.allSettled([
-      getResearchEvidenceCatalog(AbortSignal.timeout(10_000)),
+    setCoverageError(null);
+    const [catalogResult, backtestResult, observationResult, capabilityResult, auditResult, workersResult] = await Promise.allSettled([
+      getResearchEvidenceCatalog(AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS)),
       getBacktestRuns("BTCUSDT", undefined, 20, false),
       getPaperObservations("BTCUSDT", 100),
-      getTechnicalCapabilities(AbortSignal.timeout(10_000)),
+      getTechnicalCapabilities(AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS)),
+      getDataAudit("BTCUSDT", AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS), true),
+      getHealthWorkers(AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS)),
     ]);
     if (catalogResult.status === "fulfilled") setCatalog(catalogResult.value);
     else {
@@ -332,6 +423,11 @@ export function ResearchEvidenceScreen() {
     setBacktests(backtestResult.status === "fulfilled" ? backtestResult.value.items : null);
     setObservations(observationResult.status === "fulfilled" ? observationResult.value : null);
     setCapabilities(capabilityResult.status === "fulfilled" ? capabilityResult.value : null);
+    setDataAudit(auditResult.status === "fulfilled" ? auditResult.value : null);
+    setWorkers(workersResult.status === "fulfilled" ? workersResult.value : null);
+    if (auditResult.status === "rejected") {
+      setCoverageError(auditResult.reason instanceof Error ? auditResult.reason.message : "Không tải được Data Audit.");
+    }
     setLoading(false);
   }, []);
 
@@ -349,7 +445,7 @@ export function ResearchEvidenceScreen() {
     setDetailError(null);
     setDetailLoading(true);
     try {
-      const nextDetail = await getResearchEvidenceDetail(item.id, AbortSignal.timeout(10_000));
+      const nextDetail = await getResearchEvidenceDetail(item.id, AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS));
       if (requestId === detailRequestRef.current) setDetail(nextDetail);
     }
     catch (cause) {
@@ -369,6 +465,11 @@ export function ResearchEvidenceScreen() {
     {error && <div role="alert" className="rounded-xl border border-rose-900 bg-rose-950/30 p-4 text-sm text-rose-300">Evidence API chưa sẵn sàng: {error}. Các vùng economic/forward bên dưới vẫn giữ trạng thái độc lập.</div>}
     {catalog && catalog.integrity.rejectedArtifactCount > 0 && <div role="alert" className="rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-200">Có {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} artifact bị catalog loại do integrity/contract không đạt; chúng không được dùng làm bằng chứng. Đã publish {catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/{catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")} artifact đã quét.</div>}
     {section === "overview" && <div className="grid grid-cols-2 gap-3 md:grid-cols-4"><div className="rounded-xl border border-gray-800 bg-gray-900/60 p-3"><div className="text-2xl font-bold">{catalog?.items.length ?? 0}</div><div className="text-xs text-gray-500">artifact đã kiểm kê</div></div><div className="rounded-xl border border-emerald-900 bg-emerald-950/20 p-3"><div className="text-2xl font-bold text-emerald-300">{catalog?.items.filter((item) => item.integrityVerified).length ?? 0}</div><div className="text-xs text-emerald-400/60">hash hợp lệ</div></div><div className="rounded-xl border border-cyan-900 bg-cyan-950/20 p-3"><div className="text-2xl font-bold text-cyan-300">{catalog?.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length ?? 0}</div><div className="text-xs text-cyan-400/60">artifact có predictive support</div></div><div className="rounded-xl border border-teal-900 bg-teal-950/20 p-3"><div className="text-2xl font-bold text-teal-300">{observations?.items.length ?? 0}</div><div className="text-xs text-teal-400/60">forward decisions</div></div></div>}
+    {section === "overview" && <TechnicalDataCoverage audit={dataAudit} workers={workers} error={coverageError}/>}
+    {section === "overview" && <DataQualityAdministration/>}
+    {section === "overview" && <EvidencePipelineStatus pipeline={catalog?.pipeline ?? null}/>}
+    {section === "overview" && <TechnicalEvidenceAdministration/>}
+    {section === "overview" && <CausalSmartMoneyAdministration/>}
     {section === "overview" && <CapabilityMatrix data={capabilities}/>}
     {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests}/>}
     {(section === "overview" || section === "forward") && <ForwardStatus observations={observations}/>}

@@ -1345,6 +1345,7 @@ export type KlineQualityAudit = {
   finalizedRows: number;
   formingRows: number;
   invalidOhlcvRows: number;
+  invalidDurationRows: number;
   duplicateOpenTimeRows: number;
   latestFinalizedCloseTimeMs: number | null;
   latestFinalizedAgeSeconds: number | null;

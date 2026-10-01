@@ -381,8 +381,8 @@ export function DataManagementPanel({
                     {tf.quality ? (
                       <>
                         <div>Finalized {tf.quality.finalizedRows.toLocaleString()} · forming {tf.quality.formingRows.toLocaleString()}</div>
-                        <div className={tf.quality.invalidOhlcvRows || tf.quality.duplicateOpenTimeRows ? "text-rose-300" : "text-emerald-400"}>
-                          OHLCV lỗi {tf.quality.invalidOhlcvRows.toLocaleString()} · duplicate {tf.quality.duplicateOpenTimeRows.toLocaleString()}
+                        <div className={tf.quality.invalidOhlcvRows || tf.quality.invalidDurationRows || tf.quality.duplicateOpenTimeRows ? "text-rose-300" : "text-emerald-400"}>
+                          OHLCV lỗi {tf.quality.invalidOhlcvRows.toLocaleString()} · duration lỗi {tf.quality.invalidDurationRows.toLocaleString()} · duplicate {tf.quality.duplicateOpenTimeRows.toLocaleString()}
                         </div>
                         <div className={tf.quality.isStale ? "text-amber-300" : "text-gray-500"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
                       </>

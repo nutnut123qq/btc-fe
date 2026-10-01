@@ -15,16 +15,23 @@ import {
 import { KlineOHLC, VolumeProfileDto, SmartMoneyStructureDto, CandlePatternItem } from "@/lib/types";
 import { ema, bollinger, calculateFibonacciLevels } from "@/lib/indicators";
 import { latestCandleLifecycle } from "@/lib/marketTruth";
+import { intervalToMs } from "@/lib/timeframe";
+import type { CandlePatternReplay, FibonacciReplay, TechnicalIndicatorReplay, VolumeProfileReplay } from "@/lib/technicalReplay";
+import { buildReplayPatternMarkers } from "@/lib/chartMarkers";
 
 type Props = {
   data: KlineOHLC[];
   height?: number;
   highlightWindow?: { startTimeMs: number; endTimeMs: number } | null;
-  volumeProfile?: VolumeProfileDto | null;
+  volumeProfile?: VolumeProfileDto | VolumeProfileReplay | null;
   smartMoney?: SmartMoneyStructureDto[] | null;
   patterns?: CandlePatternItem[] | null;
+  replayPatterns?: CandlePatternReplay | null;
+  replayIndicators?: TechnicalIndicatorReplay | null;
+  replayFibonacci?: FibonacciReplay | null;
   showFibonacci?: boolean;
   timeframe?: string;
+  onSelectSmartMoney?: (event: SmartMoneyStructureDto) => void;
 };
 
 function estimateBarSeconds(data: KlineOHLC[]): number {
@@ -38,9 +45,14 @@ function estimateBarSeconds(data: KlineOHLC[]): number {
   return count > 0 ? Math.round(total / count) : 60;
 }
 
-export function BtcCandlestickChart({ data, height = 440, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci, timeframe = "4h" }: Props) {
+export function BtcCandlestickChart({ data, height = 440, highlightWindow, volumeProfile, smartMoney, patterns, replayPatterns, replayIndicators, replayFibonacci, showFibonacci, timeframe = "4h", onSelectSmartMoney }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const onSelectSmartMoneyRef = useRef(onSelectSmartMoney);
+
+  useEffect(() => {
+    onSelectSmartMoneyRef.current = onSelectSmartMoney;
+  }, [onSelectSmartMoney]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -121,34 +133,30 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     candleSeries.setData(candles);
     volSeries.setData(volumes);
 
-    // EMA20
-    const ema20 = ema(data, 20);
-    if (ema20.length > 0) {
-      const emaSeries = chart.addSeries(LineSeries, {
-        color: "#fbbf24",
-        lineWidth: 1,
-        title: "EMA20",
+    if (replayIndicators !== undefined) {
+      const replayLines = [
+        [replayIndicators?.ema12, "#fbbf24", "EMA12"],
+        [replayIndicators?.ema26, "#38bdf8", "EMA26"],
+        [replayIndicators?.sma50, "#c084fc", "SMA50"],
+      ] as const;
+      replayLines.forEach(([price, color, title]) => {
+        if (price == null) return;
+        candleSeries.createPriceLine({ price, color, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title });
       });
-      emaSeries.setData(ema20.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
-    }
-
-    // Bollinger Bands
-    const bb = bollinger(data, 20, 2);
-    if (bb.upper.length > 0) {
-      const upperSeries = chart.addSeries(LineSeries, {
-        color: "#94a3b8",
-        lineWidth: 1,
-        lineStyle: 2,
-        title: "BB Upper",
-      });
-      upperSeries.setData(bb.upper.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
-      const lowerSeries = chart.addSeries(LineSeries, {
-        color: "#94a3b8",
-        lineWidth: 1,
-        lineStyle: 2,
-        title: "BB Lower",
-      });
-      lowerSeries.setData(bb.lower.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
+    } else {
+      // Legacy chart mode outside Technical Replay.
+      const ema20 = ema(data, 20);
+      if (ema20.length > 0) {
+        const emaSeries = chart.addSeries(LineSeries, { color: "#fbbf24", lineWidth: 1, title: "EMA20" });
+        emaSeries.setData(ema20.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
+      }
+      const bb = bollinger(data, 20, 2);
+      if (bb.upper.length > 0) {
+        const upperSeries = chart.addSeries(LineSeries, { color: "#94a3b8", lineWidth: 1, lineStyle: 2, title: "BB Upper" });
+        upperSeries.setData(bb.upper.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
+        const lowerSeries = chart.addSeries(LineSeries, { color: "#94a3b8", lineWidth: 1, lineStyle: 2, title: "BB Lower" });
+        lowerSeries.setData(bb.lower.map((d) => ({ time: d.time as UTCTimestamp, value: d.value })));
+      }
     }
 
     // Volume Profile POC / VAH / VAL PriceLines
@@ -213,7 +221,9 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
 
     // Auto Fibonacci Retracement Levels & Golden Pocket
     if (showFibonacci) {
-      const fibs = calculateFibonacciLevels(data);
+      const fibs = replayFibonacci !== undefined
+        ? (replayFibonacci?.levels.map((level) => ({ ...level, label: `${(level.ratio * 100).toFixed(1)}%`, isGoldenPocket: level.ratio >= 0.618 && level.ratio <= 0.65 })) ?? [])
+        : calculateFibonacciLevels(data);
       fibs.forEach((fib) => {
         const isGP = fib.isGoldenPocket;
         candleSeries.createPriceLine({
@@ -241,12 +251,13 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     if (patterns && patterns.length > 0) {
       patterns.forEach((p) => {
         const timeSec = Math.floor(p.openTimeMs / 1000) as UTCTimestamp;
+        const isNeutral = p.patternType.toUpperCase().includes("DOJI") || p.trendDirection.toLowerCase() === "neutral";
         const isBullish = p.trendDirection === "Uptrend" || p.patternType.includes("Bullish") || p.patternType === "Hammer" || p.patternType === "MorningStar";
         markers.push({
           time: timeSec,
-          position: isBullish ? "belowBar" : "aboveBar",
-          color: isBullish ? "#34d399" : "#f87171",
-          shape: isBullish ? "arrowUp" : "arrowDown",
+          position: isNeutral ? "inBar" : isBullish ? "belowBar" : "aboveBar",
+          color: isNeutral ? "#d1d5db" : isBullish ? "#34d399" : "#f87171",
+          shape: isNeutral ? "circle" : isBullish ? "arrowUp" : "arrowDown",
           size: 1,
           text: `${p.patternType}`,
         });
@@ -257,7 +268,9 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     if (smartMoney && smartMoney.length > 0) {
       smartMoney.forEach((smc) => {
         // Place causal event markers at the first knowable time. Origin remains available in the detail panel.
-        const timeSec = Math.floor((smc.availableTimeMs ?? smc.timeMs) / 1000) as UTCTimestamp;
+        const availableTimeMs = smc.availableTimeMs ?? smc.timeMs;
+        const markerOpenTimeMs = Math.floor(availableTimeMs / intervalToMs(timeframe)) * intervalToMs(timeframe);
+        const timeSec = Math.floor(markerOpenTimeMs / 1000) as UTCTimestamp;
         const isBull = smc.eventType.includes("BULL");
         if (smc.eventType.includes("FVG") || smc.eventType.includes("BOS") || smc.eventType.includes("CHOCH")) {
           markers.push({
@@ -296,6 +309,14 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
       });
     }
 
+    // Replay patterns must join the marker set before sorting/combining/rendering.
+    markers.push(
+      ...buildReplayPatternMarkers(replayPatterns, timeframe).map((marker) => ({
+        ...marker,
+        time: marker.time as UTCTimestamp,
+      })),
+    );
+
     // Sort markers chronologically (required by lightweight-charts)
     markers.sort((a, b) => (a.time as number) - (b.time as number));
 
@@ -318,6 +339,20 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
       createSeriesMarkers(candleSeries, combinedMarkers.slice(-60));
     }
 
+    chart.subscribeClick((param) => {
+      if (!param.time || !smartMoney?.length || !onSelectSmartMoneyRef.current) return;
+      const clickedTimeSec = typeof param.time === "number" ? param.time : null;
+      if (clickedTimeSec == null) return;
+      const event = smartMoney.find(
+        (item) => {
+          const availableTimeMs = item.availableTimeMs ?? item.timeMs;
+          const markerOpenTimeMs = Math.floor(availableTimeMs / intervalToMs(timeframe)) * intervalToMs(timeframe);
+          return Math.floor(markerOpenTimeMs / 1000) === clickedTimeSec;
+        },
+      );
+      if (event) onSelectSmartMoneyRef.current(event);
+    });
+
     // Visible range: zoom to highlight window with padding (like Flutter's kHighlightVisiblePadBars = 12)
     if (highlightWindow) {
       const barSec = estimateBarSeconds(data);
@@ -336,7 +371,7 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
       chart.remove();
       chartRef.current = null;
     };
-  }, [data, height, highlightWindow, volumeProfile, smartMoney, patterns, showFibonacci]);
+  }, [data, height, highlightWindow, volumeProfile, smartMoney, patterns, replayPatterns, replayIndicators, replayFibonacci, showFibonacci, timeframe]);
 
   if (data.length === 0) return null;
 

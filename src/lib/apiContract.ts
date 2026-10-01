@@ -151,7 +151,7 @@ export function requireDataAudit(value: unknown): Record<string, unknown> {
     requireNullableNumber(timeframe.latestCandleAgeSeconds, `${context}.latestCandleAgeSeconds`);
     if (timeframe.quality !== undefined && timeframe.quality !== null) {
       const quality = requireRecord(timeframe.quality, `${context}.quality`);
-      ["finalizedRows", "formingRows", "invalidOhlcvRows", "duplicateOpenTimeRows"].forEach((field) =>
+      ["finalizedRows", "formingRows", "invalidOhlcvRows", "invalidDurationRows", "duplicateOpenTimeRows"].forEach((field) =>
         requireFiniteNumber(quality[field], `${context}.quality.${field}`),
       );
       requireNullableNumber(quality.latestFinalizedCloseTimeMs, `${context}.quality.latestFinalizedCloseTimeMs`);
@@ -219,7 +219,7 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-09-research-evidence-v4";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-09-research-evidence-v9";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
   "2026-09-research-evidence-v3",

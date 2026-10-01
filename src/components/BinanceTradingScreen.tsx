@@ -1,21 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   KlineOHLC,
   MarketTicker,
-  VolumeProfileDto,
   SmartMoneyStructureDto,
-  PaperTradeItem,
-  PaperTradeSummary,
 } from "@/lib/types";
 import {
   getMarketTickers,
-  getBtcKlines,
-  getVolumeProfile,
-  getSmartMoneyStructures,
-  getOpenPaperTrades,
-  getPaperTradeSummary,
+  getTechnicalReplaySmc,
 } from "@/lib/api";
 import dynamic from "next/dynamic";
 import { BinanceTickerHeader } from "./BinanceTickerHeader";
@@ -25,12 +18,16 @@ import { latestCandleLifecycle } from "@/lib/marketTruth";
 import { SymbolWatchlistPanel } from "./SymbolWatchlistPanel";
 import { MarketTradesWidget } from "./MarketTradesWidget";
 import { OrderBookWidget } from "./OrderBookWidget";
-import { ConfluenceWidget } from "./ConfluenceWidget";
-import { RegimeBadge } from "./RegimeBadge";
-import { SentimentBadge } from "./SentimentBadge";
-import { ErrorBoundary } from "./ErrorBoundary";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL, ACTIVE_SYMBOLS } from "@/lib/marketScope";
+import {
+  LatestRequestGate,
+  normalizeReplayAsOfMs,
+  stepReplayAsOfMs,
+  type TechnicalReplayEnvelope,
+  type TechnicalReplayEvent,
+} from "@/lib/technicalReplay";
+import { TechnicalReplayPanel } from "./TechnicalReplayPanel";
 
 // Code-splitting with dynamic imports to optimize First Contentful Paint & bundle size
 const BtcCandlestickChart = dynamic(
@@ -48,17 +45,6 @@ const BtcCandlestickChart = dynamic(
   }
 );
 
-const LiquidationHeatmapWidget = dynamic(
-  () => import("./LiquidationHeatmapWidget").then((mod) => mod.LiquidationHeatmapWidget),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[300px] flex items-center justify-center bg-gray-900/50 rounded-xl border border-gray-800">
-        <p className="text-xs text-gray-500 font-mono">Đang tải Liquidation Heatmap Engine...</p>
-      </div>
-    ),
-  }
-);
 import {
   BarChart2,
   Layers,
@@ -66,13 +52,12 @@ import {
   BrainCircuit,
   RefreshCw,
   Activity,
-  Flame,
 } from "lucide-react";
 
 const TIMEFRAMES = ACTIVE_TIMEFRAMES.map((timeframe) => ({ label: timeframe, value: timeframe }));
 
-type RightTab = "trades" | "depth" | "ai";
-type BottomTab = "market_trades" | "paper_trades" | "smart_money" | "volume_profile" | "liquidation_heatmap";
+type RightTab = "trades" | "depth";
+type BottomTab = "market_trades" | "smart_money";
 
 export function BinanceTradingScreen() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
@@ -90,21 +75,37 @@ export function BinanceTradingScreen() {
   const showWatchlistSidebar = true;
 
   // Indicators toggle
+  const [showIndicators, setShowIndicators] = useState<boolean>(true);
+  const [showPatterns, setShowPatterns] = useState<boolean>(true);
+  const [showVolumeProfile, setShowVolumeProfile] = useState<boolean>(true);
   const [showFibonacci, setShowFibonacci] = useState<boolean>(false);
   const [showSmartMoney, setShowSmartMoney] = useState<boolean>(true);
-  const [showVolumeProfile, setShowVolumeProfile] = useState<boolean>(false);
 
   // Indicators data
-  const [volumeProfile, setVolumeProfile] = useState<VolumeProfileDto | null>(null);
   const [smartMoney, setSmartMoney] = useState<SmartMoneyStructureDto[] | null>(null);
+  const [technicalReplay, setTechnicalReplay] = useState<TechnicalReplayEnvelope | null>(null);
+  const [selectedReplayEvent, setSelectedReplayEvent] = useState<TechnicalReplayEvent | null>(null);
+  const [asOfTimeMs, setAsOfTimeMs] = useState<number | null>(null);
+  const [replayError, setReplayError] = useState<string | null>(null);
+  const requestGateRef = useRef(new LatestRequestGate());
+  const chartAbortRef = useRef<AbortController | null>(null);
+
+  // Invalidate synchronously in the interaction handler. Waiting for the next
+  // effect would leave a small window where an older response could still win.
+  const invalidateReplayRequest = useCallback(() => {
+    chartAbortRef.current?.abort();
+    requestGateRef.current.begin();
+    setLoadingKlines(true);
+    setReplayError(null);
+    setKlines([]);
+    setSmartMoney(null);
+    setTechnicalReplay(null);
+    setSelectedReplayEvent(null);
+  }, []);
 
   // Tabs
   const [rightTab, setRightTab] = useState<RightTab>("trades");
   const [bottomTab, setBottomTab] = useState<BottomTab>("market_trades");
-
-  // Paper trade state for bottom panel
-  const [paperSummary, setPaperSummary] = useState<PaperTradeSummary | null>(null);
-  const [openPaperTrades, setOpenPaperTrades] = useState<PaperTradeItem[]>([]);
 
   // Active Ticker
   const activeTicker = tickers.find(
@@ -175,51 +176,49 @@ export function BinanceTradingScreen() {
 
   useEffect(() => subscribeBinanceConnection(setMarketConnection), []);
 
-  // Load Klines and indicators for selected symbol
-  const loadChartData = useCallback(async (sym = selectedSymbol, tf = selectedTf) => {
+  // Load one point-in-time technical snapshot. The gate complements AbortController
+  // because a completed older response can still race with a newer request.
+  const loadChartData = useCallback(async (sym = selectedSymbol, tf = selectedTf, requestedAsOf: number | null = asOfTimeMs) => {
+    chartAbortRef.current?.abort();
+    const controller = new AbortController();
+    chartAbortRef.current = controller;
+    const requestToken = requestGateRef.current.begin();
+    const requestAsOfTimeMs = normalizeReplayAsOfMs(requestedAsOf ?? Date.now(), tf);
     setLoadingKlines(true);
+    setReplayError(null);
+    setKlines([]);
+    setSmartMoney(null);
+    setTechnicalReplay(null);
+    setSelectedReplayEvent(null);
     try {
-      const rawKlines = await getBtcKlines({ symbol: sym, interval: tf, limit: 180 });
-      if (Array.isArray(rawKlines)) {
-        const mapped: KlineOHLC[] = rawKlines.map((k: KlineOHLC) => ({
-          openTimeMs: k.openTimeMs,
-          open: Number(k.open),
-          high: Number(k.high),
-          low: Number(k.low),
-          close: Number(k.close),
-          volume: Number(k.volume),
-        }));
-        setKlines(mapped);
-      }
+      const replay = await getTechnicalReplaySmc({
+        symbol: sym,
+        timeframe: tf,
+        asOfTimeMs: requestAsOfTimeMs,
+        lookbackBars: 500,
+        signal: controller.signal,
+      });
+      if (!requestGateRef.current.isCurrent(requestToken) || controller.signal.aborted) return;
 
-      // Load Smart Money & Volume Profile if BTC or supported
-      try {
-        const [smRes, vpRes] = await Promise.allSettled([
-          getSmartMoneyStructures(sym, tf),
-          getVolumeProfile(sym, tf),
-        ]);
-        if (smRes.status === "fulfilled") setSmartMoney(smRes.value ?? null);
-        if (vpRes.status === "fulfilled") setVolumeProfile(vpRes.value ?? null);
-      } catch {}
-
-      // Load paper trades
-      try {
-        const [pSum, pOpen] = await Promise.allSettled([
-          getPaperTradeSummary(sym, tf),
-          getOpenPaperTrades(sym),
-        ]);
-        if (pSum.status === "fulfilled") setPaperSummary(pSum.value);
-        if (pOpen.status === "fulfilled") setOpenPaperTrades(pOpen.value?.items ?? []);
-      } catch {}
+      setKlines(replay.candles);
+      setTechnicalReplay(replay);
+      setSmartMoney(replay.events);
     } catch (err) {
-      console.error("Failed to load chart data", err);
+      if (!controller.signal.aborted && requestGateRef.current.isCurrent(requestToken)) {
+        console.error("Failed to load chart data", err);
+        setKlines([]);
+        setTechnicalReplay(null);
+        setSmartMoney(null);
+        setReplayError(err instanceof Error ? err.message : "Không đọc được technical replay.");
+      }
     } finally {
-      setLoadingKlines(false);
+      if (requestGateRef.current.isCurrent(requestToken)) setLoadingKlines(false);
     }
-  }, [selectedSymbol, selectedTf]);
+  }, [asOfTimeMs, selectedSymbol, selectedTf]);
 
   useEffect(() => {
     void loadChartData();
+    return () => chartAbortRef.current?.abort();
   }, [loadChartData]);
 
   return (
@@ -239,7 +238,11 @@ export function BinanceTradingScreen() {
             <SymbolWatchlistPanel
               tickers={tickers}
               selectedSymbol={selectedSymbol}
-              onSelectSymbol={(sym) => setSelectedSymbol(sym)}
+              onSelectSymbol={(sym) => {
+                if (sym === selectedSymbol) return;
+                invalidateReplayRequest();
+                setSelectedSymbol(sym);
+              }}
             />
           </div>
         )}
@@ -259,8 +262,15 @@ export function BinanceTradingScreen() {
                 <span className="text-[10px] text-gray-500 font-semibold px-1.5 uppercase">Khung:</span>
                 {TIMEFRAMES.map((tf) => (
                   <button
+                    type="button"
                     key={tf.value}
-                    onClick={() => setSelectedTf(tf.value)}
+                    aria-pressed={selectedTf === tf.value}
+                    onClick={() => {
+                      if (tf.value === selectedTf) return;
+                      invalidateReplayRequest();
+                      setSelectedTf(tf.value);
+                      setAsOfTimeMs((current) => current == null ? null : normalizeReplayAsOfMs(current, tf.value));
+                    }}
                     className={`px-2 py-1 rounded font-bold text-xs transition-colors ${
                       selectedTf === tf.value
                         ? "bg-teal-500 text-gray-950 shadow-sm"
@@ -275,6 +285,24 @@ export function BinanceTradingScreen() {
               {/* Indicator Overlay Toggles */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
+                  type="button"
+                  aria-pressed={showIndicators}
+                  onClick={() => setShowIndicators(!showIndicators)}
+                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showIndicators ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800"}`}
+                >
+                  <Activity className="w-3 h-3" /> Indicators
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={showPatterns}
+                  onClick={() => setShowPatterns(!showPatterns)}
+                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showPatterns ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800"}`}
+                >
+                  <BarChart2 className="w-3 h-3" /> Patterns
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={showSmartMoney}
                   onClick={() => setShowSmartMoney(!showSmartMoney)}
                   className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
                     showSmartMoney
@@ -286,17 +314,19 @@ export function BinanceTradingScreen() {
                 </button>
 
                 <button
+                  type="button"
+                  aria-pressed={showVolumeProfile}
                   onClick={() => setShowVolumeProfile(!showVolumeProfile)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
-                    showVolumeProfile
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800"
-                  }`}
+                  disabled={technicalReplay?.layers.volumeProfile.availability === "unavailable"}
+                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${showVolumeProfile ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40" : "bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800"}`}
+                  title={technicalReplay?.layers.volumeProfile.availability === "unavailable" ? technicalReplay.layers.volumeProfile.unavailableReason ?? "Volume Profile unavailable" : "Volume Profile point-in-time từ replay"}
                 >
                   <BarChart2 className="w-3 h-3" /> Volume Profile
                 </button>
 
                 <button
+                  type="button"
+                  aria-pressed={showFibonacci}
                   onClick={() => setShowFibonacci(!showFibonacci)}
                   className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
                     showFibonacci
@@ -308,20 +338,55 @@ export function BinanceTradingScreen() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => void loadChartData(selectedSymbol, selectedTf)}
                   className="p-1.5 rounded bg-gray-900 text-gray-400 hover:text-gray-200 border border-gray-800 hover:bg-gray-800 transition-colors"
                   title="Làm mới nến"
+                  aria-label={`Làm mới nến BTCUSDT ${selectedTf}`}
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loadingKlines ? "animate-spin text-teal-400" : ""}`} />
                 </button>
               </div>
             </div>
 
+            <TechnicalReplayPanel
+              symbol={ACTIVE_SYMBOL}
+              timeframe={selectedTf}
+              asOfTimeMs={asOfTimeMs}
+              replay={technicalReplay}
+              loading={loadingKlines}
+              error={replayError}
+              selectedEvent={selectedReplayEvent}
+              unavailableOverlays={[
+                ...(technicalReplay?.coverage.filter((item) => item.availability === "unavailable").map((item) => item.layerKey) ?? []),
+                ...(replayError ? ["Technical replay"] : []),
+              ]}
+              onSetAsOf={(timeMs) => {
+                const normalized = normalizeReplayAsOfMs(timeMs, selectedTf);
+                if (normalized === asOfTimeMs) return;
+                invalidateReplayRequest();
+                setAsOfTimeMs(normalized);
+              }}
+              onStep={(direction) => {
+                invalidateReplayRequest();
+                setAsOfTimeMs((current) => {
+                  const base = current ?? normalizeReplayAsOfMs(Date.now(), selectedTf);
+                  return stepReplayAsOfMs(base, selectedTf, direction);
+                });
+              }}
+              onReturnLive={() => {
+                if (asOfTimeMs == null) return;
+                invalidateReplayRequest();
+                setAsOfTimeMs(null);
+              }}
+              onSelectEvent={setSelectedReplayEvent}
+            />
+
             {/* Candlestick Chart Area */}
             <div className="p-2 min-h-[460px] relative bg-gray-950">
               {klines.length > 0 && (
                 <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
-                  <span>Binance Spot · REST candles</span>
+                  <span>Stored finalized Binance Spot klines · cùng nguồn với replay layers</span>
                   <span className={`rounded border px-2 py-0.5 ${latestCandleLifecycle(klines, selectedTf) === "forming" ? "border-amber-700/60 bg-amber-950/30 text-amber-300" : "border-emerald-800/60 bg-emerald-950/30 text-emerald-300"}`}>
                     Nến cuối: {latestCandleLifecycle(klines, selectedTf) === "forming" ? "đang hình thành — không phải nến chốt" : "đã đóng"}
                   </span>
@@ -339,21 +404,30 @@ export function BinanceTradingScreen() {
                 <BtcCandlestickChart
                   data={klines}
                   height={460}
-                  volumeProfile={showVolumeProfile ? volumeProfile : null}
+                  volumeProfile={showVolumeProfile ? technicalReplay?.layers.volumeProfile.payload ?? null : null}
                   smartMoney={showSmartMoney ? smartMoney : null}
+                  replayPatterns={showPatterns ? technicalReplay?.layers.candlePatterns.payload ?? null : null}
+                  replayIndicators={showIndicators ? technicalReplay?.layers.indicators.payload ?? null : null}
+                  replayFibonacci={technicalReplay?.layers.fibonacci.payload ?? null}
                   showFibonacci={showFibonacci}
                   timeframe={selectedTf}
+                  onSelectSmartMoney={(event) => {
+                    const replayEvent = technicalReplay?.events.find((item) => item.eventId === (event as TechnicalReplayEvent).eventId);
+                    if (replayEvent) setSelectedReplayEvent(replayEvent);
+                  }}
                 />
               )}
             </div>
           </div>
 
-          {/* Bottom Tabs Panel: Market Trades History / Paper Trades / Smart Money Analysis */}
+          {/* Bottom Tabs Panel: realtime trades / replay Smart Money evidence */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
             {/* Tabs Header */}
             <div className="flex items-center justify-between p-2 bg-gray-950/80 border-b border-gray-800 overflow-x-auto text-xs">
               <div className="flex items-center gap-1.5">
                 <button
+                  type="button"
+                  aria-pressed={bottomTab === "market_trades"}
                   onClick={() => setBottomTab("market_trades")}
                   className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
                     bottomTab === "market_trades"
@@ -362,27 +436,12 @@ export function BinanceTradingScreen() {
                   }`}
                 >
                   <ArrowDownUp className="w-3.5 h-3.5" />
-                  Lịch sử khớp lệnh ({selectedSymbol.replace(/USDT$/i, "")})
+                  Khớp lệnh realtime ({selectedSymbol.replace(/USDT$/i, "")})
                 </button>
 
                 <button
-                  onClick={() => setBottomTab("paper_trades")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                    bottomTab === "paper_trades"
-                      ? "bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-sm"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                  }`}
-                >
-                  <Activity className="w-3.5 h-3.5" />
-                  Vị thế Paper Trading & AI
-                  {openPaperTrades.length > 0 && (
-                    <span className="bg-teal-500 text-gray-950 font-bold text-[10px] px-1.5 py-0.2 rounded-full">
-                      {openPaperTrades.length}
-                    </span>
-                  )}
-                </button>
-
-                <button
+                  type="button"
+                  aria-pressed={bottomTab === "smart_money"}
                   onClick={() => setBottomTab("smart_money")}
                   className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
                     bottomTab === "smart_money"
@@ -394,17 +453,6 @@ export function BinanceTradingScreen() {
                   Cấu trúc Smart Money
                 </button>
 
-                <button
-                  onClick={() => setBottomTab("liquidation_heatmap")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                    bottomTab === "liquidation_heatmap"
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                  }`}
-                >
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
-                  Bản đồ Thanh lý (Heatmap)
-                </button>
               </div>
 
               {/* Active Symbol Tag */}
@@ -419,94 +467,10 @@ export function BinanceTradingScreen() {
               {bottomTab === "market_trades" && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-gray-400">
-                    <p>Các giao dịch vừa được khớp lệnh trên sàn Binance:</p>
+                    <p>Luồng realtime độc lập với cutoff Technical Replay:</p>
                     <span className="text-[11px] text-teal-400">Cập nhật tự động 2s</span>
                   </div>
                   <MarketTradesWidget symbol={selectedSymbol} limit={30} />
-                </div>
-              )}
-
-              {bottomTab === "paper_trades" && (
-                <div className="space-y-3 text-xs">
-                  {/* Summary Bar */}
-                  {paperSummary && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-950 p-2.5 rounded-lg border border-gray-800">
-                      <div>
-                        <div className="text-[10px] text-gray-500 uppercase">Tổng lệnh</div>
-                        <div className="font-bold text-gray-200">{paperSummary.totalTrades}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-gray-500 uppercase">Tỷ lệ thắng</div>
-                        <div className="font-bold text-teal-400">{(paperSummary.winRate * 100).toFixed(1)}%</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-gray-500 uppercase">Lợi nhuận ròng</div>
-                        <div className={`font-bold ${paperSummary.totalNetReturnPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                          {paperSummary.totalNetReturnPct >= 0 ? "+" : ""}{paperSummary.totalNetReturnPct.toFixed(2)}%
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-gray-500 uppercase">Max Drawdown</div>
-                        <div className="font-bold text-rose-400">-{paperSummary.maxDrawdownPct.toFixed(2)}%</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Open Trades Table */}
-                  <div>
-                    <h4 className="font-bold text-gray-300 text-xs mb-1.5 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      Vị thế đang mở ({openPaperTrades.length})
-                    </h4>
-                    {openPaperTrades.length === 0 ? (
-                      <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-500 text-xs">
-                        Hiện không có vị thế mở nào cho {selectedSymbol}
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto border border-gray-800 rounded-lg">
-                        <table className="w-full text-left font-mono text-[11px]">
-                          <thead className="bg-gray-950 text-gray-400 border-b border-gray-800">
-                            <tr>
-                              <th className="p-2">Hướng</th>
-                              <th className="p-2">Giá vào</th>
-                              <th className="p-2">Độ tin cậy</th>
-                              <th className="p-2">TP / SL</th>
-                              <th className="p-2">Thời gian</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-800/50">
-                            {openPaperTrades.map((t) => (
-                              <tr key={t.id} className="hover:bg-gray-800/30">
-                                <td className="p-2">
-                                  <span
-                                    className={`px-1.5 py-0.5 rounded font-bold text-[10px] ${
-                                      t.side.toUpperCase() === "LONG"
-                                        ? "bg-emerald-500/20 text-emerald-400"
-                                        : "bg-rose-500/20 text-rose-400"
-                                    }`}
-                                  >
-                                    {t.side.toUpperCase()}
-                                  </span>
-                                </td>
-                                <td className="p-2 text-gray-200">
-                                  {t.entryPrice != null ? `$${t.entryPrice.toFixed(2)}` : "--"}
-                                </td>
-                                <td className="p-2 text-teal-400 font-semibold">
-                                  {t.confidence != null ? `${(t.confidence * 100).toFixed(1)}%` : "--"}
-                                </td>
-                                <td className="p-2 text-gray-400">
-                                  ${t.takeProfitPrice?.toFixed(2) ?? "--"} / ${t.stopLossPrice?.toFixed(2) ?? "--"}
-                                </td>
-                                <td className="p-2 text-gray-500">
-                                  {new Date(t.entryTimeMs).toLocaleTimeString("vi-VN")}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
@@ -521,7 +485,15 @@ export function BinanceTradingScreen() {
                         const isBull = sm.eventType.includes("BULL");
                         const isBear = sm.eventType.includes("BEAR");
                         return (
-                          <div key={sm.id} className="p-2.5 bg-gray-950 rounded-lg border border-gray-800/80 flex items-center justify-between">
+                          <button
+                            type="button"
+                            key={(sm as TechnicalReplayEvent).eventId ?? sm.id}
+                            onClick={() => {
+                              const event = technicalReplay?.events.find((item) => item.eventId === (sm as TechnicalReplayEvent).eventId);
+                              if (event) setSelectedReplayEvent(event);
+                            }}
+                            className="p-2.5 bg-gray-950 rounded-lg border border-gray-800/80 flex items-center justify-between text-left hover:border-cyan-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                          >
                             <div>
                               <span className="font-bold text-indigo-400">{sm.eventType.replace("_", " ")}</span>
                               <span className="text-[10px] text-gray-500 ml-2">{sm.timeframe}</span>
@@ -539,48 +511,34 @@ export function BinanceTradingScreen() {
                             >
                               {isBull ? "BULLISH" : isBear ? "BEARISH" : "NEUTRAL"}
                             </span>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
                   ) : (
                     <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-500">
-                      Chưa phát hiện vùng Order Block mới trên {selectedSymbol} ({selectedTf})
+                      Chưa phát hiện sự kiện hình học giá SMC (BOS/CHOCH/FVG/swing) trên {selectedSymbol} ({selectedTf}) tại mốc đang xem.
                     </div>
                   )}
                 </div>
               )}
 
-              {bottomTab === "liquidation_heatmap" && (
-                <div className="space-y-2">
-                  <ErrorBoundary fallbackTitle="Lỗi tải Bản đồ Thanh lý">
-                    <LiquidationHeatmapWidget
-                      symbol={selectedSymbol}
-                      timeframe={selectedTf}
-                      onSymbolChange={(s) => setSelectedSymbol(s)}
-                    />
-                  </ErrorBoundary>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Order Book & Market Trades & AI Widget */}
-        <div className="lg:col-span-4 xl:col-span-3 space-y-3">
-          {/* Regime & Macro Sentiment Badges */}
-          <div className="space-y-2">
-            <ErrorBoundary fallbackTitle="Lỗi tải Regime">
-              <RegimeBadge symbol={selectedSymbol} timeframe={selectedTf} />
-            </ErrorBoundary>
-            <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
-              <SentimentBadge symbol={selectedSymbol} compact={true} />
-            </ErrorBoundary>
+        {/* Realtime microstructure is deliberately separated from replay evidence. */}
+        <aside className="min-w-0 space-y-3 lg:col-span-4 xl:col-span-3" aria-label="Dữ liệu thị trường realtime độc lập với Technical Replay">
+          <div className="rounded-xl border border-amber-800/60 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200">
+            <strong className="block text-xs">REALTIME MARKET DATA</strong>
+            Khớp lệnh và sổ lệnh bên dưới cập nhật theo thời gian thực, không thuộc cutoff {technicalReplay?.effectiveAsOfTimeMs ? new Date(technicalReplay.effectiveAsOfTimeMs).toLocaleString("vi-VN") : "Technical Replay"} và không phải layer bằng chứng lịch sử.
           </div>
 
           {/* Right Tabs Header */}
           <div className="flex items-center gap-1 bg-gray-900 p-1 rounded-xl border border-gray-800 text-xs">
             <button
+              type="button"
+              aria-pressed={rightTab === "trades"}
               onClick={() => setRightTab("trades")}
               className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
                 rightTab === "trades"
@@ -591,6 +549,8 @@ export function BinanceTradingScreen() {
               <ArrowDownUp className="w-3 h-3" /> Khớp
             </button>
             <button
+              type="button"
+              aria-pressed={rightTab === "depth"}
               onClick={() => setRightTab("depth")}
               className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
                 rightTab === "depth"
@@ -599,16 +559,6 @@ export function BinanceTradingScreen() {
               }`}
             >
               <Layers className="w-3 h-3" /> Sổ
-            </button>
-            <button
-              onClick={() => setRightTab("ai")}
-              className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
-                rightTab === "ai"
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-              }`}
-            >
-              <BrainCircuit className="w-3 h-3" /> AI
             </button>
           </div>
 
@@ -622,16 +572,8 @@ export function BinanceTradingScreen() {
               <OrderBookWidget symbol={selectedSymbol} limit={11} />
             )}
 
-            {rightTab === "ai" && (
-              <div className="space-y-3 overflow-y-auto h-full pr-1">
-                <ErrorBoundary fallbackTitle="Lỗi tải Confluence">
-                  <ConfluenceWidget symbol={selectedSymbol} />
-                </ErrorBoundary>
-              </div>
-            )}
-
           </div>
-        </div>
+        </aside>
       </div>
 
     </div>

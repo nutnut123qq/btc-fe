@@ -189,7 +189,7 @@ export function AppShell() {
         {visitedTabs.has("market") && (
           <div className={activeTab === "market" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab Thị trường">
-              <MarketScreen />
+              <MarketScreen onOpenEvidence={() => handleTabChange("research")} />
             </ErrorBoundary>
           </div>
         )}

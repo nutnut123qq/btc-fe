@@ -1,3 +1,6 @@
+import { parseTechnicalEvidenceProfiles, type TechnicalEvidenceProfiles } from "./evidenceProfiles.ts";
+import { parseTechnicalStatisticalEvidence, type TechnicalStatisticalEvidence } from "./statisticalEvidence.ts";
+
 export const RESEARCH_EVIDENCE_KINDS = ["model", "feature", "event", "economic", "forward"] as const;
 
 export type ResearchEvidenceKind = (typeof RESEARCH_EVIDENCE_KINDS)[number];
@@ -134,6 +137,29 @@ export type ResearchEvidenceCatalog = {
     rejectedArtifactCount: number;
   };
   items: ResearchEvidenceSummary[];
+  pipeline: {
+    state: "idle" | "running" | "succeeded" | "failed" | "stale" | "unavailable";
+    integrityVerified: boolean;
+    running: boolean;
+    locked: boolean;
+    lastStartedAtUtc: string | null;
+    lastSucceededAtUtc: string | null;
+    lastFailedAtUtc: string | null;
+    lastError: string | null;
+    updatedAtUtc: string | null;
+    staleAfterUtc: string | null;
+    timeframes: Array<{
+      timeframe: "1h" | "4h" | "1d";
+      cutoffMs: number;
+      manifestSha256: string;
+      stored: number;
+      eligible: number;
+      excluded: number;
+      realizedAtMaxHorizon: number;
+      definitionsSha256: string | null;
+      semanticVerification: boolean;
+    }>;
+  } | null;
 };
 
 export type ResearchEvidenceDetail = ResearchEvidenceSummary & {
@@ -151,6 +177,8 @@ export type ResearchEvidenceDetail = ResearchEvidenceSummary & {
   provenance: EvidenceProvenance;
   folds: Record<string, unknown>[];
   rows: Record<string, unknown>[];
+  evidenceProfiles: TechnicalEvidenceProfiles | null;
+  statisticalEvidence: TechnicalStatisticalEvidence | null;
   rawSections: Record<string, unknown>;
 };
 
@@ -359,6 +387,46 @@ export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCa
   if (new Set(items.map((item) => item.id)).size !== items.length) {
     throw new Error("INVALID_API_RESPONSE: duplicate research evidence id");
   }
+  const pipelineRaw = valueAt(source, "pipeline");
+  const pipeline = pipelineRaw == null ? null : record(pipelineRaw, "evidence pipeline");
+  const pipelineState = pipeline ? requiredString(pipeline, "evidence pipeline state", "state") : null;
+  if (pipelineState != null && !new Set(["idle", "running", "succeeded", "failed", "stale", "unavailable"]).has(pipelineState)) {
+    throw new Error(`INVALID_API_RESPONSE: unknown evidence pipeline state ${pipelineState}`);
+  }
+  const pipelineRows = pipeline ? objectRows(valueAt(pipeline, "timeframes"), "evidence pipeline timeframes") : [];
+  const parsedPipelineRows = pipelineRows.map((item, index) => {
+    const timeframe = requiredString(item, `evidence pipeline timeframes[${index}].timeframe`, "timeframe");
+    if (!new Set(["1h", "4h", "1d"]).has(timeframe)) throw new Error("INVALID_API_RESPONSE: evidence pipeline timeframe is inactive");
+    const cutoffMs = requiredNonNegativeInteger(item, "cutoffMs");
+    const stored = requiredNonNegativeInteger(item, "stored");
+    const eligible = requiredNonNegativeInteger(item, "eligible");
+    const excluded = requiredNonNegativeInteger(item, "excluded");
+    const realizedAtMaxHorizon = requiredNonNegativeInteger(item, "realizedAtMaxHorizon");
+    if (cutoffMs <= 0 || eligible + excluded !== stored || realizedAtMaxHorizon > eligible) {
+      throw new Error("INVALID_API_RESPONSE: evidence pipeline coverage counts are inconsistent");
+    }
+    if (typeof item.semanticVerification !== "boolean") throw new Error("INVALID_API_RESPONSE: evidence pipeline semanticVerification must be boolean");
+    return {
+      timeframe: timeframe as "1h" | "4h" | "1d",
+      cutoffMs,
+      manifestSha256: requireSha256(requiredString(item, "evidence pipeline manifestSha256", "manifestSha256"), "manifestSha256")!,
+      stored,
+      eligible,
+      excluded,
+      realizedAtMaxHorizon,
+      definitionsSha256: requireSha256(optionalString(item, "definitionsSha256"), "definitionsSha256"),
+      semanticVerification: item.semanticVerification,
+    };
+  });
+  if (new Set(parsedPipelineRows.map((item) => item.timeframe)).size !== parsedPipelineRows.length) {
+    throw new Error("INVALID_API_RESPONSE: duplicate evidence pipeline timeframe");
+  }
+  if (pipeline && (typeof pipeline.integrityVerified !== "boolean" || typeof pipeline.running !== "boolean" || typeof pipeline.locked !== "boolean")) {
+    throw new Error("INVALID_API_RESPONSE: evidence pipeline state flags must be boolean");
+  }
+  if (pipeline && (!pipeline.integrityVerified || pipelineState === "stale" || pipelineState === "unavailable") && parsedPipelineRows.length > 0) {
+    throw new Error("INVALID_API_RESPONSE: unverified or stale evidence pipeline cannot publish timeframe coverage");
+  }
   return {
     contractVersion: requiredString(source, "evidence contractVersion", "contractVersion"),
     generatedAtUtc: requiredString(source, "evidence generatedAtUtc", "generatedAtUtc"),
@@ -368,6 +436,19 @@ export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCa
       rejectedArtifactCount: requiredNonNegativeInteger(integrity, "rejectedArtifactCount"),
     },
     items,
+    pipeline: pipeline ? {
+      state: pipelineState as NonNullable<ResearchEvidenceCatalog["pipeline"]>["state"],
+      integrityVerified: pipeline.integrityVerified as boolean,
+      running: pipeline.running as boolean,
+      locked: pipeline.locked as boolean,
+      lastStartedAtUtc: optionalString(pipeline, "lastStartedAtUtc"),
+      lastSucceededAtUtc: optionalString(pipeline, "lastSucceededAtUtc"),
+      lastFailedAtUtc: optionalString(pipeline, "lastFailedAtUtc"),
+      lastError: optionalString(pipeline, "lastError"),
+      updatedAtUtc: optionalString(pipeline, "updatedAtUtc"),
+      staleAfterUtc: optionalString(pipeline, "staleAfterUtc"),
+      timeframes: parsedPipelineRows,
+    } : null,
   };
 }
 
@@ -390,6 +471,8 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
   const uncertaintyRows = objectRows(uncertaintyRaw, "uncertainty");
   const artifactRows = objectRows(valueAt(source, "artifacts"), "artifacts");
   const findingRows = objectRows(valueAt(source, "findings"), "findings");
+  const evidenceProfilesRaw = valueAt(source, "evidenceProfiles");
+  const statisticalEvidenceRaw = valueAt(source, "statisticalEvidence");
   const metrics = parseMetrics(valueAt(source, "metrics"), "metrics").map((metric) => {
     const interval = uncertaintyRows.find((item) => optionalString(item, "name") === metric.name);
     return interval ? {
@@ -489,6 +572,8 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
     },
     folds: objectRows(valueAt(source, "folds"), "folds"),
     rows: objectRows(valueAt(source, "rows", "predictions"), "evidence rows"),
+    evidenceProfiles: evidenceProfilesRaw == null ? null : parseTechnicalEvidenceProfiles(evidenceProfilesRaw),
+    statisticalEvidence: statisticalEvidenceRaw == null ? null : parseTechnicalStatisticalEvidence(statisticalEvidenceRaw),
     rawSections: source,
   };
 }

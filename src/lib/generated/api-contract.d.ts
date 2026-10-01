@@ -2455,6 +2455,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/market/data-quality/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    endOpenTimeMs?: number;
+                    limit?: number;
+                    startOpenTimeMs?: number;
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KlineDataIssuesResponse"];
+                        "text/json": components["schemas"]["KlineDataIssuesResponse"];
+                        "text/plain": components["schemas"]["KlineDataIssuesResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/market/data-quality/repair": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["KlineDataRepairRequest"];
+                    "application/json": components["schemas"]["KlineDataRepairRequest"];
+                    "text/json": components["schemas"]["KlineDataRepairRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KlineDataRepairResponse"];
+                        "text/json": components["schemas"]["KlineDataRepairResponse"];
+                        "text/plain": components["schemas"]["KlineDataRepairResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/Market/depth": {
         parameters: {
             query?: never;
@@ -4116,6 +4246,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/smart-money/causal-coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CausalSmartMoneyCoverageResponse"];
+                        "text/json": components["schemas"]["CausalSmartMoneyCoverageResponse"];
+                        "text/plain": components["schemas"]["CausalSmartMoneyCoverageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/smart-money/causal-rebuild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["CausalSmartMoneyRebuildRequest"];
+                    "application/json": components["schemas"]["CausalSmartMoneyRebuildRequest"];
+                    "text/json": components["schemas"]["CausalSmartMoneyRebuildRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CausalSmartMoneyRebuildResult"];
+                        "text/json": components["schemas"]["CausalSmartMoneyRebuildResult"];
+                        "text/plain": components["schemas"]["CausalSmartMoneyRebuildResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/smart-money/detect": {
         parameters: {
             query?: never;
@@ -4144,6 +4390,186 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/smart-money/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    asOfTimeMs?: number;
+                    lookbackBars?: number;
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TechnicalReplayResponse"];
+                        "text/json": components["schemas"]["TechnicalReplayResponse"];
+                        "text/plain": components["schemas"]["TechnicalReplayResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/smart-money/replay/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TechnicalEvidenceCoverageResponse"];
+                        "text/json": components["schemas"]["TechnicalEvidenceCoverageResponse"];
+                        "text/plain": components["schemas"]["TechnicalEvidenceCoverageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/smart-money/replay/rebuild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["TechnicalEvidenceRebuildRequest"];
+                    "application/json": components["schemas"]["TechnicalEvidenceRebuildRequest"];
+                    "text/json": components["schemas"]["TechnicalEvidenceRebuildRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TechnicalEvidenceRebuildResult"];
+                        "text/json": components["schemas"]["TechnicalEvidenceRebuildResult"];
+                        "text/plain": components["schemas"]["TechnicalEvidenceRebuildResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
                 };
             };
         };
@@ -4743,6 +5169,27 @@ export interface components {
             startOpenTimeMs?: number;
             status?: string | null;
         };
+        CandlePatternEventDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            /** Format: int64 */
+            originTimeMs?: number;
+            patternCategory?: string | null;
+            patternType?: string | null;
+            sourceOpenTimeMs?: number[] | null;
+            trendDirection?: string | null;
+        };
+        CandlePatternReplayDto: {
+            events?: components["schemas"]["CandlePatternEventDto"][] | null;
+        };
+        CandlePatternReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["CandlePatternReplayDto"];
+            unavailableReason?: string | null;
+        };
         CandlesAroundResponse: {
             candles?: components["schemas"]["KlineDto"][] | null;
             /** Format: int64 */
@@ -4752,6 +5199,126 @@ export interface components {
             resolvedTimeMs?: number | null;
             symbol?: string | null;
             timeframe?: string | null;
+        };
+        CausalSmartMoneyCoverageResponse: {
+            calculationVersion?: string | null;
+            checkpointStatus?: string | null;
+            /** Format: int64 */
+            coverageStartOpenTimeMs?: number | null;
+            eventsByType?: {
+                [key: string]: number;
+            } | null;
+            /** Format: int64 */
+            historicalPendingGapRanges?: number;
+            /** Format: int64 */
+            invalidDurationRows?: number;
+            /** Format: int64 */
+            lastProcessedOpenTimeMs?: number | null;
+            /** Format: int64 */
+            latestSegmentStartOpenTimeMs?: number | null;
+            legacyStorageStatus?: string | null;
+            /** Format: int64 */
+            materializedEventCount?: number;
+            /** Format: int64 */
+            persistedEventCount?: number;
+            /** Format: int64 */
+            processedCandleCount?: number;
+            symbol?: string | null;
+            timeframe?: string | null;
+            /** Format: int64 */
+            trailingNotYetFinalizedGapRanges?: number;
+            /** Format: int64 */
+            unavailableGapRanges?: number;
+        };
+        CausalSmartMoneyGapBoundaryDto: {
+            boundaryType?: string | null;
+            /** Format: int64 */
+            gapStateId?: number | null;
+            /** Format: int64 */
+            invalidOpenTimeMs?: number | null;
+            ledgerStatus?: string | null;
+            /** Format: int64 */
+            missingBars?: number;
+            /** Format: int64 */
+            nextOpenTimeMs?: number | null;
+            /** Format: int64 */
+            previousOpenTimeMs?: number | null;
+        };
+        CausalSmartMoneyRebuildRequest: {
+            dryRun?: boolean;
+            /** Format: int32 */
+            maxCandles?: number;
+            previewFromBeginning?: boolean;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        CausalSmartMoneyRebuildResult: {
+            /** Format: int64 */
+            batchStartOpenTimeMs?: number | null;
+            calculationVersion?: string | null;
+            /** Format: int32 */
+            candidateCandles?: number;
+            /** Format: int32 */
+            contextCandles?: number;
+            /** Format: int32 */
+            contiguousSegments?: number;
+            /** Format: int64 */
+            coverageStartOpenTimeMs?: number | null;
+            dryRun?: boolean;
+            /** Format: int32 */
+            estimatedEvents?: number;
+            /** Format: int64 */
+            estimatedEvidenceBytes?: number;
+            /** Format: int32 */
+            existingEvents?: number;
+            gapBoundaries?: components["schemas"]["CausalSmartMoneyGapBoundaryDto"][] | null;
+            /** Format: int32 */
+            insertedEvents?: number;
+            /** Format: int32 */
+            invalidDurationCandles?: number;
+            /** Format: int64 */
+            lastProcessedOpenTimeMs?: number | null;
+            limitations?: string[] | null;
+            /** Format: int64 */
+            previousCheckpointOpenTimeMs?: number | null;
+            status?: string | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+            /** Format: int32 */
+            updatedEvents?: number;
+            /** Format: int32 */
+            validCandidateCandles?: number;
+        };
+        ConfluenceModuleVoteDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            layerKey?: string | null;
+            reason?: string | null;
+            /** Format: int32 */
+            vote?: number;
+        };
+        ConfluenceReplayDto: {
+            /** Format: int32 */
+            alignedDirectionalModules?: number;
+            /** Format: int64 */
+            availableTimeMs?: number;
+            eventType?: string | null;
+            hasConflict?: boolean;
+            isProbability?: boolean;
+            moduleVotes?: components["schemas"]["ConfluenceModuleVoteDto"][] | null;
+            overallDirection?: string | null;
+            /** Format: double */
+            score?: number;
+            scoreKind?: string | null;
+            triggeredEvents?: string[] | null;
+        };
+        ConfluenceReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["ConfluenceReplayDto"];
+            unavailableReason?: string | null;
         };
         DataAuditResponse: {
             derivatives?: components["schemas"]["DerivativesAudit"];
@@ -4874,6 +5441,35 @@ export interface components {
             readonly roundTripCostPct?: number;
             /** Format: double */
             slippageBpsPerSide?: number;
+        };
+        FibonacciLevelDto: {
+            /** Format: double */
+            price?: number;
+            /** Format: double */
+            ratio?: number;
+        };
+        FibonacciReplayDto: {
+            /** Format: int64 */
+            anchorEndTimeMs?: number;
+            /** Format: double */
+            anchorHigh?: number;
+            /** Format: double */
+            anchorLow?: number;
+            /** Format: int64 */
+            anchorStartTimeMs?: number;
+            /** Format: int64 */
+            availableTimeMs?: number;
+            direction?: string | null;
+            eventType?: string | null;
+            levels?: components["schemas"]["FibonacciLevelDto"][] | null;
+        };
+        FibonacciReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["FibonacciReplayDto"];
+            unavailableReason?: string | null;
         };
         FuturesMetricQuality: {
             /** Format: int64 */
@@ -5082,6 +5678,94 @@ export interface components {
             reason?: string | null;
             status?: string | null;
         };
+        KlineDataIssueDto: {
+            /** Format: int64 */
+            actualDurationMs?: number | null;
+            /** Format: int64 */
+            affectedBars?: number;
+            affectedDownstreamArtifacts: string[];
+            causeCode: string;
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            evidence: components["schemas"]["KlineIssueEvidenceDto"];
+            /** Format: int64 */
+            expectedDurationMs?: number;
+            /** Format: date-time */
+            firstDetectedAtUtc?: string | null;
+            issueKey: string;
+            issueType: string;
+            repairable?: boolean;
+            resolutionState: string;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+            symbol: string;
+            timeframe: string;
+            /** Format: date-time */
+            updatedAtUtc?: string | null;
+        };
+        KlineDataIssuesResponse: {
+            /** Format: int64 */
+            auditEndOpenTimeMs?: number;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            issues: components["schemas"]["KlineDataIssueDto"][];
+            limitations: string[];
+            recentRepairs: components["schemas"]["KlineRepairAuditDto"][];
+            symbol: string;
+            taxonomyVersion: string;
+            timeframe: string;
+            /** Format: int64 */
+            totalKnownIssues?: number;
+            truncated?: boolean;
+        };
+        KlineDataRepairRequest: {
+            dryRun?: boolean;
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            expectedPlanSha256?: string | null;
+            issueType: string;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        KlineDataRepairResponse: {
+            affectedDownstreamArtifacts: string[];
+            alreadyApplied?: boolean;
+            applied?: boolean;
+            derivedRebuildRequired?: boolean;
+            dryRun?: boolean;
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            /** Format: int32 */
+            insertedBars?: number;
+            issueType: string;
+            limitations: string[];
+            /** Format: int32 */
+            noopBars?: number;
+            planSha256: string;
+            /** Format: int64 */
+            repairAuditId?: number | null;
+            /** Format: int32 */
+            replacedBars?: number;
+            /** Format: int32 */
+            requestedBars?: number;
+            /** Format: date-time */
+            sourceCheckedAtUtc?: string;
+            sourceClassification: string;
+            sourceEndpoint: string;
+            sourceEvidenceSha256: string;
+            /** Format: int32 */
+            sourceRows?: number;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+            symbol: string;
+            taxonomyVersion: string;
+            timeframe: string;
+            unresolvedOpenTimeMs: number[];
+            /** Format: int32 */
+            verifiedSourceBars?: number;
+        };
         KlineDto: {
             /** Format: double */
             close?: number;
@@ -5118,6 +5802,18 @@ export interface components {
             status?: string | null;
             timeframe?: string | null;
         };
+        KlineIssueEvidenceDto: {
+            authoritativeRepairSource: string;
+            detail?: string | null;
+            detectionMethod: string;
+            /** Format: date-time */
+            lastSourceAttemptAtUtc?: string | null;
+            /** Format: date-time */
+            nextSourceRetryAtUtc?: string | null;
+            /** Format: int32 */
+            sourceAttemptCount?: number;
+            sourceClassification: string;
+        };
         KlineQualityAudit: {
             /** Format: int64 */
             duplicateOpenTimeRows?: number;
@@ -5126,12 +5822,42 @@ export interface components {
             /** Format: int64 */
             formingRows?: number;
             /** Format: int64 */
+            invalidDurationRows?: number;
+            /** Format: int64 */
             invalidOhlcvRows?: number;
             isStale?: boolean;
             /** Format: int64 */
             latestFinalizedAgeSeconds?: number | null;
             /** Format: int64 */
             latestFinalizedCloseTimeMs?: number | null;
+        };
+        KlineRepairAuditDto: {
+            /** Format: date-time */
+            appliedAtUtc?: string;
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            insertedBars?: number;
+            issueType: string;
+            /** Format: int32 */
+            noopBars?: number;
+            planSha256: string;
+            /** Format: int32 */
+            replacedBars?: number;
+            /** Format: int32 */
+            requestedBars?: number;
+            /** Format: date-time */
+            sourceCheckedAtUtc?: string;
+            sourceClassification: string;
+            sourceEvidenceSha256: string;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+            /** Format: int32 */
+            unresolvedBars?: number;
+            /** Format: int32 */
+            verifiedSourceBars?: number;
         };
         MarketMetricQuality: {
             /** Format: int64 */
@@ -5152,6 +5878,34 @@ export interface components {
             /** Format: int64 */
             rows?: number;
             timeframe?: string | null;
+        };
+        MarketRegimeReplayDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            /** Format: double */
+            currentTrueRangePct?: number;
+            /** Format: int32 */
+            downChanges?: number;
+            eventType?: string | null;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            priorMedianTrueRangePct?: number;
+            /** Format: double */
+            rangeRatio?: number;
+            regimeType?: string | null;
+            trend?: string | null;
+            /** Format: int32 */
+            upChanges?: number;
+            volatility?: string | null;
+        };
+        MarketRegimeReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["MarketRegimeReplayDto"];
+            unavailableReason?: string | null;
         };
         MarketTickerDto: {
             /** Format: double */
@@ -5371,6 +6125,7 @@ export interface components {
             generatedAtUtc: string;
             integrity: components["schemas"]["EvidenceIntegritySummaryDto"];
             items: components["schemas"]["ResearchEvidenceCatalogItemDto"][];
+            pipeline?: components["schemas"]["ResearchEvidencePipelineStatusDto"];
             symbol: string;
         };
         ResearchEvidenceCoverageDto: {
@@ -5401,6 +6156,7 @@ export interface components {
             /** Format: date-time */
             createdAtUtc?: string | null;
             dataset: components["schemas"]["ResearchEvidenceDatasetDto"];
+            evidenceProfiles?: unknown;
             evidenceTier: string;
             findings: components["schemas"]["ResearchEvidenceFindingDto"][];
             hypothesis: string;
@@ -5413,6 +6169,7 @@ export interface components {
             protocol: components["schemas"]["ResearchEvidenceProtocolDto"];
             provenance: components["schemas"]["ResearchEvidenceProvenanceDto"];
             reportSha256: string;
+            statisticalEvidence?: unknown;
             status: string;
             summary: string;
             symbol: string;
@@ -5442,6 +6199,40 @@ export interface components {
             unit: string;
             /** Format: double */
             value?: number | null;
+        };
+        ResearchEvidencePipelineStatusDto: {
+            integrityVerified?: boolean;
+            lastError?: string | null;
+            /** Format: date-time */
+            lastFailedAtUtc?: string | null;
+            /** Format: date-time */
+            lastStartedAtUtc?: string | null;
+            /** Format: date-time */
+            lastSucceededAtUtc?: string | null;
+            locked?: boolean;
+            running?: boolean;
+            /** Format: date-time */
+            staleAfterUtc?: string | null;
+            state: string;
+            timeframes: components["schemas"]["ResearchEvidencePipelineTimeframeStatusDto"][];
+            /** Format: date-time */
+            updatedAtUtc?: string | null;
+        };
+        ResearchEvidencePipelineTimeframeStatusDto: {
+            /** Format: int64 */
+            cutoffMs?: number;
+            definitionsSha256?: string | null;
+            /** Format: int64 */
+            eligible?: number;
+            /** Format: int64 */
+            excluded?: number;
+            manifestSha256: string;
+            /** Format: int64 */
+            realizedAtMaxHorizon?: number;
+            semanticVerification?: boolean;
+            /** Format: int64 */
+            stored?: number;
+            timeframe: string;
         };
         ResearchEvidenceProtocolDto: {
             chronologicalOos?: boolean | null;
@@ -5553,6 +6344,242 @@ export interface components {
             operationalStatus: string;
             version: string;
         };
+        TechnicalEventEvidenceDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            calculationVersion?: string | null;
+            description?: string | null;
+            detectionConditions?: string[] | null;
+            eventId?: string | null;
+            eventType?: string | null;
+            /** Format: double */
+            highPrice?: number | null;
+            /** Format: int64 */
+            invalidatedAtMs?: number | null;
+            invalidationRule?: string | null;
+            limitations?: string[] | null;
+            /** Format: double */
+            lowPrice?: number | null;
+            /** Format: int64 */
+            mitigatedAtMs?: number | null;
+            mitigationRule?: string | null;
+            /** Format: int64 */
+            originTimeMs?: number;
+            /** Format: double */
+            price?: number;
+            /** Format: int64 */
+            referenceTimeMs?: number | null;
+            sourceCandles?: components["schemas"]["TechnicalSourceCandleDto"][] | null;
+            stateAtAsOf?: string | null;
+        };
+        TechnicalEvidenceCoverageResponse: {
+            checkpointStatus?: string | null;
+            /** Format: int64 */
+            coverageStartCloseTimeMs?: number | null;
+            historicalBackfill?: boolean;
+            /** Format: int64 */
+            lastProcessedCloseTimeMs?: number | null;
+            moduleContractSha256?: string | null;
+            moduleContractVersion?: string | null;
+            recordsByLayer?: {
+                [key: string]: number;
+            } | null;
+            /** Format: int64 */
+            sparseRecordCount?: number;
+            storagePolicy?: string | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        TechnicalEvidenceRebuildRequest: {
+            dryRun?: boolean;
+            /** Format: int32 */
+            maxCandles?: number;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        TechnicalEvidenceRebuildResult: {
+            /** Format: int64 */
+            batchStartCloseTimeMs?: number | null;
+            /** Format: int32 */
+            candidateCandles?: number;
+            /** Format: int64 */
+            coverageStartCloseTimeMs?: number | null;
+            dryRun?: boolean;
+            /** Format: int64 */
+            estimatedEnvelopeBytes?: number;
+            /** Format: int32 */
+            estimatedSparseRecords?: number;
+            /** Format: int32 */
+            existingRecords?: number;
+            historicalBackfill?: boolean;
+            /** Format: int32 */
+            insertedRecords?: number;
+            /** Format: int64 */
+            lastProcessedCloseTimeMs?: number | null;
+            limitations?: string[] | null;
+            moduleContractSha256?: string | null;
+            moduleContractVersion?: string | null;
+            /** Format: int64 */
+            previousCheckpointCloseTimeMs?: number | null;
+            status?: string | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        TechnicalIndicatorEventDto: {
+            /** Format: int32 */
+            direction?: number;
+            eventType?: string | null;
+            /** Format: double */
+            value?: number;
+        };
+        TechnicalIndicatorReplayDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            /** Format: double */
+            ema12?: number | null;
+            /** Format: double */
+            ema26?: number | null;
+            events?: components["schemas"]["TechnicalIndicatorEventDto"][] | null;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            rsi14?: number | null;
+            /** Format: double */
+            sma50?: number | null;
+        };
+        TechnicalIndicatorReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["TechnicalIndicatorReplayDto"];
+            unavailableReason?: string | null;
+        };
+        TechnicalLayerCoverageDto: {
+            availability?: string | null;
+            checkpointStatus?: string | null;
+            hasGapBoundary?: boolean;
+            isEventEnvelopeMaterializedAtAsOf?: boolean;
+            /** Format: int64 */
+            latestAvailableTimeMs?: number | null;
+            layerKey?: string | null;
+            /** Format: int32 */
+            requiredWarmupBars?: number;
+            /** Format: int32 */
+            sourceBars?: number;
+            storageStatus?: string | null;
+        };
+        TechnicalLayerLineageDto: {
+            /** Format: int64 */
+            availableTimeMs?: number | null;
+            calculationVersion?: string | null;
+            /** Format: int64 */
+            effectiveAsOfTimeMs?: number | null;
+            evaluationMode?: string | null;
+            isCausal?: boolean;
+            isPersisted?: boolean;
+            moduleContractSha256?: string | null;
+            moduleContractVersion?: string | null;
+            producer?: string | null;
+            /** Format: int64 */
+            requestedAsOfTimeMs?: number;
+            /** Format: int32 */
+            requiredWarmupBars?: number;
+            source?: string | null;
+            /** Format: int32 */
+            sourceCandleCount?: number;
+            /** Format: int64 */
+            sourceEndTimeMs?: number | null;
+            /** Format: int64 */
+            sourceStartTimeMs?: number | null;
+        };
+        TechnicalReplayAdministrationDto: {
+            /** Format: int32 */
+            contextLimitBars?: number;
+            hasGapBoundary?: boolean;
+            legacySmartMoneyStatus?: string | null;
+            rebuildReason?: string | null;
+            rebuildRequired?: boolean;
+        };
+        TechnicalReplayCandleDto: {
+            /** Format: double */
+            close?: number;
+            /** Format: int64 */
+            closeTimeMs?: number;
+            /** Format: double */
+            high?: number;
+            /** Format: double */
+            low?: number;
+            /** Format: double */
+            open?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            volume?: number;
+        };
+        TechnicalReplayLayersDto: {
+            candlePatterns?: components["schemas"]["CandlePatternReplayDtoTechnicalLayerEnvelopeDto"];
+            confluence?: components["schemas"]["ConfluenceReplayDtoTechnicalLayerEnvelopeDto"];
+            fibonacci?: components["schemas"]["FibonacciReplayDtoTechnicalLayerEnvelopeDto"];
+            indicators?: components["schemas"]["TechnicalIndicatorReplayDtoTechnicalLayerEnvelopeDto"];
+            marketRegime?: components["schemas"]["MarketRegimeReplayDtoTechnicalLayerEnvelopeDto"];
+            volumeAnomaly?: components["schemas"]["VolumeAnomalyReplayDtoTechnicalLayerEnvelopeDto"];
+            volumeProfile?: components["schemas"]["VolumeProfileReplayDtoTechnicalLayerEnvelopeDto"];
+        };
+        TechnicalReplayProvenanceDto: {
+            availabilityRule?: string | null;
+            contextRule?: string | null;
+            evaluationMode?: string | null;
+            persistedByReplay?: boolean;
+            source?: string | null;
+        };
+        TechnicalReplayResponse: {
+            administration?: components["schemas"]["TechnicalReplayAdministrationDto"];
+            /** Format: int32 */
+            analysisCandleCount?: number;
+            calculationVersion?: string | null;
+            candles?: components["schemas"]["TechnicalReplayCandleDto"][] | null;
+            /** Format: int64 */
+            contiguousSegmentStartTimeMs?: number | null;
+            coverage?: components["schemas"]["TechnicalLayerCoverageDto"][] | null;
+            /** Format: int64 */
+            effectiveAsOfTimeMs?: number | null;
+            events?: components["schemas"]["TechnicalEventEvidenceDto"][] | null;
+            /** Format: int64 */
+            lastFinalizedCandleCloseTimeMs?: number | null;
+            layers?: components["schemas"]["TechnicalReplayLayersDto"];
+            limitations?: string[] | null;
+            moduleContractSha256?: string | null;
+            moduleContractVersion?: string | null;
+            provenance?: components["schemas"]["TechnicalReplayProvenanceDto"];
+            /** Format: int64 */
+            replayWindowStartTimeMs?: number | null;
+            /** Format: int64 */
+            requestedAsOfTimeMs?: number;
+            /** Format: int32 */
+            requestedLookbackBars?: number;
+            /** Format: int32 */
+            sourceCandleCount?: number;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        TechnicalSourceCandleDto: {
+            /** Format: double */
+            close?: number;
+            /** Format: int64 */
+            closeTimeMs?: number;
+            /** Format: double */
+            high?: number;
+            /** Format: double */
+            low?: number;
+            /** Format: double */
+            open?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            role?: string | null;
+            /** Format: double */
+            volume?: number;
+        };
         TimeframeAudit: {
             active?: boolean;
             /** Format: int64 */
@@ -5640,6 +6667,71 @@ export interface components {
             priceAboveUsd?: number | null;
             /** Format: double */
             priceBelowUsd?: number | null;
+        };
+        VolumeAnomalyReplayDto: {
+            /** Format: int64 */
+            availableTimeMs?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            triggeredEvents?: string[] | null;
+            /** Format: double */
+            volume?: number;
+            /** Format: double */
+            volumeAnomalyRatio?: number;
+            /** Format: double */
+            volumeSma20?: number;
+            volumeTrend?: string | null;
+            /** Format: double */
+            volumeVsMax10?: number;
+            /** Format: double */
+            volumeVsPrevious?: number;
+        };
+        VolumeAnomalyReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["VolumeAnomalyReplayDto"];
+            unavailableReason?: string | null;
+        };
+        VolumeProfileBinDto: {
+            isPoc?: boolean;
+            isValueArea?: boolean;
+            /** Format: double */
+            priceLevel?: number;
+            /** Format: double */
+            volume?: number;
+            /** Format: double */
+            volumePct?: number;
+        };
+        VolumeProfileReplayDto: {
+            /** Format: int32 */
+            binCount?: number;
+            bins?: components["schemas"]["VolumeProfileBinDto"][] | null;
+            events?: string[] | null;
+            /** Format: double */
+            inputVolume?: number;
+            method?: string | null;
+            /** Format: double */
+            pocPrice?: number;
+            /** Format: double */
+            vahPrice?: number;
+            /** Format: double */
+            valPrice?: number;
+            /** Format: double */
+            valueAreaFraction?: number;
+            /** Format: int64 */
+            windowEndMs?: number;
+            /** Format: int64 */
+            windowStartMs?: number;
+        };
+        VolumeProfileReplayDtoTechnicalLayerEnvelopeDto: {
+            availability?: string | null;
+            layerKey?: string | null;
+            limitations?: string[] | null;
+            lineage?: components["schemas"]["TechnicalLayerLineageDto"];
+            payload?: components["schemas"]["VolumeProfileReplayDto"];
+            unavailableReason?: string | null;
         };
         WorkerHealth: {
             /** Format: int64 */

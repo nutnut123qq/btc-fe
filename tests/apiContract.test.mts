@@ -190,7 +190,7 @@ test("data audit requires classified gap state and latest candle age", () => {
   assert.throws(() => requireDataAudit({ ...response, timeframes: [{ ...timeframe, gapRangeCount: undefined }] }), /gapRangeCount/);
   assert.throws(() => requireDataAudit({ ...response, timeframes: [{ ...timeframe, latestCandleAgeSeconds: undefined }] }), /latestCandleAgeSeconds/);
   assert.throws(() => requireDataAudit({ ...response, timeframes: [{ ...timeframe, topGaps: [{ ...timeframe.topGaps[0], status: "Unknown" }] }] }), /status is invalid/);
-  const quality = { finalizedRows: 9, formingRows: 1, invalidOhlcvRows: 0, duplicateOpenTimeRows: 0, latestFinalizedCloseTimeMs: 10, latestFinalizedAgeSeconds: 20, isStale: false };
+  const quality = { finalizedRows: 9, formingRows: 1, invalidOhlcvRows: 0, invalidDurationRows: 2, duplicateOpenTimeRows: 0, latestFinalizedCloseTimeMs: 10, latestFinalizedAgeSeconds: 20, isStale: false };
   const derivedTables = [{ table: "TechnicalIndicators", rows: 9, latestSourceTimeMs: 10, latestAgeSeconds: 20, expectedOnePerFinalizedBar: true, missingRows: 0 }];
   const derivatives = {
     availabilityCaveat: "Reconstructed receipt times are not live receipt evidence.",
@@ -198,6 +198,7 @@ test("data audit requires classified gap state and latest candle age", () => {
     marketMetrics: [{ timeframe: "4h", rows: 5, duplicateOpenTimeRows: 0, latestOpenTimeMs: 10, latestAgeSeconds: 20, missingFundingRate: 0, missingOpenInterest: 0, missingLongShortRatio: 0, missingLiquidations: 5 }],
   };
   assert.equal(requireDataAudit({ ...response, derivatives, timeframes: [{ ...timeframe, quality, derivedTables }] }).symbol, "BTCUSDT");
+  assert.throws(() => requireDataAudit({ ...response, timeframes: [{ ...timeframe, quality: { ...quality, invalidDurationRows: undefined } }] }), /invalidDurationRows/);
   assert.throws(() => requireDataAudit({ ...response, timeframes: [{ ...timeframe, quality: { ...quality, isStale: "no" } }] }), /isStale/);
   assert.throws(() => requireDataAudit({ ...response, derivatives: { ...derivatives, availabilityCaveat: "" } }), /availabilityCaveat/);
 });

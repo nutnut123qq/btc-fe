@@ -43,7 +43,7 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
   };
 
   return (
-    <div className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-4">
+    <section className="min-w-0 max-w-full bg-gray-900/90 border border-gray-800 rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-4" aria-label="Giá thị trường realtime, độc lập với cutoff Technical Replay">
       {/* Active research symbol */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700/60 shadow-sm">
@@ -69,8 +69,8 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
               isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />
             )}
           </div>
-          <div className={`text-[11px] ${stale ? "text-amber-400" : "text-gray-400"}`}>
-            {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`}
+          <div className={`max-w-[18rem] text-[11px] leading-relaxed ${stale ? "text-amber-400" : "text-gray-400"}`}>
+            <strong>GIÁ REALTIME</strong> · {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`} · không phải giá tại as-of
           </div>
         </div>
       </div>
@@ -122,6 +122,6 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

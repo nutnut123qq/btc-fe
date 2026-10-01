@@ -6,6 +6,10 @@ import { parsePaperObservations } from "./paperObservations";
 import { authenticatedFetch } from "./sessionAuth";
 import { DEFAULT_TIMEFRAME } from "./timeframe";
 import { parseResearchEvidenceCatalog, parseResearchEvidenceDetail } from "./researchEvidence";
+import { parseTechnicalReplayEnvelope } from "./technicalReplay";
+import { parseTechnicalEvidenceCoverage, parseTechnicalEvidenceRebuildResult } from "./technicalEvidenceAdmin";
+import { parseCausalSmartMoneyCoverage, parseCausalSmartMoneyRebuildResult } from "./causalSmartMoneyAdmin";
+import { parseKlineDataIssues, parseKlineDataRepair } from "./dataQuality";
 
 const API_BASE = "";
 let apiContractCompatible = false;
@@ -56,18 +60,79 @@ export async function getBtcKlines({
   limit = 200,
   startTimeMs,
   endTimeMs,
+  signal,
 }: {
   symbol?: string;
   interval?: string;
   limit?: number;
   startTimeMs?: number;
   endTimeMs?: number;
+  signal?: AbortSignal;
 } = {}) {
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   if (startTimeMs != null) params.set("startTimeMs", String(startTimeMs));
   if (endTimeMs != null) params.set("endTimeMs", String(endTimeMs));
-  const res = await fetch(`${API_BASE}/api/market/klines?${params}`);
+  const res = await fetch(`${API_BASE}/api/market/klines?${params}`, { signal, cache: "no-store" });
   return getJson(res);
+}
+
+export async function getTechnicalReplaySmc({
+  symbol = "BTCUSDT",
+  timeframe = DEFAULT_TIMEFRAME,
+  asOfTimeMs,
+  lookbackBars = 500,
+  signal,
+}: {
+  symbol?: string;
+  timeframe?: string;
+  asOfTimeMs: number;
+  lookbackBars?: number;
+  signal?: AbortSignal;
+}) {
+  const params = new URLSearchParams({
+    symbol,
+    timeframe,
+    asOfTimeMs: String(asOfTimeMs),
+    lookbackBars: String(lookbackBars),
+  });
+  const res = await fetch(`${API_BASE}/api/smart-money/replay?${params}`, { signal, cache: "no-store" });
+  return parseTechnicalReplayEnvelope(await getJson(res));
+}
+
+export async function getTechnicalEvidenceCoverage(timeframe = DEFAULT_TIMEFRAME, signal?: AbortSignal) {
+  const params = new URLSearchParams({ symbol: "BTCUSDT", timeframe });
+  const res = await fetch(`${API_BASE}/api/smart-money/replay/coverage?${params}`, { signal, cache: "no-store" });
+  return parseTechnicalEvidenceCoverage(await getJson(res));
+}
+
+export async function rebuildTechnicalEvidence(options: { timeframe: string; dryRun?: boolean; maxCandles?: number }) {
+  const res = await adminFetch(`${API_BASE}/api/smart-money/replay/rebuild`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ symbol: "BTCUSDT", timeframe: options.timeframe, dryRun: options.dryRun ?? true, maxCandles: options.maxCandles ?? 25 }),
+  });
+  return parseTechnicalEvidenceRebuildResult(await getJson(res));
+}
+
+export async function getCausalSmartMoneyCoverage(timeframe = DEFAULT_TIMEFRAME, signal?: AbortSignal) {
+  const params = new URLSearchParams({ symbol: "BTCUSDT", timeframe });
+  const res = await fetch(`${API_BASE}/api/smart-money/causal-coverage?${params}`, { signal, cache: "no-store" });
+  return parseCausalSmartMoneyCoverage(await getJson(res));
+}
+
+export async function rebuildCausalSmartMoney(options: { timeframe: string; dryRun?: boolean; maxCandles?: number }) {
+  const res = await adminFetch(`${API_BASE}/api/smart-money/causal-rebuild`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      symbol: "BTCUSDT",
+      timeframe: options.timeframe,
+      dryRun: options.dryRun ?? true,
+      previewFromBeginning: false,
+      maxCandles: options.maxCandles ?? 1_000,
+    }),
+  });
+  return parseCausalSmartMoneyRebuildResult(await getJson(res));
 }
 
 export async function getMarketTickers() {
@@ -1062,6 +1127,36 @@ export async function getDataAudit(
   const res = await fetch(`${API_BASE}/api/market/data-audit?${params}`, { signal });
   const data: unknown = await getJson(res);
   return requireDataAudit(data) as import("./types").DataAuditResponse;
+}
+
+export async function getKlineDataIssues(timeframe = DEFAULT_TIMEFRAME, signal?: AbortSignal) {
+  const params = new URLSearchParams({ symbol: "BTCUSDT", timeframe, limit: "200" });
+  const res = await fetch(`${API_BASE}/api/market/data-quality/issues?${params}`, { signal, cache: "no-store" });
+  return parseKlineDataIssues(await getJson(res));
+}
+
+export async function repairKlineDataIssue(options: {
+  timeframe: string;
+  issueType: string;
+  startOpenTimeMs: number;
+  endOpenTimeMs: number;
+  dryRun: boolean;
+  expectedPlanSha256?: string | null;
+}) {
+  const res = await adminFetch(`${API_BASE}/api/market/data-quality/repair`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      symbol: "BTCUSDT",
+      timeframe: options.timeframe,
+      issueType: options.issueType,
+      startOpenTimeMs: options.startOpenTimeMs,
+      endOpenTimeMs: options.endOpenTimeMs,
+      dryRun: options.dryRun,
+      expectedPlanSha256: options.expectedPlanSha256 ?? null,
+    }),
+  });
+  return parseKlineDataRepair(await getJson(res));
 }
 
 export async function retryDataGap(id: number): Promise<import("./types").GapRetryResponse> {
