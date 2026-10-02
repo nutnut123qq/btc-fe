@@ -27,13 +27,25 @@ function conditionsPanel(page: Page) {
 }
 
 async function waitForConditionsResponse(page: Page, timeframe: string) {
+  // Match any status: callers must see non-200/timeout as a failure, not a skip.
   return page
     .waitForResponse(
-      (response) =>
-        new RegExp(`/api/research/current-conditions\\?.*timeframe=${timeframe}`).test(response.url()) && response.status() === 200,
+      (response) => new RegExp(`/api/research/current-conditions\\?.*timeframe=${timeframe}`).test(response.url()),
       { timeout: 90_000 },
     )
     .catch(() => null);
+}
+
+async function requireConditionsResponse(
+  timeframe: string,
+  pending: Promise<import("@playwright/test").Response | null>,
+) {
+  const response = await pending;
+  // Only an absent endpoint (404) may skip; any other failure must fail loudly.
+  test.skip(response?.status() === 404, "current-conditions endpoint chưa deploy trên stack này.");
+  expect(response, `endpoint /api/research/current-conditions?timeframe=${timeframe} phải trả response`).toBeTruthy();
+  expect(response!.status(), "endpoint phải trả 200").toBe(200);
+  return response!;
 }
 
 test.describe("current conditions panel (live stack)", () => {
@@ -47,9 +59,8 @@ test.describe("current conditions panel (live stack)", () => {
 
     const panel = conditionsPanel(page);
     await expect(panel).toBeVisible();
-    const response = await pending;
-    test.skip(!response, "current-conditions endpoint chưa deploy trên stack này.");
-    const payload = await response!.json();
+    const response = await requireConditionsResponse("4h", pending);
+    const payload = await response.json();
     expect(payload.timeframe).toBe("4h");
     expect(payload.asOfMs).toBeGreaterThan(0);
 
@@ -108,13 +119,12 @@ test.describe("current conditions panel (live stack)", () => {
     await openEvidenceCenter(page);
     const panel = conditionsPanel(page);
     await expect(panel).toBeVisible();
-    if (!(await first)) test.skip(true, "current-conditions endpoint chưa deploy trên stack này.");
+    await requireConditionsResponse("4h", first);
 
     const next = waitForConditionsResponse(page, "1h");
     await panel.getByLabel("Timeframe điều kiện hiện tại").selectOption("1h");
-    const response = await next;
-    expect(response, "selector phải gọi lại endpoint với timeframe=1h").toBeTruthy();
-    const payload = await response!.json();
+    const response = await requireConditionsResponse("1h", next);
+    const payload = await response.json();
     expect(payload.timeframe).toBe("1h");
     await expect(panel.getByText("BTCUSDT · 1h · thời điểm nến thị trường được phân tích")).toBeVisible();
     expect(errors).toEqual([]);
