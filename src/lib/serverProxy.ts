@@ -57,6 +57,14 @@ export function filterForwardHeaders(headers: Headers): Headers {
       filtered.set(key, value);
     }
   });
+  // Vercel strips x-forwarded-* on the outbound fetch, so restore the real
+  // client IP (first hop of the incoming chain, already set by the edge) for
+  // the backend's per-client rate-limit partition. No incoming XFF means there
+  // is nothing trustworthy to forward — leave the header absent.
+  const clientIp = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (clientIp) {
+    filtered.set("x-forwarded-for", clientIp);
+  }
   return filtered;
 }
 

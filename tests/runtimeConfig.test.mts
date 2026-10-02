@@ -31,7 +31,7 @@ test("security headers are applied to all routes without HSTS duplication", asyn
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "Content-Security-Policy-Report-Only":
+    "Content-Security-Policy":
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss://stream.binance.com:9443; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
   };
   for (const env of [{}, { NEXT_STANDALONE: "1" }]) {

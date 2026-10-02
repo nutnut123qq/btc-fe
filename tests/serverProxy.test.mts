@@ -204,13 +204,26 @@ test("proxy strips hop-by-hop and spoofed forwarding headers", () => {
     connection: "keep-alive",
     "content-length": "100",
     "x-forwarded-host": "evil.example",
+    "x-forwarded-for": "203.0.113.7, 10.0.0.1",
     "x-session-key": "session",
   }));
   assert.equal(requestHeaders.has("host"), false);
   assert.equal(requestHeaders.has("connection"), false);
   assert.equal(requestHeaders.has("content-length"), false);
   assert.equal(requestHeaders.has("x-forwarded-host"), false);
+  // The edge-set client IP (first hop) is restored so the backend can
+  // partition rate limits per real client instead of per Funnel ingress.
+  assert.equal(requestHeaders.get("x-forwarded-for"), "203.0.113.7");
   assert.equal(requestHeaders.get("x-session-key"), "session");
+
+  // Without an incoming XFF there is no trustworthy client IP — the header
+  // must stay absent rather than being fabricated.
+  const noXffHeaders = filterForwardHeaders(new Headers({
+    "x-forwarded-host": "evil.example",
+    "x-session-key": "session",
+  }));
+  assert.equal(noXffHeaders.has("x-forwarded-for"), false);
+  assert.equal(noXffHeaders.has("x-forwarded-host"), false);
 
   const responseHeaders = filterResponseHeaders(new Headers({
     connection: "close",
