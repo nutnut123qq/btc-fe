@@ -4,6 +4,7 @@ import path from "path";
 type NextBuildEnv = {
   BACKEND_INTERNAL_URL?: string;
   NEXT_STANDALONE?: string;
+  NODE_ENV?: string;
 };
 
 export function createNextConfig(env: NextBuildEnv = process.env as NextBuildEnv): NextConfig {
@@ -34,7 +35,9 @@ export function createNextConfig(env: NextBuildEnv = process.env as NextBuildEnv
               key: "Content-Security-Policy",
               value: [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                env.NODE_ENV === "development"
+                  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+                  : "script-src 'self' 'unsafe-inline'",
                 "style-src 'self' 'unsafe-inline'",
                 "img-src 'self' data:",
                 "connect-src 'self' wss://stream.binance.com:9443",

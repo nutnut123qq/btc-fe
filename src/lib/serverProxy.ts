@@ -65,6 +65,17 @@ export function filterForwardHeaders(headers: Headers): Headers {
   if (clientIp) {
     filtered.set("x-forwarded-for", clientIp);
   }
+  // Prove to the backend this request really came through the proxy: callers
+  // hitting the upstream ingress directly cannot forge the secret, so only
+  // proven requests get their x-forwarded-for trusted for rate-limit
+  // partitioning. Always drop the client-supplied value first — it is not a
+  // hop-by-hop or x-forwarded-* header, so the copy loop above would carry a
+  // spoofed one through.
+  filtered.delete("x-btc-ingress");
+  const ingressSecret = process.env.INGRESS_SHARED_SECRET;
+  if (ingressSecret) {
+    filtered.set("x-btc-ingress", ingressSecret);
+  }
   return filtered;
 }
 

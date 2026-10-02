@@ -235,6 +235,26 @@ test("proxy strips hop-by-hop and spoofed forwarding headers", () => {
   assert.equal(responseHeaders.get("x-custom"), "kept");
 });
 
+test("proxy proves ingress with the shared secret and strips client spoofs", () => {
+  const original = process.env.INGRESS_SHARED_SECRET;
+  try {
+    process.env.INGRESS_SHARED_SECRET = "test-secret";
+    const proven = filterForwardHeaders(new Headers({
+      "x-btc-ingress": "client-spoofed",
+      "x-forwarded-for": "203.0.113.7",
+    }));
+    assert.equal(proven.get("x-btc-ingress"), "test-secret");
+    assert.equal(proven.get("x-forwarded-for"), "203.0.113.7");
+
+    delete process.env.INGRESS_SHARED_SECRET;
+    const unconfigured = filterForwardHeaders(new Headers({ "x-btc-ingress": "client-spoofed" }));
+    assert.equal(unconfigured.has("x-btc-ingress"), false);
+  } finally {
+    if (original === undefined) delete process.env.INGRESS_SHARED_SECRET;
+    else process.env.INGRESS_SHARED_SECRET = original;
+  }
+});
+
 test("proxy returns a sanitized timeout without leaking its upstream URL", async () => {
   await withServer(() => {}, async (baseUrl) => {
     const response = await proxyApiRequest(
