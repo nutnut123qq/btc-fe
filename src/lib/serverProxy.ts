@@ -15,6 +15,8 @@ export interface ProxyOptions {
   customProxyHeader?: string;
   timeoutMs?: number;
   overrideBackendUrl?: string;
+  /** Test hook: fixed delay between attempts, bypasses the capped exponential backoff. */
+  retryDelayMs?: number;
 }
 
 function isTimeoutError(error: unknown): boolean {
@@ -77,6 +79,10 @@ export async function proxyApiRequest(
 ): Promise<Response> {
   const proxyTag = options.customProxyHeader ?? "node";
   const timeoutMs = options.timeoutMs ?? 290_000;
+  const method = request.method.toUpperCase();
+  const requestPath = `/api/${pathSegments.join("/")}`;
+  const startedAt = Date.now();
+  let attemptsMade = 0;
 
   try {
     const upstreamBase = getUpstreamBaseUrl(options.overrideBackendUrl);
@@ -85,7 +91,6 @@ export async function proxyApiRequest(
     const targetUrl = new URL(`${upstreamBase}/api/${sanitizedPath}`);
     targetUrl.search = incomingUrl.search;
 
-    const method = request.method.toUpperCase();
     const forwardHeaders = filterForwardHeaders(request.headers);
     let body: BodyInit | undefined;
     if (method !== "GET" && method !== "HEAD") {
@@ -93,7 +98,6 @@ export async function proxyApiRequest(
       if (buffer.byteLength > 0) body = buffer;
     }
 
-    const startedAt = Date.now();
     const send = (budgetMs: number) => fetch(targetUrl, {
       method,
       headers: forwardHeaders,
@@ -102,19 +106,24 @@ export async function proxyApiRequest(
       redirect: "manual",
     });
 
-    const maxAttempts = method === "GET" || method === "HEAD" ? 5 : 1;
+    // Funnel dips last tens of seconds: ~10 attempts with capped exponential
+    // backoff keep retrying ~27s. Only a thrown send() retries — a returned
+    // upstream response (even a 502) is forwarded untouched.
+    const maxAttempts = method === "GET" || method === "HEAD" ? 10 : 1;
     let upstreamResponse: Response | undefined;
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const remainingMs = timeoutMs - (Date.now() - startedAt);
       if (remainingMs <= 0) throw lastError ?? new DOMException("Proxy timeout", "TimeoutError");
       try {
+        attemptsMade = attempt;
         upstreamResponse = await send(remainingMs);
         break;
       } catch (error) {
         lastError = error;
         if (isTimeoutError(error) || attempt === maxAttempts) throw error;
-        await new Promise((resolve) => setTimeout(resolve, 150 * attempt * attempt));
+        const delayMs = options.retryDelayMs ?? Math.min(500 * 2 ** (attempt - 1), 5_000) + Math.random() * 100;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
     if (!upstreamResponse) throw lastError;
@@ -127,6 +136,11 @@ export async function proxyApiRequest(
   } catch (error: unknown) {
     const isTimeout = isTimeoutError(error);
     const status = isTimeout ? 504 : 502;
+    const errorName = error instanceof Error ? error.name : typeof error;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[server-proxy] ${method} ${requestPath} failed after ${attemptsMade} attempt(s) in ${Date.now() - startedAt}ms (${isTimeout ? "timeout" : "network"}): ${errorName}: ${errorMessage}`,
+    );
     return Response.json(
       {
         error: isTimeout ? "Gateway Timeout" : "Bad Gateway",

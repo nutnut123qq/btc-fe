@@ -13,6 +13,27 @@ import { parseCausalSmartMoneyCoverage, parseCausalSmartMoneyRebuildResult } fro
 import { parseKlineDataIssues, parseKlineDataRepair } from "./dataQuality";
 
 const API_BASE = "";
+
+// The Vercel proxy chain can drop requests during Tailscale dips. This module
+// shadows global fetch so every call site retries transport-level failures only:
+// a thrown TypeError (network) or a bare 502/504 (proxy-synthesized, never an API
+// error envelope — backend business errors are 400/404/500 and pass through).
+// Mutations are never retried; caller aborts propagate immediately.
+const nativeFetch = globalThis.fetch.bind(globalThis);
+async function fetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+  const maxAttempts = method === "GET" || method === "HEAD" ? 3 : 1;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await nativeFetch(input, init);
+      if (attempt + 1 === maxAttempts || (res.status !== 502 && res.status !== 504)) return res;
+    } catch (error) {
+      if (!(error instanceof TypeError) || attempt + 1 === maxAttempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400 * 2 ** attempt + Math.random() * 100));
+  }
+}
+
 let apiContractCompatible = false;
 
 export function setApiContractCompatibility(compatible: boolean): void {

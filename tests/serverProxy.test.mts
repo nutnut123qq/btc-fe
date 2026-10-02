@@ -75,7 +75,7 @@ test("proxy forwards a mutation body once without retrying upstream failures", a
   assert.equal(calls, 1);
 });
 
-test("proxy retries transient GET transport failures within five attempts", async () => {
+test("proxy retries transient GET transport failures", async () => {
   let calls = 0;
   await withServer((request, response) => {
     calls++;
@@ -94,6 +94,71 @@ test("proxy retries transient GET transport failures within five attempts", asyn
     assert.equal(response.status, 200);
   });
   assert.equal(calls, 5);
+});
+
+test("proxy retries transport failures beyond the old five-attempt window", async () => {
+  let calls = 0;
+  await withServer((request, response) => {
+    calls++;
+    if (calls < 8) {
+      request.socket.destroy();
+      return;
+    }
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ ok: true }));
+  }, async (baseUrl) => {
+    const response = await proxyApiRequest(
+      new Request("http://localhost/api/health/ready"),
+      ["health", "ready"],
+      { overrideBackendUrl: baseUrl, retryDelayMs: 1 }
+    );
+    assert.equal(response.status, 200);
+  });
+  assert.equal(calls, 8);
+});
+
+test("proxy forwards an upstream 502 without retrying it", async () => {
+  let calls = 0;
+  await withServer((request, response) => {
+    calls++;
+    response.writeHead(502, { "content-type": "text/plain" });
+    response.end("funnel dip");
+  }, async (baseUrl) => {
+    const response = await proxyApiRequest(
+      new Request("http://localhost/api/market/tickers"),
+      ["market", "tickers"],
+      { overrideBackendUrl: baseUrl, retryDelayMs: 1 }
+    );
+    assert.equal(response.status, 502);
+    assert.equal(await response.text(), "funnel dip");
+  });
+  assert.equal(calls, 1);
+});
+
+test("proxy logs one sanitized line when transport retries are exhausted", async () => {
+  const originalError = console.error;
+  const logs: string[] = [];
+  console.error = (...args: unknown[]) => { logs.push(args.join(" ")); };
+  try {
+    let calls = 0;
+    await withServer((request) => {
+      calls++;
+      request.socket.destroy();
+    }, async (baseUrl) => {
+      const response = await proxyApiRequest(
+        new Request("http://localhost/api/secret/endpoint?token=secret123"),
+        ["secret", "endpoint"],
+        { overrideBackendUrl: baseUrl, retryDelayMs: 1 }
+      );
+      assert.equal(response.status, 502);
+    });
+    assert.ok(calls > 1);
+  } finally {
+    console.error = originalError;
+  }
+  assert.equal(logs.length, 1);
+  assert.match(logs[0], /\[server-proxy\] GET \/api\/secret\/endpoint failed after \d+ attempt\(s\) in \d+ms \(network\):/);
+  assert.ok(!logs[0].includes("secret123"));
 });
 
 test("proxy never retries a mutation after a transport failure", async () => {
