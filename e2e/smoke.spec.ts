@@ -60,7 +60,7 @@ test("production build loads the primary screen without console errors", async (
   const errors = await mockBackend(page, true);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Bitcoin AI Analyst" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Sàn Binance Pro/ })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: /Dữ liệu thị trường realtime/ })).toBeVisible();
   await expect(page.getByText(/API contract không khớp/)).toHaveCount(0);
   await page.waitForTimeout(750);
   expect(errors).toEqual([]);

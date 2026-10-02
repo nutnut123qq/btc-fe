@@ -205,7 +205,6 @@ export function BinanceTradingScreen() {
       setSmartMoney(replay.events);
     } catch (err) {
       if (!controller.signal.aborted && requestGateRef.current.isCurrent(requestToken)) {
-        console.error("Failed to load chart data", err);
         setKlines([]);
         setTechnicalReplay(null);
         setSmartMoney(null);

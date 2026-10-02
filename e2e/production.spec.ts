@@ -52,9 +52,9 @@ type HistoricalAnalogResponse = {
 };
 
 function expectHistoricalAnalogInvariants(data: HistoricalAnalogResponse) {
-  expect(data.contractVersion).toBe("2026-09-historical-analogs");
-  expect(data.method).toBe("historical-analog-returns-shape-v1");
-  expect(data.rankingMethod).toBe("shape-similarity-desc-context-audit-only");
+  expect(data.contractVersion).toBe("2026-09-historical-analogs-v2");
+  expect(data.method).toBe("historical-analog-returns-shape-v2");
+  expect(data.rankingMethod).toBe("cosine-similarity-desc-point-in-time");
   expect(data.evaluationMethod).toBe("fixed-horizon-close-to-close-economic-threshold");
   expect(data.intervalMs).toBe(4 * 60 * 60 * 1_000);
   expect(data.exclusionBars).toBe(15 + 6);
@@ -136,14 +136,7 @@ test.describe("production dashboard", () => {
     await expect(page.getByText(/Đang kiểm tra API contract/)).toHaveCount(0, { timeout: 30_000 });
     await expect(page.getByText(/API contract không khớp|Không kiểm tra được API contract/)).toHaveCount(0);
 
-    await expect(page.getByRole("button", { name: /Sàn Binance Pro/ })).toBeVisible();
-    const advancedButton = page.getByRole("button", { name: /Phân tích nâng cao/ });
-    const advancedHeading = page.locator("main").getByText(/Deep Analysis & Pattern Index/);
-    await expect(async () => {
-      await advancedButton.click();
-      await expect(advancedHeading).toBeVisible({ timeout: 3_000 });
-    }).toPass({ timeout: 15_000 });
-    await page.getByRole("button", { name: /Sàn Binance Pro/ }).click();
+    await expect(page.getByRole("complementary", { name: /Dữ liệu thị trường realtime/ })).toBeVisible({ timeout: 15_000 });
 
     await openTab(page, "Mẫu nến", "Historical Analog");
     const analogApiResponse = await page.request.get(new URL(

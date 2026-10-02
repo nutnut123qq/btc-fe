@@ -174,7 +174,8 @@ test("historical analog renders auditable evidence and paginates eight at a time
 
   const explorer = page.getByRole("region", { name: "Historical Analog Explorer" });
   await expect(explorer).toBeVisible();
-  await expect(explorer.getByText("EXPERIMENTAL · CHƯA QUA OOS GATE")).toBeVisible();
+  await expect(explorer.getByTestId("capability-state")).toHaveText(/experimental/i);
+  await expect(explorer.getByText("Chưa qua OOS gate")).toBeVisible();
   await expect(explorer.getByTestId("analog-query-window")).toBeVisible();
   await expect(explorer.getByText("Ứng viên thô")).toBeVisible();
   await expect(explorer.getByText("Sau loại chồng lấn")).toBeVisible();
