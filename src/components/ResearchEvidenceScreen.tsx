@@ -44,6 +44,7 @@ import { CausalSmartMoneyAdministration } from "./CausalSmartMoneyAdministration
 import { EvidenceProfilesPanel } from "./EvidenceProfilesPanel";
 import { DataQualityAdministration } from "./DataQualityAdministration";
 import { StatisticalEvidencePanel } from "./StatisticalEvidencePanel";
+import { CurrentConditionsPanel } from "./CurrentConditionsPanel";
 
 type Section = "overview" | ResearchEvidenceKind;
 const EVIDENCE_READ_TIMEOUT_MS = 60_000;
@@ -469,6 +470,22 @@ export function ResearchEvidenceScreen() {
     }
   }, []);
 
+  // Conditions link to the dossier at manifest level: the catalog artifact id IS
+  // the bundle manifest sha256, so we resolve it against the loaded catalog and
+  // reuse the same selectArtifact → detail pipeline. No new detail view.
+  const openDossierByManifest = useCallback((manifestSha256: string) => {
+    const item = catalog?.items.find((entry) => entry.id === manifestSha256 || entry.manifestSha256 === manifestSha256) ?? null;
+    if (item) {
+      void selectArtifact(item);
+      return;
+    }
+    detailRequestRef.current += 1;
+    setSelectedId(null);
+    setDetail(null);
+    setDetailLoading(false);
+    setDetailError("Chưa có artifact nào trong catalog khớp manifest này; không mở hồ sơ thay thế.");
+  }, [catalog, selectArtifact]);
+
   return <div className="space-y-4">
     <header className="rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-cyan-950/20 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-2 text-cyan-400"><FileCheck2 className="h-5 w-5"/><span className="text-xs font-bold uppercase tracking-widest">Evidence Center</span></div><h2 className="mt-2 text-2xl font-bold">Nghiên cứu có thể kiểm chứng</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-gray-400">Mỗi kết luận phải nối được với snapshot dữ liệu, protocol, baseline, bất định, coverage, giới hạn và hash artifact. Predictive evidence không tự động trở thành PnL hay live evidence.</p></div><button type="button" onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}/>Làm mới</button></div>
@@ -486,6 +503,7 @@ export function ResearchEvidenceScreen() {
     {section === "overview" && <CapabilityMatrix data={capabilities}/>}
     {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests}/>}
     {(section === "overview" || section === "forward") && <ForwardStatus observations={observations}/>}
+    {(section === "overview" || section === "event") && <CurrentConditionsPanel onOpenDossier={openDossierByManifest}/>}
 
     <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.6fr)]">
       <section className="min-w-0 space-y-2" aria-label="Danh sách artifact">

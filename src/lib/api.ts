@@ -4,7 +4,8 @@ import { assertHistoricalAnalogEnvelope } from "./historicalAnalog";
 import { parseTechnicalCapabilities } from "./technicalCapabilities";
 import { parsePaperObservations } from "./paperObservations";
 import { authenticatedFetch } from "./sessionAuth";
-import { DEFAULT_TIMEFRAME } from "./timeframe";
+import { DEFAULT_TIMEFRAME, isActiveTimeframe, type ActiveTimeframe } from "./timeframe";
+import { parseCurrentConditionsResponse } from "./currentConditions";
 import { parseResearchEvidenceCatalog, parseResearchEvidenceDetail } from "./researchEvidence";
 import { parseTechnicalReplayEnvelope } from "./technicalReplay";
 import { parseTechnicalEvidenceCoverage, parseTechnicalEvidenceRebuildResult } from "./technicalEvidenceAdmin";
@@ -52,6 +53,15 @@ export async function getResearchEvidenceDetail(id: string, signal?: AbortSignal
   }
   const res = await fetch(`${API_BASE}/api/research/evidence/${encodeURIComponent(id)}`, { signal, cache: "no-store" });
   return parseResearchEvidenceDetail(await getJson(res));
+}
+
+export async function getCurrentConditions(timeframe: ActiveTimeframe = DEFAULT_TIMEFRAME, signal?: AbortSignal) {
+  if (!isActiveTimeframe(timeframe)) {
+    throw new Error("Timeframe không hợp lệ.");
+  }
+  const params = new URLSearchParams({ timeframe });
+  const res = await fetch(`${API_BASE}/api/research/current-conditions?${params}`, { signal, cache: "no-store" });
+  return parseCurrentConditionsResponse(await getJson(res));
 }
 
 export async function getBtcKlines({
