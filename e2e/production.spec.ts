@@ -50,9 +50,12 @@ type HistoricalAnalogResponse = {
     neutralCount: number;
   }>;
   items: HistoricalAnalogItem[];
+  abstained?: boolean;
+  abstentionReason?: string;
 };
 
-function expectHistoricalAnalogInvariants(data: HistoricalAnalogResponse) {
+// Contract/shape invariants hold even when the live window yields zero analogs.
+function expectHistoricalAnalogShape(data: HistoricalAnalogResponse) {
   expect(data.contractVersion).toBe("2026-09-historical-analogs-v2");
   expect(data.method).toBe("historical-analog-returns-shape-v2");
   expect(data.rankingMethod).toBe("cosine-similarity-desc-point-in-time");
@@ -60,8 +63,8 @@ function expectHistoricalAnalogInvariants(data: HistoricalAnalogResponse) {
   expect(data.intervalMs).toBe(4 * 60 * 60 * 1_000);
   expect(data.exclusionBars).toBe(15 + 6);
   expect(data.page).toBe(1);
-  expect(data.pageSize).toBe(50);
-  expect(data.items.length).toBeLessThanOrEqual(50);
+  expect(data.pageSize).toBe(8);
+  expect(data.items.length).toBeLessThanOrEqual(8);
   expect(data.query.ohlc).toHaveLength(15);
   expect(data.rawCandidateCount).toBeGreaterThanOrEqual(data.independentCandidateCount);
   expect(data.independentCandidateCount).toBeGreaterThanOrEqual(data.effectiveSampleCount);
@@ -69,6 +72,10 @@ function expectHistoricalAnalogInvariants(data: HistoricalAnalogResponse) {
   expect(data.validation.status).toBe("exploratory");
   expect(data.validation.isOutOfSampleValidated).toBe(false);
   expect(data.validation.reason.length).toBeGreaterThan(0);
+}
+
+// Data-dependent invariants — only meaningful when total > 0.
+function expectHistoricalAnalogData(data: HistoricalAnalogResponse) {
   expect(data.summaries.map((summary) => summary.barsAhead)).toEqual([1, 3, 6]);
 
   for (const summary of data.summaries) {
@@ -139,37 +146,69 @@ test.describe("production dashboard", () => {
 
     await expect(page.getByRole("complementary", { name: /Dữ liệu thị trường realtime/ })).toBeVisible({ timeout: 15_000 });
 
+    // Capture the explorer's own request instead of probing: the branch below must
+    // reflect exactly the payload the UI rendered (abstention is parameter- and
+    // time-dependent), and a second call would only add expensive-policy 429 risk.
+    const analogResponsePromise = page.waitForResponse(
+      (r) => new URL(r.url()).pathname === "/api/historical-analogs",
+      { timeout: 60_000 },
+    );
     await openTab(page, "Mẫu nến", "Historical Analog");
-    const analogApiResponse = await page.request.get(new URL(
-      "/api/historical-analogs?symbol=BTCUSDT&timeframe=4h&windowSize=15&neighborCount=50&page=1&pageSize=50&lookbackBars=20000&roundTripCostPct=0.15&atrMultiplier=0.25",
-      productionUrl!,
-    ).toString());
+    const analogApiResponse = await analogResponsePromise;
     expect(analogApiResponse.status()).toBe(200);
     const analogData = await analogApiResponse.json() as HistoricalAnalogResponse;
-    expectHistoricalAnalogInvariants(analogData);
+    expectHistoricalAnalogShape(analogData);
     const analogExplorer = page.getByRole("region", { name: "Historical Analog Explorer" });
     await expect(analogExplorer.getByTestId("analog-query-window")).toBeVisible({ timeout: 60_000 });
-    await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 1 nến");
-    await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 3 nến");
-    await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 6 nến");
     await expect(analogExplorer.getByText(/Xếp hạng chỉ theo hình dạng; bối cảnh chỉ để đối chiếu/)).toBeVisible();
-    await expect(analogExplorer.getByTestId("analog-card").first()).toBeVisible();
     await expect(analogExplorer.getByText(/Không thể tải Historical Analog/)).toHaveCount(0);
     await expect(analogExplorer).not.toContainText(/xác suất thắng|tỷ lệ thắng|win rate|tín hiệu mua|tín hiệu bán/i);
-    if (analogData.total > 8) {
-      await analogExplorer.getByRole("button", { name: "Trang sau" }).click();
-      await expect(analogExplorer.getByText(/Trang 2\//)).toBeVisible();
+    if (analogData.abstained === true) {
+      // live data — the evaluator may legitimately abstain when similarity quality is below the declared threshold
+      expect(analogData.total).toBe(0);
+      await expect(analogExplorer.getByRole("status")).toContainText(/abstain/i, { timeout: 30_000 });
+      await expect(analogExplorer.getByTestId("analog-card")).toHaveCount(0);
+      await expect(analogExplorer.getByTestId("analog-summary")).toHaveCount(0);
+    } else if (analogData.total === 0) {
+      // live data — analogs may legitimately be absent for the current window
+      await expect(analogExplorer.getByText("Không tìm thấy analog lịch sử độc lập cho cấu hình này.")).toBeVisible({ timeout: 30_000 });
+      await expect(analogExplorer.getByTestId("analog-card")).toHaveCount(0);
+    } else {
+      expectHistoricalAnalogData(analogData);
+      await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 1 nến");
+      await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 3 nến");
+      await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 6 nến");
       await expect(analogExplorer.getByTestId("analog-card").first()).toBeVisible();
+      if (analogData.total > 8) {
+        await analogExplorer.getByRole("button", { name: "Trang sau" }).click();
+        await expect(analogExplorer.getByText(/Trang 2\//)).toBeVisible();
+        await expect(analogExplorer.getByTestId("analog-card").first()).toBeVisible();
+      }
     }
 
+    // Same pattern: capture the gallery's own list request (loadGallery only fires
+    // on this sub-tab) so the empty/non-empty branch matches the rendered UI.
+    const archetypesResponsePromise = page.waitForResponse(
+      (r) => new URL(r.url()).pathname === "/api/archetypes",
+      { timeout: 60_000 },
+    );
     await page.getByRole("button", { name: "Thư viện (audit)", exact: true }).click();
-    const archetypeEvidence = page.locator("section[aria-label^='Mẫu gốc của ']").first();
-    await expect(archetypeEvidence).toBeVisible({ timeout: 30_000 });
-    await expect(archetypeEvidence.getByTestId("archetype-evidence-card").first()).toBeVisible({ timeout: 30_000 });
-    await expect(archetypeEvidence.getByText(/Close-to-close sau 1, 3 và 6 nến/)).toBeVisible();
-    await expect(archetypeEvidence.getByText("Nguồn: giá đóng cửa Klines", { exact: true })).toBeVisible();
-    await expect(archetypeEvidence.getByText(/OHLC không đủ|Thiếu OHLC|Nến tương lai chưa đủ/)).toHaveCount(0);
-    await expect(archetypeEvidence.getByText(/ĐÚNG HƯỚNG|SAI HƯỚNG/, { exact: true }).first()).toBeVisible();
+    const archetypesResponse = await archetypesResponsePromise;
+    expect(archetypesResponse.status()).toBe(200);
+    const archetypeList = await archetypesResponse.json() as { total: number; items: unknown[] };
+    if (archetypeList.items.length === 0) {
+      // live data — the gallery may legitimately be empty on this corpus
+      await expect(page.getByText("Không tìm thấy mẫu nến")).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByText(/Không thể tải thư viện mẫu nến/)).toHaveCount(0);
+    } else {
+      const archetypeEvidence = page.locator("section[aria-label^='Mẫu gốc của ']").first();
+      await expect(archetypeEvidence).toBeVisible({ timeout: 30_000 });
+      await expect(archetypeEvidence.getByTestId("archetype-evidence-card").first()).toBeVisible({ timeout: 30_000 });
+      await expect(archetypeEvidence.getByText(/Close-to-close sau 1, 3 và 6 nến/)).toBeVisible();
+      await expect(archetypeEvidence.getByText("Nguồn: giá đóng cửa Klines", { exact: true })).toBeVisible();
+      await expect(archetypeEvidence.getByText(/OHLC không đủ|Thiếu OHLC|Nến tương lai chưa đủ/)).toHaveCount(0);
+      await expect(archetypeEvidence.getByText(/ĐÚNG HƯỚNG|SAI HƯỚNG/, { exact: true }).first()).toBeVisible();
+    }
     await openTab(page, "Tin tức", "Tin tức");
     await openTab(page, "AI", /Phân tích AI Đa Tác Tử/);
     if (requireLlm) {
