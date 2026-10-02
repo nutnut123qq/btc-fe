@@ -99,7 +99,7 @@ export function SequenceAnalysisPanel({
       {/* Market structure */}
       <section className="space-y-1.5">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Cấu trúc thị trường</span>
+          <span className="text-xs text-gray-400">Cấu trúc thị trường</span>
           {structure && <TrendBadge trend={structure.currentTrend} />}
         </div>
         {structure && (
@@ -128,16 +128,16 @@ export function SequenceAnalysisPanel({
 
       {/* Scenarios */}
       <section className="space-y-2">
-        <span className="text-xs text-gray-500">Kịch bản chuỗi nến ({scenarios?.scenarios.length ?? 0})</span>
+        <span className="text-xs text-gray-400">Kịch bản chuỗi nến ({scenarios?.scenarios.length ?? 0})</span>
         {scenarios && scenarios.scenarios.length === 0 && (
-          <p className="text-xs text-gray-600">Không phát hiện kịch bản đặc biệt.</p>
+          <p className="text-xs text-gray-400">Không phát hiện kịch bản đặc biệt.</p>
         )}
         <div className="space-y-2">
           {scenarios?.scenarios.map((s, i) => (
             <div key={i} className="rounded-lg border border-gray-800 bg-gray-900/60 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-medium text-gray-200">{s.name}</span>
-                <span className="text-[11px] text-gray-500">{Math.round(s.strength * 100)}%</span>
+                <span className="text-[11px] text-gray-400">{Math.round(s.strength * 100)}%</span>
               </div>
               <div className="h-1 bg-gray-800 rounded mt-1 overflow-hidden">
                 <div className="h-full bg-teal-500" style={{ width: `${Math.round(s.strength * 100)}%` }} />

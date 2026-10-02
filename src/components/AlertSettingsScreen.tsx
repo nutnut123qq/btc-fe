@@ -122,7 +122,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
         </button>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-400">
         Điều kiện lưu trong PostgreSQL; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
       </p>
 
@@ -146,7 +146,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
         <TechnicalCapabilitiesPanel />
       </ErrorBoundary>
 
-      {loading && <p className="text-gray-500 text-sm">Đang tải…</p>}
+      {loading && <p className="text-gray-400 text-sm">Đang tải…</p>}
 
       {!loading && (
         <div className="space-y-4 text-sm bg-gray-900/60 rounded-xl border border-gray-800 p-5">
@@ -169,7 +169,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Giá trên (USDT, để trống = tắt)</label>
+              <label className="block text-xs text-gray-400 mb-1">Giá trên (USDT, để trống = tắt)</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -180,7 +180,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Giá dưới (USDT, để trống = tắt)</label>
+              <label className="block text-xs text-gray-400 mb-1">Giá dưới (USDT, để trống = tắt)</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -191,14 +191,14 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
               />
             </div>
           </div>
-          <p className="text-[11px] text-gray-600">
-            Nếu nhập cả hai: <strong className="text-gray-500 font-medium">giá trên &gt; giá dưới</strong> (dải giữa hai mức; báo khi
+          <p className="text-[11px] text-gray-400">
+            Nếu nhập cả hai: <strong className="text-gray-400 font-medium">giá trên &gt; giá dưới</strong> (dải giữa hai mức; báo khi
             vượt trên hoặc rơi dưới).
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Khung nến (giá đóng)</label>
+              <label className="block text-xs text-gray-400 mb-1">Khung nến (giá đóng)</label>
               <select
                 value={klineInterval}
                 onChange={(e) => setKlineInterval(e.target.value)}
@@ -212,7 +212,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Cooldown (phút)</label>
+              <label className="block text-xs text-gray-400 mb-1">Cooldown (phút)</label>
               <input
                 type="number"
                 min={1}

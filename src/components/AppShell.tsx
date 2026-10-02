@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   Activity,
   Bell,
@@ -14,6 +14,7 @@ import {
   Shapes,
   ListOrdered,
   FileCheck2,
+  ChevronUp,
 } from "lucide-react";
 import { MarketScreen } from "./MarketScreen";
 import { NewsScreen } from "./NewsScreen";
@@ -51,16 +52,39 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
+const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
+  TABS.map((t) => [t.key, t] as const),
+);
+
+// Bottom navigation is grouped into 5 top-level entries; groups with more than
+// one child expand into a sub-row of child chips rendered directly above the bar.
+const NAV_GROUPS = [
+  { key: "market", label: "Thị trường", children: ["market"] },
+  { key: "newsAi", label: "Tin tức & AI", children: ["news", "ai"] },
+  { key: "research", label: "Nghiên cứu", children: ["research", "archetype", "rules", "backtest"] },
+  { key: "simulation", label: "Mô phỏng", children: ["predict", "paper", "binanceHistory"] },
+  { key: "system", label: "Hệ thống", children: ["settings"] },
+] as const;
+
+type NavGroup = (typeof NAV_GROUPS)[number];
+type NavGroupKey = NavGroup["key"];
+
 const ALERT_USER_ID = "default";
 
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<TabKey>("market");
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["market"]));
+  const [openGroup, setOpenGroup] = useState<NavGroupKey | null>(null);
+  const [lastChildByGroup, setLastChildByGroup] = useState<Partial<Record<NavGroupKey, TabKey>>>({});
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [aiCapabilities, setAiCapabilities] = useState<AiCapabilitiesDto | null>(null);
   const [contractState, setContractState] = useState<ApiContractState>("checking");
   const llmState = getLlmUiState(aiCapabilities);
+  const groupButtonRefs = useRef<Partial<Record<NavGroupKey, HTMLButtonElement | null>>>({});
+  const chipButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
+  const focusChipAfterOpen = useRef(false);
+  const pendingChipFocus = useRef<TabKey | null>(null);
 
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
@@ -71,6 +95,64 @@ export function AppShell() {
       return next;
     });
   };
+
+  const activateGroup = (group: NavGroup) => {
+    const children = group.children as readonly TabKey[];
+    const target = lastChildByGroup[group.key] ?? children[0];
+    setLastChildByGroup((prev) => ({ ...prev, [group.key]: target }));
+    setOpenGroup(group.key);
+    handleTabChange(target);
+    if (focusChipAfterOpen.current) {
+      focusChipAfterOpen.current = false;
+      pendingChipFocus.current = target;
+    }
+  };
+
+  const activateSingleChildGroup = (group: NavGroup) => {
+    setOpenGroup(null);
+    handleTabChange((group.children as readonly TabKey[])[0]);
+  };
+
+  const selectChild = (groupKey: NavGroupKey, childKey: TabKey) => {
+    setLastChildByGroup((prev) => ({ ...prev, [groupKey]: childKey }));
+    handleTabChange(childKey);
+  };
+
+  const handleGroupKeyDown = (event: KeyboardEvent<HTMLButtonElement>, group: NavGroup) => {
+    if (event.key === "Enter" && group.children.length > 1) {
+      // Enter also dispatches click, which performs the actual activation.
+      focusChipAfterOpen.current = true;
+    } else if (event.key === "Escape") {
+      setOpenGroup(null);
+    }
+  };
+
+  const handleChipKeyDown = (event: KeyboardEvent<HTMLButtonElement>, group: NavGroup, index: number) => {
+    const children = group.children as readonly TabKey[];
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpenGroup(null);
+      groupButtonRefs.current[group.key]?.focus();
+      return;
+    }
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      const delta = event.key === "ArrowRight" ? 1 : -1;
+      const next = children[(index + delta + children.length) % children.length];
+      selectChild(group.key, next);
+      chipButtonRefs.current[next]?.focus();
+    }
+  };
+
+  const openGroupDef = NAV_GROUPS.find((g) => g.key === openGroup);
+
+  // Moves focus into the sub-row after a keyboard-driven group activation.
+  useEffect(() => {
+    const pending = pendingChipFocus.current;
+    if (pending === null) return;
+    pendingChipFocus.current = null;
+    chipButtonRefs.current[pending]?.focus();
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -265,23 +347,71 @@ export function AppShell() {
         )}
       </main>
 
-      <nav className="border-t border-gray-800 bg-gray-950 sticky bottom-0 z-40">
-        <div className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            const active = activeTab === t.key;
+      <nav aria-label="Điều hướng chính" className="border-t border-gray-800 bg-gray-950 sticky bottom-0 z-40">
+        {openGroupDef && openGroupDef.children.length > 1 && (
+          <div
+            id={`nav-sub-${openGroupDef.key}`}
+            data-testid="nav-sub-row"
+            role="group"
+            aria-label={`${openGroupDef.label} — mục con`}
+            className="border-b border-gray-800 bg-gray-900/90"
+          >
+            <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center">
+              {openGroupDef.children.map((childKey, index) => {
+                const child = TAB_BY_KEY.get(childKey)!;
+                const ChildIcon = child.icon;
+                const childActive = activeTab === childKey;
+                return (
+                  <button
+                    type="button"
+                    key={childKey}
+                    ref={(el) => {
+                      chipButtonRefs.current[childKey] = el;
+                    }}
+                    onClick={() => selectChild(openGroupDef.key, childKey)}
+                    onKeyDown={(event) => handleChipKeyDown(event, openGroupDef, index)}
+                    aria-current={childActive ? "page" : undefined}
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                      childActive
+                        ? "border-teal-500/60 bg-teal-500/10 text-teal-300"
+                        : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-500 hover:text-gray-200"
+                    }`}
+                  >
+                    <ChildIcon className="w-3.5 h-3.5" />
+                    {child.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div data-testid="nav-groups" className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around">
+          {NAV_GROUPS.map((group) => {
+            const multi = group.children.length > 1;
+            const expanded = openGroup === group.key;
+            const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
+            const GroupIcon = TAB_BY_KEY.get((group.children as readonly TabKey[])[0])!.icon;
             return (
               <button
                 type="button"
-                key={t.key}
-                onClick={() => handleTabChange(t.key)}
-                aria-current={active ? "page" : undefined}
+                key={group.key}
+                ref={(el) => {
+                  groupButtonRefs.current[group.key] = el;
+                }}
+                onClick={() => (multi ? activateGroup(group) : activateSingleChildGroup(group))}
+                onKeyDown={(event) => handleGroupKeyDown(event, group)}
+                aria-expanded={multi ? expanded : undefined}
+                aria-controls={multi ? `nav-sub-${group.key}` : undefined}
+                aria-current={!multi && containsActive ? "page" : undefined}
                 className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors ${
-                  active ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+                  containsActive ? "text-teal-400" : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-[11px] font-medium">{t.label}</span>
+                <GroupIcon className="w-5 h-5" />
+                <span className="flex items-center gap-1 text-[11px] font-medium">
+                  {group.label}
+                  {multi && <ChevronUp className="w-3 h-3" aria-hidden="true" />}
+                </span>
               </button>
             );
           })}

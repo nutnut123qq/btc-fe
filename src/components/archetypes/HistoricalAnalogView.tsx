@@ -28,6 +28,7 @@ import {
 } from "@/lib/researchUi";
 import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 import { CapabilityStateBadge } from "@/components/CapabilityStateBadge";
+import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { ArchetypeGlyph } from "./ArchetypeGlyph";
 
 const PAGE_SIZE = 8;
@@ -59,7 +60,7 @@ function AnalogCard({ item, windowSize }: { item: HistoricalAnalogItemDto; windo
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
           <div className="text-xs font-black text-gray-200">#{item.rank} · Analog lịch sử</div>
-          <time className="text-[10px] text-gray-500" dateTime={new Date(item.endTimeMs).toISOString()}>
+          <time className="text-[10px] text-gray-400" dateTime={new Date(item.endTimeMs).toISOString()}>
             Kết thúc {formatTime(item.endTimeMs)}
           </time>
         </div>
@@ -70,29 +71,29 @@ function AnalogCard({ item, windowSize }: { item: HistoricalAnalogItemDto; windo
 
       <div className="mb-2 grid grid-cols-2 gap-2 rounded-lg border border-gray-800 bg-gray-900 p-2 text-[10px]">
         <div>
-          <div className="text-gray-500">Giống hình nến</div>
+          <div className="text-gray-400"><GlossaryTerm term="shape-similarity">Giống hình nến</GlossaryTerm></div>
           <div className="font-bold text-teal-300">{formatSimilarity(item.shapeSimilarity)}</div>
         </div>
         <div>
-          <div className="text-gray-500">Giống bối cảnh</div>
+          <div className="text-gray-400"><GlossaryTerm term="context-similarity">Giống bối cảnh</GlossaryTerm></div>
           <div className="font-bold text-sky-300">{formatSimilarity(item.contextSimilarity)}</div>
-          <div className="text-[9px] text-gray-600">{item.contextComparableFeatureCount} đặc trưng so sánh được</div>
+          <div className="text-[9px] text-gray-400">{item.contextComparableFeatureCount} đặc trưng so sánh được</div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <div className="mb-1 text-[9px] text-gray-500">{windowSize} nến nguồn độc lập</div>
+          <div className="mb-1 text-[9px] text-gray-400">{windowSize} nến nguồn độc lập</div>
           <div className="h-24 rounded bg-gray-900 p-1.5">
             {item.ohlc.length > 0 ? (
               <ArchetypeGlyph bars={item.ohlc} />
             ) : (
-              <div className="flex h-full items-center justify-center text-[10px] text-rose-300">Thiếu OHLC nguồn</div>
+              <div className="flex h-full items-center justify-center text-[10px] text-rose-300">Thiếu <GlossaryTerm term="ohlc">OHLC</GlossaryTerm> nguồn</div>
             )}
           </div>
         </div>
         <div>
-          <div className="mb-1 text-[9px] text-gray-500">6 nến sau (chỉ để kiểm chứng)</div>
+          <div className="mb-1 text-[9px] text-gray-400">6 nến sau (chỉ để kiểm chứng)</div>
           <div className="h-24 rounded bg-gray-900 p-1.5">
             {item.futureOhlc.length > 0 ? (
               <ArchetypeGlyph bars={item.futureOhlc} />
@@ -106,11 +107,11 @@ function AnalogCard({ item, windowSize }: { item: HistoricalAnalogItemDto; windo
       <div className="mt-2 space-y-1 border-t border-gray-800 pt-2 text-[10px]">
         {item.outcomes.map((outcome) => (
           <div key={outcome.barsAhead} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-1">
-            <span className="text-gray-500">Sau {outcome.barsAhead} nến</span>
+            <span className="text-gray-400">Sau {outcome.barsAhead} nến</span>
             <span className={`font-bold ${getDirectionTone(outcome.direction)}`}>
               {getAnalogDirectionLabel(outcome.direction)} {formatSignedPercent(outcome.returnPct)}
             </span>
-            <span className="text-gray-500">ngưỡng ±{outcome.thresholdPct.toFixed(2)}%</span>
+            <span className="text-gray-400">ngưỡng ±{outcome.thresholdPct.toFixed(2)}%</span>
           </div>
         ))}
       </div>
@@ -220,18 +221,18 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
         <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="flex items-center gap-2 text-base font-black text-gray-100">
-              <Search className="h-5 w-5 text-teal-400" /> Historical Analog
+              <Search className="h-5 w-5 text-teal-400" /> <GlossaryTerm term="analog">Historical Analog</GlossaryTerm>
             </h2>
             <CapabilityStateBadge state={capabilityState} />
-            <span className="text-[10px] font-bold text-gray-500">Chưa qua OOS gate</span>
+            <span className="text-[10px] font-bold text-gray-400"><GlossaryTerm term="oos-gate">Chưa qua OOS gate</GlossaryTerm></span>
             {freshness?.status === "stale" && (
               <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[10px] font-black text-rose-300">
-                STALE
+                <GlossaryTerm term="stale">STALE</GlossaryTerm>
               </span>
             )}
             {data?.validation.status === "unavailable" && (
               <span className="rounded-full border border-gray-500/30 bg-gray-500/10 px-2 py-1 text-[10px] font-black text-gray-400">
-                UNAVAILABLE
+                <GlossaryTerm term="unavailable">UNAVAILABLE</GlossaryTerm>
               </span>
             )}
           </div>
@@ -243,8 +244,8 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
             Xếp hạng chỉ theo hình dạng; bối cảnh chỉ để đối chiếu, không tham gia xếp hạng.
           </p>
           {data && (
-            <p className="mt-1 text-[10px] text-gray-500">
-              Method: {data.methodVersion || data.method} · freshness {freshness?.status ?? "unknown"}
+            <p className="mt-1 text-[10px] text-gray-400">
+              <GlossaryTerm term="method-version">Method</GlossaryTerm>: {data.methodVersion || data.method} · <GlossaryTerm term="freshness">freshness</GlossaryTerm> {freshness?.status ?? "unknown"}
             </p>
           )}
         </div>
@@ -334,9 +335,9 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h3 className="text-sm font-bold text-gray-200">Cửa sổ truy vấn thật · {symbol} {timeframe}</h3>
-                  <p className="text-[10px] text-gray-500">{formatTime(data.query.startTimeMs)} → {formatTime(data.query.endTimeMs)}</p>
+                  <p className="text-[10px] text-gray-400">{formatTime(data.query.startTimeMs)} → {formatTime(data.query.endTimeMs)}</p>
                 </div>
-                <span className="text-[10px] text-gray-500">{data.query.context.availableFeatureCount} đặc trưng bối cảnh có sẵn</span>
+                <span className="text-[10px] text-gray-400">{data.query.context.availableFeatureCount} đặc trưng bối cảnh có sẵn</span>
               </div>
               <div className="h-40 rounded-lg bg-gray-900 p-2" data-testid="analog-query-window">
                 <ArchetypeGlyph bars={data.query.ohlc} />
@@ -349,24 +350,24 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
                 <span>{data.validation.reason}</span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-gray-200">{data.rawCandidateCount}</div><div className="text-gray-500">Ứng viên thô</div></div>
-                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-sky-300">{data.independentCandidateCount}</div><div className="text-gray-500">Sau loại chồng lấn</div></div>
-                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-teal-300">{data.effectiveSampleCount}</div><div className="text-gray-500">Mẫu hiệu lực</div></div>
+                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-gray-200">{data.rawCandidateCount}</div><div className="text-gray-400">Ứng viên thô</div></div>
+                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-sky-300">{data.independentCandidateCount}</div><div className="text-gray-400"><GlossaryTerm term="non-overlapping">Sau loại chồng lấn</GlossaryTerm></div></div>
+                <div className="rounded-lg bg-gray-900 p-2"><div className="text-lg font-black text-teal-300">{data.effectiveSampleCount}</div><div className="text-gray-400"><GlossaryTerm term="effective-sample">Mẫu hiệu lực</GlossaryTerm></div></div>
               </div>
-              <p className="text-[10px] leading-4 text-gray-500">
-                Vùng loại trừ: {data.exclusionBars} nến. TRUNG TÍNH khi |return| không vượt ngưỡng lớn hơn giữa tham chiếu chi phí {data.roundTripCostPct.toFixed(2)}% và {data.atrMultiplier.toFixed(2)} × ATR. Đây là ngưỡng phân loại, không phải chi phí đã trừ khỏi PnL.
+              <p className="text-[10px] leading-4 text-gray-400">
+                <GlossaryTerm term="exclusion-zone">Vùng loại trừ</GlossaryTerm>: {data.exclusionBars} nến. TRUNG TÍNH khi |return| không vượt ngưỡng lớn hơn giữa <GlossaryTerm term="round-trip-cost">tham chiếu chi phí</GlossaryTerm> {data.roundTripCostPct.toFixed(2)}% và {data.atrMultiplier.toFixed(2)} × <GlossaryTerm term="atr">ATR</GlossaryTerm>. Đây là ngưỡng phân loại, không phải chi phí đã trừ khỏi <GlossaryTerm term="pnl">PnL</GlossaryTerm>.
               </p>
               <div className="rounded-lg border border-gray-800 bg-gray-900 p-2 text-[10px]">
-                <div className="mb-2 font-bold uppercase text-gray-400">Bằng chứng evaluator</div>
-                <div className="grid grid-cols-2 gap-2 text-gray-500">
-                  <div>Baseline<strong className="block text-gray-200">{data.baselineName || "Chưa cung cấp"}</strong></div>
-                  <div>Lift so baseline<strong className="block text-gray-200">{lift ?? "Chưa cung cấp"}</strong></div>
-                  <div>Coverage<strong className="block text-gray-200">{coverage ?? "Chưa cung cấp"}</strong></div>
-                  <div>Abstention<strong className="block text-gray-200">{abstentionRate ?? "Chưa cung cấp"}</strong></div>
+                <div className="mb-2 font-bold uppercase text-gray-400">Bằng chứng <GlossaryTerm term="evaluator">evaluator</GlossaryTerm></div>
+                <div className="grid grid-cols-2 gap-2 text-gray-400">
+                  <div><GlossaryTerm term="baseline">Baseline</GlossaryTerm><strong className="block text-gray-200">{data.baselineName || "Chưa cung cấp"}</strong></div>
+                  <div><GlossaryTerm term="lift">Lift</GlossaryTerm> so <GlossaryTerm term="baseline">baseline</GlossaryTerm><strong className="block text-gray-200">{lift ?? "Chưa cung cấp"}</strong></div>
+                  <div><GlossaryTerm term="coverage">Coverage</GlossaryTerm><strong className="block text-gray-200">{coverage ?? "Chưa cung cấp"}</strong></div>
+                  <div><GlossaryTerm term="abstention">Abstention</GlossaryTerm><strong className="block text-gray-200">{abstentionRate ?? "Chưa cung cấp"}</strong></div>
                 </div>
                 {data.liftConfidenceInterval && (
-                  <div className="mt-2 text-gray-500">
-                    CI{data.liftConfidenceInterval.level ? ` ${(data.liftConfidenceInterval.level * 100).toFixed(0)}%` : ""}: {formatLift(data.liftConfidenceInterval.lower, data.liftUnit)} → {formatLift(data.liftConfidenceInterval.upper, data.liftUnit)}
+                  <div className="mt-2 text-gray-400">
+                    <GlossaryTerm term="ci">CI</GlossaryTerm>{data.liftConfidenceInterval.level ? ` ${(data.liftConfidenceInterval.level * 100).toFixed(0)}%` : ""}: {formatLift(data.liftConfidenceInterval.lower, data.liftUnit)} → {formatLift(data.liftConfidenceInterval.upper, data.liftUnit)}
                   </div>
                 )}
               </div>
@@ -375,7 +376,7 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
 
           {data.abstained && (
             <div role="status" className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-3 text-sm text-amber-200">
-              Hệ thống đã abstain: {data.abstentionReason || "chất lượng analog không đạt ngưỡng đã khai báo"}. Không diễn giải các tần suất bên dưới như bằng chứng dự báo.
+              Hệ thống đã <GlossaryTerm term="abstain">abstain</GlossaryTerm>: {data.abstentionReason || "chất lượng analog không đạt ngưỡng đã khai báo"}. Không diễn giải các tần suất bên dưới như bằng chứng dự báo.
             </div>
           )}
 
@@ -391,16 +392,16 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
                   <span className="rounded bg-amber-500/10 px-1 py-1 text-amber-300">Tần suất trung tính {(summary.neutralRate * 100).toFixed(1)}%</span>
                   <span className="rounded bg-rose-500/10 px-1 py-1 text-rose-300">Tần suất giảm {(summary.downRate * 100).toFixed(1)}%</span>
                 </div>
-                <div className="mt-2 text-[10px] text-gray-500">N={summary.totalSamples} · TB {formatSignedPercent(summary.avgReturnPct)} · Trung vị {formatSignedPercent(summary.medianReturnPct)}</div>
+                <div className="mt-2 text-[10px] text-gray-400"><GlossaryTerm term="n">N</GlossaryTerm>={summary.totalSamples} · TB {formatSignedPercent(summary.avgReturnPct)} · Trung vị {formatSignedPercent(summary.medianReturnPct)}</div>
                 {(summary.baselineName || summary.lift != null) && (
-                  <div className="mt-1 text-[10px] text-sky-300">Baseline {summary.baselineName || "đã khai báo"} · lift {formatLift(summary.lift, summary.liftUnit) || "chưa đủ mẫu"}</div>
+                  <div className="mt-1 text-[10px] text-sky-300"><GlossaryTerm term="baseline">Baseline</GlossaryTerm> {summary.baselineName || "đã khai báo"} · <GlossaryTerm term="lift">lift</GlossaryTerm> {formatLift(summary.lift, summary.liftUnit) || "chưa đủ mẫu"}</div>
                 )}
               </div>
             ))}
           </div>}
 
           {!canShowNeighborEvidence ? null : data.items.length === 0 ? (
-            <div className="flex min-h-52 items-center justify-center rounded-xl border border-gray-800 bg-gray-950 text-sm text-gray-500">
+            <div className="flex min-h-52 items-center justify-center rounded-xl border border-gray-800 bg-gray-950 text-sm text-gray-400">
               Không tìm thấy analog lịch sử độc lập cho cấu hình này.
             </div>
           ) : (
@@ -435,7 +436,7 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
 
           <footer className="flex items-start gap-2 rounded-lg border border-indigo-400/20 bg-indigo-400/5 p-3 text-[11px] leading-5 text-indigo-200">
             <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Close-to-close = (giá đóng sau N nến / giá đóng cuối cửa sổ − 1) × 100%. Shape similarity và context similarity là hai phép đo riêng; cả hai không phải xác suất dự báo.</span>
+            <span><GlossaryTerm term="close-to-close">Close-to-close</GlossaryTerm> = (giá đóng sau N nến / giá đóng cuối cửa sổ − 1) × 100%. <GlossaryTerm term="shape-similarity">Shape similarity</GlossaryTerm> và <GlossaryTerm term="context-similarity">context similarity</GlossaryTerm> là hai phép đo riêng; cả hai không phải xác suất dự báo.</span>
           </footer>
         </>
       ) : data ? (

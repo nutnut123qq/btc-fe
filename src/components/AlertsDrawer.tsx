@@ -102,7 +102,7 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 Xóa tất cả
               </button>
             )}
-            <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-300">
+            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-300">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -121,7 +121,7 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
             </div>
           )}
           {!error && alerts.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm text-center px-6">
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm text-center px-6">
               <Bell className="w-10 h-10 mb-3 opacity-30" />
               <p>Chưa có thông báo. Bật cảnh báo và đặt ngưỡng trong tab Cảnh báo.</p>
             </div>
@@ -139,14 +139,14 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               >
                 <div className="font-semibold text-gray-100 text-sm">{a.title}</div>
                 <p className="mt-1 text-gray-400 text-xs leading-relaxed">{a.message}</p>
-                <div className="mt-2 rounded border border-gray-800 bg-gray-950/60 p-2 text-[10px] leading-relaxed text-gray-500">
+                <div className="mt-2 rounded border border-gray-800 bg-gray-950/60 p-2 text-[10px] leading-relaxed text-gray-400">
                   <div className={evidence.predictive ? "text-emerald-300" : "text-sky-300"}>{evidence.kindLabel}</div>
                   <div>Available: {formatEvidenceTime(a.availableTimeMs)}</div>
                   <div>Provenance: <span className="font-mono">{a.provenance || "legacy/unavailable"}</span></div>
                   <div className={a.deliveryStatus === "failed-at-most-once" ? "text-amber-300" : ""}>{evidence.deliveryLabel}</div>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-gray-600">
+                  <span className="text-[11px] text-gray-400">
                     {new Date(a.createdAt).toLocaleString()}
                   </span>
                   <div className="flex items-center gap-2">

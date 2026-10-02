@@ -84,7 +84,7 @@ export function EnsembleDashboardWidget({
             <div className="flex items-center gap-2 font-semibold text-amber-200">
               Ensemble challenger
               <CapabilityStateBadge state="experimental" />
-              <span className="text-[10px] font-bold uppercase text-gray-500">Legacy records</span>
+              <span className="text-[10px] font-bold uppercase text-gray-400">Legacy records</span>
             </div>
             <p className="mt-1 text-xs text-gray-400">Kết quả lịch sử chưa vượt promotion gate; chỉ mở số liệu trong phạm vi Lab.</p>
           </div>
@@ -138,7 +138,7 @@ export function EnsembleDashboardWidget({
             </h2>
             <div className="text-sm text-gray-400 mt-1">Nghiên cứu legacy cho {symbol} ({timeframe}); không phải tín hiệu production.</div>
             <div className="mt-1 text-xs text-amber-300">{ensemble.promotionReason}</div>
-            <div className="mt-1 text-[11px] text-gray-500">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
+            <div className="mt-1 text-[11px] text-gray-400">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
             {freshness?.status === "stale" && <div className="mt-1 text-[10px] font-black text-rose-300">STALE SNAPSHOT · không dùng làm quyết định mới</div>}
           </div>
           <div className={`px-4 py-2 rounded-full border ${dirColor} font-bold text-lg shadow-sm flex items-center gap-2`}>
@@ -152,7 +152,7 @@ export function EnsembleDashboardWidget({
             <p className="mt-1 text-xs leading-5 text-gray-400">
               {ensemble.availabilityReason || ensemble.invalidReason || "Thiếu đầu vào thật hoặc đầu vào chưa qua evidence gate."}
             </p>
-            <p className="mt-2 text-[11px] text-gray-500">Không thay thế dữ liệu thiếu bằng giá, xác suất hoặc điểm mặc định.</p>
+            <p className="mt-2 text-[11px] text-gray-400">Không thay thế dữ liệu thiếu bằng giá, xác suất hoặc điểm mặc định.</p>
           </div>
         ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Gauge & Probabilities */}
@@ -307,7 +307,7 @@ export function EnsembleDashboardWidget({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-6 text-center text-gray-500 italic">
+                  <td colSpan={7} className="p-6 text-center text-gray-400 italic">
                     Chưa có bản ghi trong phạm vi Lab, hoặc các bản ghi đã được archive.
                   </td>
                 </tr>
@@ -342,7 +342,7 @@ export function EnsembleDashboardWidget({
               </tbody>
             </table>
           ) : (
-            <div className="p-5 text-center text-xs text-gray-500">Chưa có lineage re-evaluation v2; raw legacy vẫn được giữ nguyên và không bị ghi đè.</div>
+            <div className="p-5 text-center text-xs text-gray-400">Chưa có lineage re-evaluation v2; raw legacy vẫn được giữ nguyên và không bị ghi đè.</div>
           )}
         </div>
       </div>
@@ -353,7 +353,7 @@ export function EnsembleDashboardWidget({
           <div key={idx} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex flex-col hover:border-gray-500 transition-colors">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-mono text-xs">L{idx + 1}</span>
+                <span className="text-gray-400 font-mono text-xs">L{idx + 1}</span>
                 <h3 className="font-semibold text-gray-200">{layer.layerName}</h3>
               </div>
               <span className={`text-xs px-2 py-0.5 rounded font-bold ${
@@ -368,11 +368,11 @@ export function EnsembleDashboardWidget({
             <p className="text-sm text-gray-400 mb-4 flex-1">{layer.summary}</p>
             
             <div className="flex items-center justify-between text-xs border-t border-gray-700 pt-3">
-              <span className="text-gray-500" title="Trọng số">W: {layer.weight.toFixed(2)}</span>
+              <span className="text-gray-400" title="Trọng số">W: {layer.weight.toFixed(2)}</span>
               <div className="flex gap-2 font-mono">
                 <span className="text-green-400/80" title="Điểm heuristic tăng">↑{(layer.probUp * 100).toFixed(0)}</span>
                 <span className="text-red-400/80" title="Điểm heuristic giảm">↓{(layer.probDown * 100).toFixed(0)}</span>
-                <span className="text-gray-400/80" title="Điểm heuristic đi ngang">→{(layer.probSideways * 100).toFixed(0)}</span>
+                <span className="text-gray-300/80" title="Điểm heuristic đi ngang">→{(layer.probSideways * 100).toFixed(0)}</span>
               </div>
             </div>
           </div>

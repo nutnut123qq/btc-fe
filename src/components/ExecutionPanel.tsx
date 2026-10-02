@@ -273,19 +273,19 @@ export function ExecutionPanel({
       {account && (
         <div className="grid grid-cols-3 gap-2 bg-gray-950 p-2.5 rounded-lg border border-gray-800/80">
           <div>
-            <div className="text-[10px] text-gray-500 uppercase font-semibold">Số dư Ví (USDT)</div>
+            <div className="text-[10px] text-gray-400 uppercase font-semibold">Số dư Ví (USDT)</div>
             <div className="font-bold text-gray-100 text-sm">
               ${account.totalWalletBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-gray-500 uppercase font-semibold">Khả dụng (Available)</div>
+            <div className="text-[10px] text-gray-400 uppercase font-semibold">Khả dụng (Available)</div>
             <div className="font-bold text-teal-400 text-sm">
               ${account.availableBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-gray-500 uppercase font-semibold">PnL Chưa thực hiện</div>
+            <div className="text-[10px] text-gray-400 uppercase font-semibold">PnL Chưa thực hiện</div>
             <div
               className={`font-bold text-sm ${
                 account.totalUnrealizedProfit >= 0 ? "text-emerald-400" : "text-rose-400"
@@ -460,7 +460,7 @@ export function ExecutionPanel({
       {/* Balance Snapshots Collapsible */}
       {snapshots.length > 0 && (
         <div className="space-y-1">
-          <div className="text-[10px] text-gray-500 font-semibold uppercase">
+          <div className="text-[10px] text-gray-400 font-semibold uppercase">
             Lịch sử cập nhật số dư gần nhất ({snapshots.length})
           </div>
           <div className="space-y-1 max-h-24 overflow-y-auto">
@@ -473,7 +473,7 @@ export function ExecutionPanel({
                   {s.eventReasonType || "BALANCE_UPDATE"} ({s.asset})
                 </span>
                 <span className="font-bold text-gray-200">${s.walletBalance?.toFixed(2)}</span>
-                <span className="text-gray-500">
+                <span className="text-gray-400">
                   {new Date(s.timestamp).toLocaleTimeString("vi-VN")}
                 </span>
               </div>

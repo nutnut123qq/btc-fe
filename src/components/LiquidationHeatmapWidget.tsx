@@ -163,7 +163,7 @@ export function LiquidationHeatmapWidget({
               <div className="text-lg font-bold font-mono text-gray-100">
                 ${data.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
+              <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${stale ? "bg-amber-400" : "bg-emerald-400"}`} />
                 Snapshot: {formatDataAge(data.timestampUtc)} · {data.timeframe}
               </div>
@@ -231,7 +231,7 @@ export function LiquidationHeatmapWidget({
           {/* Tab 1: Heatmap Depth Bars */}
           {activeTab === "heatmap" && (
             <div className="bg-gray-950/90 rounded-xl p-3 border border-gray-800/80 space-y-1.5 max-h-96 overflow-y-auto pr-1">
-              <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold px-2 pb-1 border-b border-gray-800/60">
+              <div className="flex items-center justify-between text-[11px] text-gray-400 font-semibold px-2 pb-1 border-b border-gray-800/60">
                 <span>Price Level</span>
                 <span className="hidden sm:inline">Distance %</span>
                 <span>Est. Liquidation Volume ($)</span>
@@ -259,7 +259,7 @@ export function LiquidationHeatmapWidget({
                         </span>
                       </div>
 
-                      <div className="hidden sm:block text-[11px] text-gray-500 w-16 text-center">
+                      <div className="hidden sm:block text-[11px] text-gray-400 w-16 text-center">
                         {bin.distance_pct > 0 ? `+${bin.distance_pct.toFixed(2)}%` : `${bin.distance_pct.toFixed(2)}%`}
                       </div>
 
@@ -298,7 +298,7 @@ export function LiquidationHeatmapWidget({
                   HIGH SHORT-EXPOSURE ESTIMATES ABOVE
                 </div>
                 {shortSqueezeTargets.length === 0 ? (
-                  <div className="text-xs text-gray-500 italic py-2">No active short clusters nearby</div>
+                  <div className="text-xs text-gray-400 italic py-2">No active short clusters nearby</div>
                 ) : (
                   shortSqueezeTargets.map((t, i) => (
                     <div key={i} className="flex items-center justify-between p-2 bg-gray-950/60 rounded-lg text-xs font-mono">
@@ -308,7 +308,7 @@ export function LiquidationHeatmapWidget({
                       </div>
                       <div className="text-right">
                         <div className="text-gray-200 font-medium">${(t.cumulative_vol_usdt / 1_000_000).toFixed(2)}M</div>
-                        <div className="text-[10px] text-gray-500">Density: {t.density_pct.toFixed(1)}%</div>
+                        <div className="text-[10px] text-gray-400">Density: {t.density_pct.toFixed(1)}%</div>
                       </div>
                     </div>
                   ))
@@ -324,7 +324,7 @@ export function LiquidationHeatmapWidget({
                   HIGH LONG-EXPOSURE ESTIMATES BELOW
                 </div>
                 {longFlushTargets.length === 0 ? (
-                  <div className="text-xs text-gray-500 italic py-2">No active long clusters nearby</div>
+                  <div className="text-xs text-gray-400 italic py-2">No active long clusters nearby</div>
                 ) : (
                   longFlushTargets.map((t, i) => (
                     <div key={i} className="flex items-center justify-between p-2 bg-gray-950/60 rounded-lg text-xs font-mono">
@@ -334,7 +334,7 @@ export function LiquidationHeatmapWidget({
                       </div>
                       <div className="text-right">
                         <div className="text-gray-200 font-medium">${(t.cumulative_vol_usdt / 1_000_000).toFixed(2)}M</div>
-                        <div className="text-[10px] text-gray-500">Density: {t.density_pct.toFixed(1)}%</div>
+                        <div className="text-[10px] text-gray-400">Density: {t.density_pct.toFixed(1)}%</div>
                       </div>
                     </div>
                   ))

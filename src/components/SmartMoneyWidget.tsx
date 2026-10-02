@@ -50,10 +50,10 @@ export function SmartMoneyWidget({
           </svg>
           Hình học giá SMC
         </h3>
-        <div className="text-xs text-gray-500">Descriptive events</div>
+        <div className="text-xs text-gray-400">Descriptive events</div>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-gray-500">
+      <p className="text-[11px] leading-relaxed text-gray-400">
         BOS/CHOCH/FVG/swing là quy tắc hình học giá, không chứng minh dòng tiền tổ chức và không phải xác suất thắng.
       </p>
 

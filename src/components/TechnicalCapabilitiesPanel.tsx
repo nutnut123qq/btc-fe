@@ -69,7 +69,7 @@ export function TechnicalCapabilitiesPanel() {
           <h3 className="flex items-center gap-2 font-semibold text-gray-100">
             <FlaskConical className="h-4 w-4 text-cyan-400" /> Bản đồ năng lực kỹ thuật BTC
           </h3>
-          <p className="mt-1 text-[11px] text-gray-500">
+          <p className="mt-1 text-[11px] text-gray-400">
             Đây là registry tĩnh về mức triển khai, không phải runtime health. Mức triển khai và bằng chứng là hai khái niệm độc lập.
           </p>
         </div>
@@ -83,7 +83,7 @@ export function TechnicalCapabilitiesPanel() {
       {data && (
         <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-2"><b>{data.items.length}</b><div className="text-gray-500">module đã đăng ký</div></div>
+            <div className="rounded-lg border border-gray-800 bg-gray-950/50 p-2"><b>{data.items.length}</b><div className="text-gray-400">module đã đăng ký</div></div>
             <div className="rounded-lg border border-emerald-900 bg-emerald-950/20 p-2 text-emerald-300"><b>{counts.operational}</b><div className="opacity-70">đã triển khai</div></div>
             <div className="rounded-lg border border-cyan-900 bg-cyan-950/20 p-2 text-cyan-300"><b>{counts.validated}</b><div className="opacity-70">validated theo mục đích ghi rõ</div></div>
             <div className="rounded-lg border border-teal-900 bg-teal-950/20 p-2 text-teal-300"><b>{counts.forwardObserved}</b><div className="opacity-70">forward-observed</div></div>
@@ -106,10 +106,10 @@ export function TechnicalCapabilitiesPanel() {
                         </span>
                       </summary>
                       <div className="mt-2 grid gap-1 border-t border-gray-800 pt-2 text-[11px] text-gray-400 sm:grid-cols-2">
-                        <p><span className="text-gray-500">Mục đích:</span> {item.intendedUse}</p>
-                        <p><span className="text-gray-500">Giới hạn:</span> {item.limitation}</p>
-                        <p className="font-mono text-gray-500">{item.endpoint}</p>
-                        <p className="font-mono text-gray-600">{item.id} · {item.version}</p>
+                        <p><span className="text-gray-400">Mục đích:</span> {item.intendedUse}</p>
+                        <p><span className="text-gray-400">Giới hạn:</span> {item.limitation}</p>
+                        <p className="font-mono text-gray-400">{item.endpoint}</p>
+                        <p className="font-mono text-gray-400">{item.id} · {item.version}</p>
                       </div>
                     </details>
                   ))}
@@ -117,7 +117,7 @@ export function TechnicalCapabilitiesPanel() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-gray-600">Contract {data.contractVersion} · cập nhật {new Date(data.generatedAtUtc).toLocaleString("vi-VN")}</p>
+          <p className="text-[10px] text-gray-400">Contract {data.contractVersion} · cập nhật {new Date(data.generatedAtUtc).toLocaleString("vi-VN")}</p>
         </>
       )}
     </section>

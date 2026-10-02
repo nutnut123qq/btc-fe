@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { EXPECTED_API_CONTRACT_VERSION } from "../src/lib/apiContract";
+import { openMainTab } from "./nav";
 
 const intervalMs = 4 * 60 * 60 * 1_000;
 const queryStartMs = 2_000_000_000_000;
@@ -170,7 +171,7 @@ test("historical analog renders auditable evidence and paginates eight at a time
   });
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Mẫu nến", exact: true }).click();
+  await openMainTab(page, "Mẫu nến");
 
   const explorer = page.getByRole("region", { name: "Historical Analog Explorer" });
   await expect(explorer).toBeVisible();
@@ -210,7 +211,7 @@ test("historical analog surfaces an API failure and retries without stale eviden
   });
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Mẫu nến", exact: true }).click();
+  await openMainTab(page, "Mẫu nến");
   const explorer = page.getByRole("region", { name: "Historical Analog Explorer" });
   await expect(explorer.getByRole("alert")).toContainText("Không thể tải Historical Analog");
   await expect(explorer.getByTestId("analog-card")).toHaveCount(0);

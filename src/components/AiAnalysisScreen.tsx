@@ -17,7 +17,7 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
         className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-200 hover:bg-gray-800/50 transition-colors"
       >
         <span>{title}</span>
-        {open ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
+        {open ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
@@ -104,7 +104,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       {data && (
         <div className="space-y-3">
           <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-4">
-            <div className="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-2">Dự báo</div>
+            <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-2">Dự báo</div>
             <div className="flex items-center gap-3">
               {String(data.forecast).includes("UP") ? (
                 <TrendingUp className="text-emerald-400 w-8 h-8" />
@@ -145,27 +145,27 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
                       </a>
                     )}
                     <p className="text-gray-400 text-xs whitespace-pre-wrap mt-1">{e.snippet ?? ""}</p>
-                    <p className="text-gray-500 text-xs whitespace-pre-wrap mt-1">{e.why_it_matters ?? ""}</p>
+                    <p className="text-gray-400 text-xs whitespace-pre-wrap mt-1">{e.why_it_matters ?? ""}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-xs">Không có bằng chứng tin.</p>
+              <p className="text-gray-400 text-xs">Không có bằng chứng tin.</p>
             )}
           </Accordion>
 
           <Accordion title="Bằng chứng kỹ thuật">
             {data.tech_evidence ? (
               <div className="text-xs text-gray-300 space-y-1.5">
-                <div><span className="text-gray-500">first_close:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
-                <div><span className="text-gray-500">last_close:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
-                <div><span className="text-gray-500">change_pct:</span> {data.tech_evidence.change_pct ?? "n/a"}</div>
-                <div><span className="text-gray-500">period_high:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
-                <div><span className="text-gray-500">period_low:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
-                <div><span className="text-gray-500">rsi:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
+                <div><span className="text-gray-400">first_close:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
+                <div><span className="text-gray-400">last_close:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
+                <div><span className="text-gray-400">change_pct:</span> {data.tech_evidence.change_pct ?? "n/a"}</div>
+                <div><span className="text-gray-400">period_high:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
+                <div><span className="text-gray-400">period_low:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
+                <div><span className="text-gray-400">rsi:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
               </div>
             ) : (
-              <p className="text-gray-500 text-xs">Không có dữ liệu kỹ thuật.</p>
+              <p className="text-gray-400 text-xs">Không có dữ liệu kỹ thuật.</p>
             )}
           </Accordion>
 
@@ -181,16 +181,16 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
                       </div>
                     </div>
                     <div className="text-gray-400 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-gray-500">What to watch:</span> {r.what_to_watch ?? ""}
+                      <span className="text-gray-400">What to watch:</span> {r.what_to_watch ?? ""}
                     </div>
-                    <div className="text-gray-500 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-gray-500">Mitigation hint:</span> {r.mitigation_hint ?? ""}
+                    <div className="text-gray-400 text-xs whitespace-pre-wrap mt-1">
+                      <span className="text-gray-400">Mitigation hint:</span> {r.mitigation_hint ?? ""}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-xs">Không có điều kiện rủi ro.</p>
+              <p className="text-gray-400 text-xs">Không có điều kiện rủi ro.</p>
             )}
           </Accordion>
         </div>

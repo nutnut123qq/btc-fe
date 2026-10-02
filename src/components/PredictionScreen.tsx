@@ -9,6 +9,7 @@ import { EnsembleDashboardWidget } from "./EnsembleDashboardWidget";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
+import { GlossaryTerm } from "./GlossaryTerm";
 
 const SYMBOL_OPTIONS = [
   { value: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
@@ -216,7 +217,7 @@ export function PredictionScreen() {
 
         {modelsLoaded && !canPredict && (
           <div className="bg-amber-950/40 border border-amber-800 text-amber-200 rounded-lg px-3 py-2 text-sm mb-4">
-            Chưa có model tương thích đã qua promotion gate; dự đoán được khóa an toàn.
+            Chưa có model tương thích đã qua <GlossaryTerm term="promotion-gate">promotion gate</GlossaryTerm>; dự đoán được khóa an toàn.
           </div>
         )}
 
@@ -235,12 +236,12 @@ export function PredictionScreen() {
                 {labelText(prediction.prediction.label)}
               </div>
               <div className="text-sm mt-1">
-                Confidence: {(prediction.prediction.confidence * 100).toFixed(1)}%
+                <GlossaryTerm term="confidence">Confidence</GlossaryTerm>: {(prediction.prediction.confidence * 100).toFixed(1)}%
               </div>
             </div>
 
             <div className="bg-gray-950 border border-gray-800 rounded-xl p-4">
-              <div className="text-xs text-gray-400 mb-2">Xác suất</div>
+              <div className="text-xs text-gray-400 mb-2"><GlossaryTerm term="model-probability">Xác suất</GlossaryTerm></div>
               <div className="space-y-2">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
@@ -277,10 +278,10 @@ export function PredictionScreen() {
               <div className="space-y-1 text-gray-300">
                 <div>Model: <span className="text-teal-400">{prediction.prediction.model_version}</span></div>
                 <div>Window: {formatTime(prediction.windowStartMs)} → {formatTime(prediction.windowEndMs)}</div>
-                <div>Inference: {prediction.prediction.inference_ms.toFixed(1)} ms</div>
-                <div>Pipeline: {prediction.prediction.pipelineVersion}</div>
-                <div>Evaluation: {prediction.prediction.evaluationVersion}</div>
-                <div>Validity: <span className={prediction.prediction.validityStatus === "Valid" ? "text-emerald-400" : "text-amber-300"}>{prediction.prediction.validityStatus}</span></div>
+                <div><GlossaryTerm term="inference">Inference</GlossaryTerm>: {prediction.prediction.inference_ms.toFixed(1)} ms</div>
+                <div><GlossaryTerm term="pipeline">Pipeline</GlossaryTerm>: {prediction.prediction.pipelineVersion}</div>
+                <div><GlossaryTerm term="evaluation">Evaluation</GlossaryTerm>: {prediction.prediction.evaluationVersion}</div>
+                <div><GlossaryTerm term="validity">Validity</GlossaryTerm>: <span className={prediction.prediction.validityStatus === "Valid" ? "text-emerald-400" : "text-amber-300"}><GlossaryTerm term={prediction.prediction.validityStatus}>{prediction.prediction.validityStatus}</GlossaryTerm></span></div>
               </div>
             </div>
           </div>
@@ -292,11 +293,11 @@ export function PredictionScreen() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 pb-3 border-b border-gray-800">
           <div>
             <h3 className="text-md font-bold text-gray-100 flex items-center gap-2">
-              📊 Prediction evaluation ({timeframe})
-              <span className="rounded border border-amber-500/50 px-2 py-0.5 text-[10px] uppercase text-amber-300">Experimental / Legacy</span>
+              📊 <GlossaryTerm term="prediction-evaluation">Prediction evaluation</GlossaryTerm> ({timeframe})
+              <span className="rounded border border-amber-500/50 px-2 py-0.5 text-[10px] uppercase text-amber-300"><GlossaryTerm term="experimental">Experimental</GlossaryTerm> / <GlossaryTerm term="legacy">Legacy</GlossaryTerm></span>
             </h3>
             <p className="text-xs text-gray-400 mt-0.5">
-              Raw giữ nguyên bằng chứng lịch sử; canonical loại duplicate và bản ghi lỗi cấu trúc. Cả hai chưa phải promotion evidence.
+              Raw giữ nguyên bằng chứng lịch sử; canonical loại duplicate và bản ghi lỗi cấu trúc. Cả hai chưa phải <GlossaryTerm term="promotion-evidence">promotion evidence</GlossaryTerm>.
             </p>
           </div>
           <button
@@ -310,26 +311,26 @@ export function PredictionScreen() {
         </div>
 
         <div className="mb-3 rounded border border-amber-500/30 bg-amber-950/15 px-3 py-2 text-xs text-amber-200">
-          {accuracy?.promotionReason ?? "Prediction evaluation chưa qua promotion gate."}
+          {accuracy?.promotionReason ?? <GlossaryTerm term="promotion-gate">Prediction evaluation chưa qua promotion gate.</GlossaryTerm>}
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
           <div className="rounded-lg border border-amber-500/30 bg-gray-950 p-3">
-            <div className="mb-2 text-xs font-bold uppercase text-amber-300">Raw legacy</div>
+            <div className="mb-2 text-xs font-bold uppercase text-amber-300"><GlossaryTerm term="raw-legacy">Raw legacy</GlossaryTerm></div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-400">
               <div>Tổng / đã đánh giá<strong className="block text-lg text-white">{accuracy?.totalPredictions ?? 0} / {accuracy?.evaluatedCount ?? 0}</strong></div>
               <div>Đúng / sai<strong className="block text-lg text-gray-200">{accuracy?.trueCount ?? 0} / {accuracy?.falseCount ?? 0}</strong></div>
               <div>Chờ<strong className="block text-lg text-amber-300">{accuracy?.pendingCount ?? 0}</strong></div>
             </div>
-            <div className="mt-2 text-center text-sm text-amber-200">Raw directional accuracy: <strong>{accuracy?.winRatePct ?? 0}%</strong></div>
+            <div className="mt-2 text-center text-sm text-amber-200"><GlossaryTerm term="directional-accuracy">Raw directional accuracy</GlossaryTerm>: <strong>{accuracy?.winRatePct ?? 0}%</strong></div>
           </div>
           <div className="rounded-lg border border-indigo-500/30 bg-gray-950 p-3">
-            <div className="mb-2 text-xs font-bold uppercase text-indigo-300">Canonical audit</div>
+            <div className="mb-2 text-xs font-bold uppercase text-indigo-300"><GlossaryTerm term="canonical-audit">Canonical audit</GlossaryTerm></div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-400">
               <div>Tổng / đã đánh giá<strong className="block text-lg text-white">{accuracy?.canonicalPredictionCount ?? 0} / {accuracy?.canonicalEvaluatedCount ?? 0}</strong></div>
               <div>Đúng / sai<strong className="block text-lg text-gray-200">{accuracy?.canonicalTrueCount ?? 0} / {accuracy?.canonicalFalseCount ?? 0}</strong></div>
               <div>Chờ<strong className="block text-lg text-amber-300">{(accuracy?.canonicalPredictionCount ?? 0) - (accuracy?.canonicalEvaluatedCount ?? 0)}</strong></div>
             </div>
-            <div className="mt-2 text-center text-sm text-indigo-200">Canonical directional accuracy: <strong>{accuracy?.canonicalWinRatePct ?? 0}%</strong></div>
+            <div className="mt-2 text-center text-sm text-indigo-200"><GlossaryTerm term="directional-accuracy">Canonical directional accuracy</GlossaryTerm>: <strong>{accuracy?.canonicalWinRatePct ?? 0}%</strong></div>
           </div>
         </div>
       </div>
@@ -352,12 +353,12 @@ export function PredictionScreen() {
                 <th className="text-left py-2 px-2">Thời gian</th>
                 <th className="text-left py-2 px-2">Window end</th>
                 <th className="text-left py-2 px-2">Dự đoán</th>
-                <th className="text-right py-2 px-2">P(Giảm)</th>
-                <th className="text-right py-2 px-2">P(Ngang)</th>
-                <th className="text-right py-2 px-2">P(Tăng)</th>
-                <th className="text-center py-2 px-2">Kết quả Audit</th>
+                <th className="text-right py-2 px-2"><GlossaryTerm term="model-probability">P(Giảm)</GlossaryTerm></th>
+                <th className="text-right py-2 px-2"><GlossaryTerm term="model-probability">P(Ngang)</GlossaryTerm></th>
+                <th className="text-right py-2 px-2"><GlossaryTerm term="model-probability">P(Tăng)</GlossaryTerm></th>
+                <th className="text-center py-2 px-2">Kết quả <GlossaryTerm term="audit">Audit</GlossaryTerm></th>
                 <th className="text-left py-2 px-2">Model</th>
-                <th className="text-left py-2 px-2">Validity</th>
+                <th className="text-left py-2 px-2"><GlossaryTerm term="validity">Validity</GlossaryTerm></th>
               </tr>
             </thead>
             <tbody>
@@ -391,16 +392,16 @@ export function PredictionScreen() {
                   <td className="py-2 px-2 text-gray-400">{item.modelVersion}</td>
                   <td className="py-2 px-2">
                     <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${item.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : item.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-amber-500/40 text-amber-300"}`}>
-                      {item.validityStatus}
+                      <GlossaryTerm term={item.validityStatus}>{item.validityStatus}</GlossaryTerm>
                     </span>
-                    <div className="mt-1 text-[10px] text-gray-500">{item.pipelineVersion} · {item.evaluationVersion}</div>
+                    <div className="mt-1 text-[10px] text-gray-400">{item.pipelineVersion} · {item.evaluationVersion}</div>
                     {item.invalidReason && <div className="mt-1 max-w-56 text-[10px] text-rose-300">{item.invalidReason}</div>}
                   </td>
                 </tr>
               ))}
               {history.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-4 text-center text-gray-500">
+                  <td colSpan={9} className="py-4 text-center text-gray-400">
                     {includeLegacy ? "Chưa có dự đoán nào" : "Không có dự đoán Valid. Bật bộ lọc Lab để xem Legacy/Invalid."}
                   </td>
                 </tr>

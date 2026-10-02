@@ -97,7 +97,7 @@ export function ArchetypeGalleryView({
             </div>
           ))}
           {archetypes.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-400">
               Không tìm thấy mẫu nến
             </div>
           )}

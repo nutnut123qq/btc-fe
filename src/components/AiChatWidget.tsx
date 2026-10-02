@@ -222,7 +222,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                     {m.text}
                   </div>
                 </div>
-                <span className="text-[10px] text-gray-500 mt-1 px-1">
+                <span className="text-[10px] text-gray-400 mt-1 px-1">
                   {new Date(m.timestampMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
@@ -265,7 +265,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               onChange={(e) => setInputPrompt(e.target.value)}
               placeholder={llmState === "unknown" ? "Đang kiểm tra dịch vụ giải thích..." : "Hỏi về nến, FVG, POC, dự báo..."}
               disabled={loading || !canExplain}
-              className="flex-1 bg-gray-900 border border-gray-700/80 rounded-xl px-3 py-2 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-teal-500"
+              className="flex-1 bg-gray-900 border border-gray-700/80 rounded-xl px-3 py-2 text-xs text-gray-100 placeholder-gray-400 focus:outline-none focus:border-teal-500"
             />
             <button
               type="submit"

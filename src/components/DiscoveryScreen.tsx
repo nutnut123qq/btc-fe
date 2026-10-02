@@ -153,10 +153,10 @@ export function DiscoveryScreen() {
           <div className="text-gray-400">
             {result.method || "legacy/unversioned"} · {result.trialCount ?? "—"}/{result.candidateBudget ?? "—"} trials · {result.rejected ?? "—"} bị loại · {result.candidatesFound} survivor experimental
           </div>
-          <div className="text-gray-500">
+          <div className="text-gray-400">
             Selection: {formatInterval(result.selectionInterval)} · Held-out: {formatInterval(result.evaluationInterval)}
           </div>
-          <div className="text-gray-500">
+          <div className="text-gray-400">
             Label dead-zone {result.labelDeadZonePct?.toFixed(2) ?? "—"}% · execution cost {result.roundTripCostBps?.toFixed(0) ?? "—"} bps round-trip · survivor lưu ở trạng thái tắt
           </div>
         </div>
@@ -169,14 +169,14 @@ export function DiscoveryScreen() {
           {(evalResult.signals ?? []).map((s: { ruleName: string; message: string }, i: number) => (
             <div key={i} className="bg-gray-950 rounded-lg p-2 border border-gray-800">
               <div className="text-teal-400 font-medium">{s.ruleName}</div>
-              <div className="text-gray-500">{s.message}</div>
+              <div className="text-gray-400">{s.message}</div>
             </div>
           ))}
         </div>
       )}
 
       {rules.length === 0 && !loading && (
-        <div className="text-gray-500 text-sm text-center py-8">
+        <div className="text-gray-400 text-sm text-center py-8">
           Chưa có rule tự động nào. Nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.
         </div>
       )}
@@ -202,7 +202,7 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-gray-200">{rule.name}</span>
-          <span className="text-[11px] text-gray-500 bg-gray-950 px-1.5 py-0.5 rounded border border-gray-800">
+          <span className="text-[11px] text-gray-400 bg-gray-950 px-1.5 py-0.5 rounded border border-gray-800">
             {rule.symbol} {rule.timeframe}
           </span>
           {rule.isAutoDiscovered && (
@@ -215,7 +215,7 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
             {rule.isEnabled ? "Đang phát alert" : "Tắt · không phát alert"}
           </span>
         </div>
-        <button onClick={() => setExpanded((v) => !v)} className="p-1 text-gray-500 hover:text-gray-300">
+        <button onClick={() => setExpanded((v) => !v)} className="p-1 text-gray-400 hover:text-gray-300">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
@@ -229,7 +229,7 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
       )}
       {expanded && (
         <div className="mt-3 space-y-3 text-xs text-gray-400">
-          <div className="flex flex-wrap gap-3 text-gray-500">
+          <div className="flex flex-wrap gap-3 text-gray-400">
             <span>Cooldown: {rule.cooldownMinutes} phút</span>
             <span>·</span>
             <span>Cần tối thiểu {rule.requiredBars} nến trong buffer</span>
@@ -247,12 +247,12 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
           <button
             type="button"
             onClick={() => setShowRawJson((v) => !v)}
-            className="text-[11px] text-gray-600 hover:text-gray-400 underline-offset-2 hover:underline"
+            className="text-[11px] text-gray-400 hover:text-gray-400 underline-offset-2 hover:underline"
           >
             {showRawJson ? "Ẩn JSON kỹ thuật" : "Xem JSON kỹ thuật"}
           </button>
           {showRawJson && (
-            <pre className="bg-gray-950 rounded-lg p-3 border border-gray-800 font-mono text-[10px] text-gray-500 overflow-x-auto">
+            <pre className="bg-gray-950 rounded-lg p-3 border border-gray-800 font-mono text-[10px] text-gray-400 overflow-x-auto">
               {JSON.stringify(conditions, null, 2)}
             </pre>
           )}

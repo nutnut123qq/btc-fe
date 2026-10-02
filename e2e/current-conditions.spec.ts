@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openMainTab } from "./nav";
 
 const productionUrl = process.env.PLAYWRIGHT_BASE_URL;
 
@@ -13,10 +14,9 @@ async function collectErrors(page: Page): Promise<string[]> {
 
 async function openEvidenceCenter(page: Page) {
   await page.goto("/");
-  const nav = page.getByRole("button", { name: "Nghiên cứu", exact: true });
   const heading = page.getByRole("heading", { name: "Nghiên cứu có thể kiểm chứng" });
   await expect(async () => {
-    if (!(await heading.isVisible())) await nav.click();
+    if (!(await heading.isVisible())) await openMainTab(page, "Nghiên cứu");
     await expect(heading).toBeVisible();
   }).toPass({ timeout: 60_000 });
   await expect(page.getByText("Đang tải catalog…")).toHaveCount(0, { timeout: 90_000 });

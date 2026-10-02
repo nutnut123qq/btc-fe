@@ -293,10 +293,10 @@ export function DataManagementPanel({
                 {auditData.timeframes?.map((tf) => {
                   const active = isActiveTimeframe(tf.timeframe);
                   return (
-                  <tr key={tf.timeframe} className={active ? "hover:bg-gray-800/30" : "bg-gray-950/40 text-gray-500"}>
+                  <tr key={tf.timeframe} className={active ? "hover:bg-gray-800/30" : "bg-gray-950/40 text-gray-400"}>
                     <td className="p-2 font-bold text-gray-200">
                       {tf.timeframe}
-                      {!active && <span className="ml-1 text-[9px] font-normal text-gray-500">lịch sử</span>}
+                      {!active && <span className="ml-1 text-[9px] font-normal text-gray-400">lịch sử</span>}
                     </td>
                     <td className="p-2 text-right text-gray-300">{tf.totalKlines?.toLocaleString()}</td>
                     <td className={`p-2 text-right ${tf.missingBars > 0 ? "text-amber-400" : "text-emerald-400"}`}>
@@ -322,7 +322,7 @@ export function DataManagementPanel({
                       </span>
                     </td>
                     <td className="p-2 text-right text-gray-400">{ageLabel(tf.latestCandleAgeSeconds)}</td>
-                    <td className="p-2 text-right text-gray-500">
+                    <td className="p-2 text-right text-gray-400">
                       {tf.candlePatterns == null
                         ? "Chưa tải (fast audit)"
                         : `${tf.candlePatterns.toLocaleString()} patterns · ${tf.technicalIndicators?.toLocaleString() ?? "--"} indicators`}
@@ -346,7 +346,7 @@ export function DataManagementPanel({
               </tbody>
             </table>
             <div className="border-t border-gray-800 bg-gray-950/50 p-2">
-              <div className="mb-2 text-[10px] text-gray-500">
+              <div className="mb-2 text-[10px] text-gray-400">
                 Top gaps đã phân loại. Unavailable vẫn là dữ liệu thiếu; retry chỉ đặt lại lịch thử, không đánh dấu đã lấp.
               </div>
               <div className="space-y-1.5">
@@ -376,7 +376,7 @@ export function DataManagementPanel({
               <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Chất lượng nến & lineage derived</div>
               <div className="grid gap-2 md:grid-cols-3">
                 {auditData.timeframes.map((tf) => (
-                  <div key={`quality-${tf.timeframe}`} className="rounded border border-gray-800 bg-gray-900/50 p-2 text-[10px] text-gray-500">
+                  <div key={`quality-${tf.timeframe}`} className="rounded border border-gray-800 bg-gray-900/50 p-2 text-[10px] text-gray-400">
                     <div className="font-bold text-gray-300">{tf.timeframe}</div>
                     {tf.quality ? (
                       <>
@@ -384,7 +384,7 @@ export function DataManagementPanel({
                         <div className={tf.quality.invalidOhlcvRows || tf.quality.invalidDurationRows || tf.quality.duplicateOpenTimeRows ? "text-rose-300" : "text-emerald-400"}>
                           OHLCV lỗi {tf.quality.invalidOhlcvRows.toLocaleString()} · duration lỗi {tf.quality.invalidDurationRows.toLocaleString()} · duplicate {tf.quality.duplicateOpenTimeRows.toLocaleString()}
                         </div>
-                        <div className={tf.quality.isStale ? "text-amber-300" : "text-gray-500"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
+                        <div className={tf.quality.isStale ? "text-amber-300" : "text-gray-400"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
                       </>
                     ) : <div className="text-amber-300">Backend cũ: chưa có quality audit</div>}
                     <div className="mt-1 border-t border-gray-800 pt-1">
@@ -410,7 +410,7 @@ export function DataManagementPanel({
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-500">
+          <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-400">
             Chưa có báo cáo audit. Bấm làm mới để tải.
           </div>
         )}
@@ -433,7 +433,7 @@ export function DataManagementPanel({
             <div className="font-bold text-teal-300 flex items-center gap-1">
               <Play className="w-3 h-3" /> Backfill Nến Mới
             </div>
-            <div className="text-[10px] text-gray-500">Resume từ nến cuối lên sàn Binance</div>
+            <div className="text-[10px] text-gray-400">Resume từ nến cuối lên sàn Binance</div>
           </button>
 
           {/* Technical Indicators */}
@@ -445,7 +445,7 @@ export function DataManagementPanel({
             <div className="font-bold text-indigo-300 flex items-center gap-1">
               <BarChart3 className="w-3 h-3" /> Re-index Indicators
             </div>
-            <div className="text-[10px] text-gray-500">RSI, MACD, EMA, SMA, ATR, BB</div>
+            <div className="text-[10px] text-gray-400">RSI, MACD, EMA, SMA, ATR, BB</div>
           </button>
 
           {/* ML Features */}
@@ -457,7 +457,7 @@ export function DataManagementPanel({
             <div className="font-bold text-purple-300 flex items-center gap-1">
               <Layers className="w-3 h-3" /> Rebuild ML Dataset
             </div>
-            <div className="text-[10px] text-gray-500">MlFeatureStore & PriceTargets</div>
+            <div className="text-[10px] text-gray-400">MlFeatureStore & PriceTargets</div>
           </button>
 
           {/* Warmup Pattern Index */}
@@ -469,7 +469,7 @@ export function DataManagementPanel({
             <div className="font-bold text-amber-300 flex items-center gap-1">
               <Flame className="w-3 h-3" /> Warmup Pattern Index
             </div>
-            <div className="text-[10px] text-gray-500">Pre-index window vectors</div>
+            <div className="text-[10px] text-gray-400">Pre-index window vectors</div>
           </button>
         </div>
       </div>

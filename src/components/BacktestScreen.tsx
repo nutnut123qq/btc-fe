@@ -235,7 +235,7 @@ export function BacktestScreen() {
                     <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${r.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : r.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-amber-500/40 text-amber-300"}`}>
                       {r.validityStatus}
                     </span>
-                    {r.invalidReason && <div className="mt-1 max-w-56 text-[10px] text-gray-500">{r.invalidReason}</div>}
+                    {r.invalidReason && <div className="mt-1 max-w-56 text-[10px] text-gray-400">{r.invalidReason}</div>}
                   </td>
                   <td className="py-2 px-2 text-right">{r.totalTrades}</td>
                   <td className="py-2 px-2 text-right">{(r.winRate * 100).toFixed(1)}%</td>
@@ -252,7 +252,7 @@ export function BacktestScreen() {
               ))}
               {runs.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={12} className="py-4 text-center text-gray-500">
+                  <td colSpan={12} className="py-4 text-center text-gray-400">
                     {includeLegacy ? "Không có backtest nào trong phạm vi đã chọn." : "Không có backtest Valid. Bật bộ lọc Lab để xem Legacy/Invalid."}
                   </td>
                 </tr>

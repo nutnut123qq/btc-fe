@@ -49,7 +49,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
           <div className="flex items-center gap-3">
             <Layers className="w-5 h-5 text-gray-400" />
             <h3 className="font-medium text-gray-200">Market Regime</h3>
-            <span className="text-xs text-gray-500">{symbol} • {timeframe}</span>
+            <span className="text-xs text-gray-400">{symbol} • {timeframe}</span>
           </div>
           <button 
             onClick={handleBuild}
@@ -104,7 +104,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
         <div className="flex items-center gap-3">
           <Layers className="w-5 h-5 text-gray-400" />
           <h3 className="font-medium text-gray-200">Market Regime</h3>
-          <span className="text-xs text-gray-500">{symbol} • {timeframe}</span>
+          <span className="text-xs text-gray-400">{symbol} • {timeframe}</span>
         </div>
         <button 
           onClick={handleBuild}
@@ -142,7 +142,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
             <div style={{ width: `${(summary.distribution.breakoutPct * 100).toFixed(2)}%` }} className="bg-amber-500" title="Breakout" />
             <div style={{ width: `${(summary.distribution.compressionPct * 100).toFixed(2)}%` }} className="bg-indigo-500" title="Compression" />
           </div>
-          <div className="flex justify-between text-[10px] text-gray-500 pt-1">
+          <div className="flex justify-between text-[10px] text-gray-400 pt-1">
             <span className="text-emerald-500/80">Up {(summary.distribution.trendingUpPct * 100).toFixed(0)}%</span>
             <span className="text-rose-500/80">Down {(summary.distribution.trendingDownPct * 100).toFixed(0)}%</span>
             <span className="text-cyan-500/80">Range {(summary.distribution.rangeBoundPct * 100).toFixed(0)}%</span>

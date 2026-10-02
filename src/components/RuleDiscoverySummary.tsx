@@ -36,12 +36,12 @@ function StatCell({
   };
   return (
     <div className={`rounded-lg border px-2.5 py-2 min-w-[4.5rem] ${tones[tone]}`}>
-      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-500 mb-0.5">
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">
         <Icon className="w-3 h-3 shrink-0 opacity-70" aria-hidden />
         {label}
       </div>
       <div className="text-sm font-semibold text-gray-100 tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] text-gray-500 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -71,7 +71,7 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 pl-6">
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-400 pl-6">
         <Clock className="w-3 h-3 shrink-0" aria-hidden />
         <span>
           Cửa sổ đo lường: <strong className="text-gray-400 font-normal">{futureBars} nến</strong>{" "}

@@ -19,7 +19,7 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
         <span className="rounded bg-gray-800 px-2 py-1 font-mono text-sm font-bold text-teal-400">
           {arc.archetypeCode}
         </span>
-        <span className="text-xs text-gray-500">{arc.timeframe} · {arc.windowSize} nến</span>
+        <span className="text-xs text-gray-400">{arc.timeframe} · {arc.windowSize} nến</span>
       </div>
 
       <div className="h-40 rounded-lg bg-gray-900 p-2">
@@ -28,11 +28,11 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
 
       <div className="mt-3 grid grid-cols-2 gap-2 border-t border-gray-800 pt-3 text-xs">
         <div className="rounded bg-gray-900 p-2">
-          <div className="text-gray-500">Số mẫu gốc</div>
+          <div className="text-gray-400">Số mẫu gốc</div>
           <div className="mt-1 font-semibold text-gray-200">{arc.memberCount}</div>
         </div>
         <div className="rounded bg-gray-900 p-2">
-          <div className="text-gray-500">Độ phân tán</div>
+          <div className="text-gray-400">Độ phân tán</div>
           <div className="mt-1 font-semibold text-gray-200">{arc.intraClusterDistance.toFixed(3)}</div>
         </div>
       </div>

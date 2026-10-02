@@ -67,7 +67,7 @@ function ConditionCard({ condition, index }: { condition: SequenceRuleCondition;
     >
       <div className="flex items-start gap-2.5">
         <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-950/80 border border-gray-800 text-xs font-semibold text-gray-500`}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-950/80 border border-gray-800 text-xs font-semibold text-gray-400`}
         >
           {index + 1}
         </span>
@@ -124,13 +124,13 @@ export function RuleConditionsDisplay({
 
   return (
     <div className={`space-y-2 ${className}`} role="list" aria-label="Điều kiện rule">
-      <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium">
+      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-medium">
         Điều kiện (tất cả phải đúng cùng lúc)
       </p>
       {conditions.map((c, i) => (
         <ConditionCard key={i} condition={c} index={i} />
       ))}
-      <p className="text-[11px] text-gray-600 pl-1">
+      <p className="text-[11px] text-gray-400 pl-1">
         Khi khớp, hệ thống so giá sau các nến tiếp theo (theo mô tả rule) với lịch sử đã quét.
       </p>
     </div>

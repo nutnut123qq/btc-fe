@@ -441,14 +441,14 @@ export function BinanceTradeHistoryScreen() {
             <tbody className="divide-y divide-[#2b313a] text-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-gray-500">
+                  <td colSpan={10} className="py-12 text-center text-gray-400">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-teal-400" />
                     Đang nạp nhật ký Paper...
                   </td>
                 </tr>
               ) : !tradesData || tradesData.items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-gray-500">
+                  <td colSpan={10} className="py-12 text-center text-gray-400">
                     Không tìm thấy lệnh nào phù hợp với bộ lọc đã chọn.
                   </td>
                 </tr>
@@ -542,7 +542,7 @@ export function BinanceTradeHistoryScreen() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-gray-500">--</span>
+                          <span className="text-gray-400">--</span>
                         )}
                       </td>
 
@@ -669,7 +669,7 @@ export function BinanceTradeHistoryScreen() {
                 trên tổng <span className="text-gray-200 font-semibold">{tradesData.totalCount}</span> lệnh
               </span>
 
-              <span className="text-gray-600">|</span>
+              <span className="text-gray-400">|</span>
 
               <div className="flex items-center gap-1">
                 <span>Số dòng:</span>

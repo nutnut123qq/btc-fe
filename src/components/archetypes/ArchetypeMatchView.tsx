@@ -86,12 +86,12 @@ export function ArchetypeMatchView({
                   </div>
                 </>
               ) : (
-                <div className="py-8 text-center text-gray-500">— Không khớp —</div>
+                <div className="py-8 text-center text-gray-400">— Không khớp —</div>
               )}
             </div>
           ))}
           {matchData.length === 0 && (
-            <div className="md:col-span-2 lg:col-span-4 py-8 text-center text-gray-500">
+            <div className="md:col-span-2 lg:col-span-4 py-8 text-center text-gray-400">
               Không có kết quả khớp cho cấu hình này
             </div>
           )}

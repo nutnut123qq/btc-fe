@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openMainTab } from "./nav";
 
 const productionUrl = process.env.PLAYWRIGHT_BASE_URL;
 const requireLlm = process.env.PLAYWRIGHT_REQUIRE_LLM !== "0";
@@ -103,7 +104,7 @@ function expectHistoricalAnalogInvariants(data: HistoricalAnalogResponse) {
 }
 
 async function openTab(page: Page, tab: string, visibleText: string | RegExp) {
-  await page.getByRole("button", { name: tab, exact: true }).click();
+  await openMainTab(page, tab);
   const activeContent = page
     .locator("main")
     .getByText(visibleText)

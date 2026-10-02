@@ -110,11 +110,11 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
       {/* Trades List */}
       <div className="flex-1 overflow-y-auto divide-y divide-gray-800/20 max-h-[380px] min-h-[220px]">
         {loading && trades.length === 0 ? (
-          <div className="p-6 text-center text-xs text-gray-500 flex items-center justify-center gap-2">
+          <div className="p-6 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" /> Đang cập nhật khớp lệnh...
           </div>
         ) : trades.length === 0 ? (
-          <div className="p-6 text-center text-xs text-gray-500">
+          <div className="p-6 text-center text-xs text-gray-400">
             Chưa có dữ liệu khớp lệnh
           </div>
         ) : (
@@ -136,7 +136,7 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
                 </div>
 
                 {/* Time */}
-                <div className="col-span-4 text-right text-gray-500 text-[11px]">
+                <div className="col-span-4 text-right text-gray-400 text-[11px]">
                   {formatTime(trade.timeMs)}
                 </div>
               </div>

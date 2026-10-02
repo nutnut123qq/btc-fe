@@ -28,7 +28,7 @@ export function SessionAccessPanel({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
           <div className="text-xs font-semibold text-gray-300">{label}</div>
-          <div className="text-[11px] text-gray-500">
+          <div className="text-[11px] text-gray-400">
             {unlocked
               ? "Đã mở khóa trong tab hiện tại. Khóa không được ghi vào bundle hoặc localStorage."
               : "Các thao tác ghi dữ liệu đang bị khóa. Nhập khóa phiên để mở."}

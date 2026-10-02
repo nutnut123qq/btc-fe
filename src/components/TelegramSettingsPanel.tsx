@@ -49,7 +49,7 @@ export function TelegramSettingsPanel({
   };
 
   if (loading) {
-    return <div className="text-sm text-gray-500 py-4">Đang tải cấu hình Telegram...</div>;
+    return <div className="text-sm text-gray-400 py-4">Đang tải cấu hình Telegram...</div>;
   }
 
   return (
@@ -83,7 +83,7 @@ export function TelegramSettingsPanel({
         <p>
           Bot Telegram dùng để gửi cảnh báo giá, tín hiệu ML và paper trading trực tiếp tới điện thoại của bạn.
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-400">
           Lưu ý: Token và Chat ID được cấu hình trong <code className="bg-gray-800 px-1 py-0.5 rounded text-gray-300">appsettings.json</code> ở backend để đảm bảo bảo mật. Frontend chỉ dùng để xem trạng thái và gửi tin nhắn test.
         </p>
       </div>
@@ -92,7 +92,7 @@ export function TelegramSettingsPanel({
         <button
           onClick={() => void handleTest()}
           disabled={!configured || testing || !adminUnlocked || !contractCompatible}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-400 text-white text-sm font-medium transition-colors flex items-center gap-2"
         >
           <Send className="w-4 h-4" />
           {testing ? "Đang gửi..." : "Gửi tin nhắn Test"}

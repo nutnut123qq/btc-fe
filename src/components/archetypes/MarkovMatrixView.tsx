@@ -20,11 +20,11 @@ export function MarkovMatrixView({
   onSelectArc,
 }: MarkovMatrixViewProps) {
   if (!matrix) {
-    return <div className="py-12 text-center text-gray-500">Không có dữ liệu</div>;
+    return <div className="py-12 text-center text-gray-400">Không có dữ liệu</div>;
   }
 
   if (!hasTransitionMatrixData(matrix)) {
-    return <div className="py-12 text-center text-gray-500">Chưa có dữ liệu chuyển đổi cho cấu hình này</div>;
+    return <div className="py-12 text-center text-gray-400">Chưa có dữ liệu chuyển đổi cho cấu hình này</div>;
   }
 
   return (
@@ -52,11 +52,11 @@ export function MarkovMatrixView({
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-teal-300 text-xs">{cell.fromCode}</span>
-                    <span className="text-gray-500 text-xs">→</span>
+                    <span className="text-gray-400 text-xs">→</span>
                     <span className="font-mono text-amber-300 text-xs">{cell.toCode}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="text-xs text-gray-500">{cell.count} lần</div>
+                    <div className="text-xs text-gray-400">{cell.count} lần</div>
                     <div
                       className={`text-sm font-bold ${
                         cell.probability > 0.15
@@ -98,7 +98,7 @@ export function MarkovMatrixView({
                           style={{ width: `${t.transitionProbability * 100}%` }}
                         />
                       </div>
-                      <div className="flex justify-between mt-1 text-xs text-gray-500">
+                      <div className="flex justify-between mt-1 text-xs text-gray-400">
                         <span>
                           Lợi nhuận:{" "}
                           <span
@@ -114,13 +114,13 @@ export function MarkovMatrixView({
                     </div>
                   ))}
                   {arcTransitions.length === 0 && (
-                    <div className="text-gray-500 text-sm py-4">Không có dữ liệu chuyển đổi</div>
+                    <div className="text-gray-400 text-sm py-4">Không có dữ liệu chuyển đổi</div>
                   )}
                 </div>
               </>
             )
           ) : (
-            <div className="py-12 text-center text-gray-500 text-sm">
+            <div className="py-12 text-center text-gray-400 text-sm">
               Chọn một mẫu ở cột trái để xem chi tiết chuyển đổi
             </div>
           )}

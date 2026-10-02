@@ -60,7 +60,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
           ))}
           {rankings.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-4 text-center text-gray-500">
+              <td colSpan={8} className="py-4 text-center text-gray-400">
                 Không có dữ liệu
               </td>
             </tr>

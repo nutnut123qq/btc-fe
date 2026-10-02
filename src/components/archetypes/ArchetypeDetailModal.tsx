@@ -51,11 +51,11 @@ export function ArchetypeDetailModal({
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                 <div className="bg-gray-900 p-2 rounded">
-                  <div className="text-gray-500 text-xs">Số mẫu</div>
+                  <div className="text-gray-400 text-xs">Số mẫu</div>
                   <div className="font-medium">{detail.memberCount}</div>
                 </div>
                 <div className="bg-gray-900 p-2 rounded">
-                  <div className="text-gray-500 text-xs">Độ phân tán</div>
+                  <div className="text-gray-400 text-xs">Độ phân tán</div>
                   <div className="font-medium">
                     {detail.intraClusterDistance.toFixed(3)}
                   </div>
@@ -69,7 +69,7 @@ export function ArchetypeDetailModal({
                 Kết quả được tính trực tiếp từ giá đóng cửa cây cuối mẫu đến giá đóng cửa sau 1, 3 và 6 nến.
                 Các thống kê Triple Barrier cũ không được dùng trong phần kiểm chứng này.
               </p>
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-3 text-xs text-gray-400">
                 ĐÚNG HƯỚNG nghĩa là hướng thực tế trùng hướng chủ đạo lịch sử của nhóm tại cùng mốc; đây không phải lợi nhuận của một giao dịch.
               </p>
             </div>
@@ -112,7 +112,7 @@ export function ArchetypeDetailModal({
                   ))}
                   {occurrences.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-gray-500">
+                      <td colSpan={5} className="py-6 text-center text-gray-400">
                         Chưa có lần xuất hiện gần đây
                       </td>
                     </tr>

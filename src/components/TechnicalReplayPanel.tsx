@@ -50,10 +50,10 @@ function LayerCard({ label, layer, summary, nonProbability = false }: {
   nonProbability?: boolean;
 }) {
   return <article className="min-w-0 rounded-lg border border-slate-800 bg-slate-900/70 p-3">
-    <div className="flex items-start justify-between gap-2"><div><h3 className="text-xs font-bold text-slate-200">{label}</h3><p className="mt-1 font-mono text-[9px] text-slate-600">{layer.layerKey}</p></div><span className={`rounded border px-2 py-0.5 text-[9px] font-bold uppercase ${availabilityStyle(layer.availability)}`}>{layer.availability}</span></div>
+    <div className="flex items-start justify-between gap-2"><div><h3 className="text-xs font-bold text-slate-200">{label}</h3><p className="mt-1 font-mono text-[9px] text-slate-400">{layer.layerKey}</p></div><span className={`rounded border px-2 py-0.5 text-[9px] font-bold uppercase ${availabilityStyle(layer.availability)}`}>{layer.availability}</span></div>
     <div className="mt-2 text-[11px] leading-5 text-slate-300">{layer.payload ? summary : <span className="text-rose-300">{layer.unavailableReason ?? "Không có payload point-in-time."}</span>}</div>
     {nonProbability && <p className="mt-2 rounded border border-amber-800/70 bg-amber-950/20 px-2 py-1 text-[10px] text-amber-200">Chỉ số mô tả đồng thuận, không phải xác suất hay tín hiệu giao dịch.</p>}
-    <details className="mt-2 text-[10px] text-slate-500">
+    <details className="mt-2 text-[10px] text-slate-400">
       <summary className="cursor-pointer text-slate-400">Nguồn, phiên bản & giới hạn</summary>
       <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-2 gap-y-1">
         <dt>Nguồn</dt><dd className="break-all text-right text-slate-300">{layer.lineage.source}</dd>
@@ -116,7 +116,7 @@ export function TechnicalReplayPanel({
         </div>
 
         <div className="flex min-w-0 flex-wrap items-end gap-2">
-          <label className="min-w-0 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <label className="min-w-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
             Thời điểm xem
             <ReplayDateInput key={asOfTimeMs ?? "live"} initialTimeMs={asOfTimeMs} onCommit={onSetAsOf} />
           </label>
@@ -155,7 +155,7 @@ export function TechnicalReplayPanel({
             <p className="text-[11px] text-slate-400">
               {replay.events.length} sự kiện · {replay.sourceCandleCount} nến hiển thị · {replay.analysisCandleCount} nến ngữ cảnh liền mạch · cửa sổ từ {formatTime(replay.replayWindowStartTimeMs)} · nến cuối đóng {formatTime(replay.lastFinalizedCandleCloseTimeMs)}
             </p>
-            <p className="truncate text-[10px] text-slate-500" title={replay.provenance.availabilityRule}>{replay.provenance.evaluationMode}</p>
+            <p className="truncate text-[10px] text-slate-400" title={replay.provenance.availabilityRule}>{replay.provenance.evaluationMode}</p>
           </div>
           <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Bảy lớp phân tích kỹ thuật point-in-time">
             <LayerCard label="Technical indicators" layer={replay.layers.indicators} summary={<>
@@ -182,9 +182,9 @@ export function TechnicalReplayPanel({
           </div>
           <details className="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-[10px] text-slate-400">
             <summary className="cursor-pointer font-semibold text-slate-300">Coverage & Data Administration</summary>
-            <div className="mt-2 overflow-x-auto"><table className="w-full min-w-[820px] text-left"><thead className="text-slate-500"><tr><th className="p-1">Layer</th><th className="p-1">Availability</th><th className="p-1 text-right">Source / warmup</th><th className="p-1">Latest</th><th className="p-1">Gap</th><th className="p-1">Checkpoint</th><th className="p-1">Storage</th></tr></thead><tbody>{replay.coverage.map((item) => <tr key={item.layerKey} className="border-t border-slate-800"><td className="p-1 font-mono text-slate-300">{item.layerKey}</td><td className="p-1">{item.availability}</td><td className="p-1 text-right">{item.sourceBars} / {item.requiredWarmupBars}</td><td className="p-1">{formatTime(item.latestAvailableTimeMs)}</td><td className="p-1">{item.hasGapBoundary ? "boundary" : "none"}</td><td className="p-1">{item.checkpointStatus}</td><td className="p-1">{item.isEventEnvelopeMaterializedAtAsOf ? "event envelope materialized" : item.storageStatus.replaceAll("_", " ")}</td></tr>)}</tbody></table></div>
+            <div className="mt-2 overflow-x-auto"><table className="w-full min-w-[820px] text-left"><thead className="text-slate-400"><tr><th className="p-1">Layer</th><th className="p-1">Availability</th><th className="p-1 text-right">Source / warmup</th><th className="p-1">Latest</th><th className="p-1">Gap</th><th className="p-1">Checkpoint</th><th className="p-1">Storage</th></tr></thead><tbody>{replay.coverage.map((item) => <tr key={item.layerKey} className="border-t border-slate-800"><td className="p-1 font-mono text-slate-300">{item.layerKey}</td><td className="p-1">{item.availability}</td><td className="p-1 text-right">{item.sourceBars} / {item.requiredWarmupBars}</td><td className="p-1">{formatTime(item.latestAvailableTimeMs)}</td><td className="p-1">{item.hasGapBoundary ? "boundary" : "none"}</td><td className="p-1">{item.checkpointStatus}</td><td className="p-1">{item.isEventEnvelopeMaterializedAtAsOf ? "event envelope materialized" : item.storageStatus.replaceAll("_", " ")}</td></tr>)}</tbody></table></div>
             <div className="mt-2 rounded border border-slate-800 bg-slate-950/60 p-2">Context limit {replay.administration.contextLimitBars.toLocaleString("vi-VN")} bars · legacy SMC {replay.administration.legacySmartMoneyStatus} · gap boundary {replay.administration.hasGapBoundary ? "có" : "không"} · rebuild {replay.administration.rebuildRequired ? replay.administration.rebuildReason ?? "required" : "không yêu cầu"}</div>
-            <div className="mt-2 break-all font-mono text-[9px] text-slate-600">Module contract {replay.moduleContractVersion} · sha256 {replay.moduleContractSha256}</div>
+            <div className="mt-2 break-all font-mono text-[9px] text-slate-400">Module contract {replay.moduleContractVersion} · sha256 {replay.moduleContractSha256}</div>
           </details>
           <div className="flex max-w-full gap-2 overflow-x-auto pb-1" aria-label="Danh sách sự kiện SMC tại thời điểm xem">
             {replay.events.slice(-20).reverse().map((event) => (
@@ -196,7 +196,7 @@ export function TechnicalReplayPanel({
                 aria-pressed={selectedEvent?.eventId === event.eventId}
               >
                 <span className="block font-bold">{event.eventType.replace("_", " ")}</span>
-                <span className="text-[10px] text-slate-500">{formatTime(event.availableTimeMs)}</span>
+                <span className="text-[10px] text-slate-400">{formatTime(event.availableTimeMs)}</span>
               </button>
             ))}
           </div>
@@ -212,19 +212,19 @@ export function TechnicalReplayPanel({
                 <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase ${stateStyle(selectedEvent.stateAtAsOf)}`}>{selectedEvent.stateAtAsOf}</span>
               </div>
               <p className="mt-1 text-xs text-slate-300">{selectedEvent.description}</p>
-              <p className="mt-1 break-all font-mono text-[10px] text-slate-500">{selectedEvent.eventId}</p>
+              <p className="mt-1 break-all font-mono text-[10px] text-slate-400">{selectedEvent.eventId}</p>
             </div>
-            <button type="button" onClick={() => onSelectEvent(null)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-200" aria-label="Đóng hồ sơ sự kiện"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => onSelectEvent(null)} className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200" aria-label="Đóng hồ sơ sự kiện"><X className="h-4 w-4" /></button>
           </div>
 
           <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-[11px] sm:grid-cols-2 lg:grid-cols-4">
-            <div><dt className="text-slate-500">Origin</dt><dd className="text-slate-200">{formatTime(selectedEvent.originTimeMs)}</dd></div>
-            <div><dt className="text-slate-500">Available</dt><dd className="text-slate-200">{formatTime(selectedEvent.availableTimeMs)}</dd></div>
-            <div><dt className="text-slate-500">Reference</dt><dd className="text-slate-200">{formatTime(selectedEvent.referenceTimeMs)}</dd></div>
-            <div><dt className="text-slate-500">Giá / vùng</dt><dd className="text-slate-200">{selectedEvent.lowPrice != null && selectedEvent.highPrice != null ? `${selectedEvent.lowPrice.toFixed(2)} – ${selectedEvent.highPrice.toFixed(2)}` : selectedEvent.price.toFixed(2)}</dd></div>
-            <div><dt className="text-slate-500">Mitigated at</dt><dd className="text-slate-200">{formatTime(selectedEvent.mitigatedAtMs)}</dd></div>
-            <div><dt className="text-slate-500">Invalidated at</dt><dd className="text-slate-200">{formatTime(selectedEvent.invalidatedAtMs)}</dd></div>
-            <div className="sm:col-span-2"><dt className="text-slate-500">Calculation version</dt><dd className="break-all text-slate-200">{selectedEvent.calculationVersion}</dd></div>
+            <div><dt className="text-slate-400">Origin</dt><dd className="text-slate-200">{formatTime(selectedEvent.originTimeMs)}</dd></div>
+            <div><dt className="text-slate-400">Available</dt><dd className="text-slate-200">{formatTime(selectedEvent.availableTimeMs)}</dd></div>
+            <div><dt className="text-slate-400">Reference</dt><dd className="text-slate-200">{formatTime(selectedEvent.referenceTimeMs)}</dd></div>
+            <div><dt className="text-slate-400">Giá / vùng</dt><dd className="text-slate-200">{selectedEvent.lowPrice != null && selectedEvent.highPrice != null ? `${selectedEvent.lowPrice.toFixed(2)} – ${selectedEvent.highPrice.toFixed(2)}` : selectedEvent.price.toFixed(2)}</dd></div>
+            <div><dt className="text-slate-400">Mitigated at</dt><dd className="text-slate-200">{formatTime(selectedEvent.mitigatedAtMs)}</dd></div>
+            <div><dt className="text-slate-400">Invalidated at</dt><dd className="text-slate-200">{formatTime(selectedEvent.invalidatedAtMs)}</dd></div>
+            <div className="sm:col-span-2"><dt className="text-slate-400">Calculation version</dt><dd className="break-all text-slate-200">{selectedEvent.calculationVersion}</dd></div>
           </dl>
 
           <div className="mt-3 grid min-w-0 gap-3 lg:grid-cols-2">
@@ -241,7 +241,7 @@ export function TechnicalReplayPanel({
           <div className="mt-3 min-w-0 overflow-x-auto">
             <table className="min-w-[680px] w-full text-left text-[10px]">
               <caption className="pb-1 text-left font-bold uppercase tracking-wide text-slate-400">Nến nguồn</caption>
-              <thead className="text-slate-500"><tr><th className="pr-3">Vai trò</th><th className="pr-3">Open time</th><th className="pr-3">O</th><th className="pr-3">H</th><th className="pr-3">L</th><th>C</th></tr></thead>
+              <thead className="text-slate-400"><tr><th className="pr-3">Vai trò</th><th className="pr-3">Open time</th><th className="pr-3">O</th><th className="pr-3">H</th><th className="pr-3">L</th><th>C</th></tr></thead>
               <tbody className="text-slate-300">{selectedEvent.sourceCandles.map((candle) => <tr key={`${candle.role}-${candle.openTimeMs}`} className="border-t border-slate-800"><td className="py-1 pr-3">{candle.role}</td><td className="pr-3">{formatTime(candle.openTimeMs)}</td><td className="pr-3">{candle.open.toFixed(2)}</td><td className="pr-3">{candle.high.toFixed(2)}</td><td className="pr-3">{candle.low.toFixed(2)}</td><td>{candle.close.toFixed(2)}</td></tr>)}</tbody>
             </table>
           </div>

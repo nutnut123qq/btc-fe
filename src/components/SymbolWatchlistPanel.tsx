@@ -116,7 +116,7 @@ export function SymbolWatchlistPanel({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm BTC"
-            className="w-full bg-gray-900 border border-gray-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-teal-500 transition-colors"
+            className="w-full bg-gray-900 border border-gray-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-100 placeholder-gray-400 focus:outline-none focus:border-teal-500 transition-colors"
             autoFocus={isModal}
           />
         </div>
@@ -176,7 +176,7 @@ export function SymbolWatchlistPanel({
       {/* Virtual/Scrollable List */}
       <div className="flex-1 overflow-y-auto divide-y divide-gray-800/40 min-h-[300px] max-h-[460px]">
         {filteredTickers.length === 0 ? (
-          <div className="p-8 text-center text-xs text-gray-500">
+          <div className="p-8 text-center text-xs text-gray-400">
             Không tìm thấy cặp giao dịch phù hợp
           </div>
         ) : (
@@ -203,7 +203,7 @@ export function SymbolWatchlistPanel({
                 <div className="col-span-5 flex items-center gap-2">
                   <button
                     onClick={(e) => toggleFavorite(e, t.symbol)}
-                    className="text-gray-600 hover:text-amber-400 transition-colors p-0.5"
+                    className="text-gray-400 hover:text-amber-400 transition-colors p-0.5"
                   >
                     <Star
                       className={`w-3 h-3 ${
@@ -213,8 +213,8 @@ export function SymbolWatchlistPanel({
                   </button>
                   <div>
                     <span className="font-bold text-gray-100">{base}</span>
-                    <span className="text-[10px] text-gray-500 ml-1">/USDT</span>
-                    <div className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-gray-400 ml-1">/USDT</span>
+                    <div className="text-[10px] text-gray-400">
                       Vol: ${formatVol(t.quoteVolume)}
                     </div>
                   </div>

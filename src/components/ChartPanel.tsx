@@ -311,7 +311,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowHeikinAshi((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showHeikinAshi ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+              showHeikinAshi ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
             }`}
           >
             Nến Heikin-Ashi
@@ -319,7 +319,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowFibonacci((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showFibonacci ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+              showFibonacci ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
             }`}
           >
             Fibonacci (GP)
@@ -327,7 +327,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowPatterns((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
             }`}
           >
             Mẫu nến
@@ -335,7 +335,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowSmc((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showSmc ? "bg-purple-500/20 text-purple-300 border-purple-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+              showSmc ? "bg-purple-500/20 text-purple-300 border-purple-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
             }`}
           >
             SMC / FVG
@@ -343,7 +343,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowVpvr((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showVpvr ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-gray-900 text-gray-500 border-gray-800"
+              showVpvr ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
             }`}
           >
             VPVR
@@ -352,7 +352,7 @@ export function ChartPanel({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-gray-500">Kiểu đặc trưng</p>
+        <p className="text-xs text-gray-400">Kiểu đặc trưng</p>
         <div className="flex flex-wrap gap-2">
           {FEATURE_TYPES.map((ft) => (
             <button
@@ -361,7 +361,7 @@ export function ChartPanel({
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 selectedFeature === ft.value
                   ? "bg-gray-700 border-gray-600 text-gray-200"
-                  : "bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600"
+                  : "bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600"
               }`}
             >
               {ft.label}
@@ -371,7 +371,7 @@ export function ChartPanel({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-gray-500">Cửa sổ nến</p>
+        <p className="text-xs text-gray-400">Cửa sổ nến</p>
         <div className="flex flex-wrap gap-2">
           {WINDOW_SIZES.map((ws) => (
             <button
@@ -380,7 +380,7 @@ export function ChartPanel({
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 selectedWindowSize === ws
                   ? "bg-gray-700 border-gray-600 text-gray-200"
-                  : "bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600"
+                  : "bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600"
               }`}
             >
               {ws}
@@ -420,7 +420,7 @@ export function ChartPanel({
       {/* Chart */}
       <div className="w-full">
         {status === "loading" && (
-          <div className="h-[440px] flex items-center justify-center text-gray-500">
+          <div className="h-[440px] flex items-center justify-center text-gray-400">
             <RefreshCw className="animate-spin w-8 h-8 mr-2" /> Đang tải biểu đồ…
           </div>
         )}
@@ -442,7 +442,7 @@ export function ChartPanel({
           />
         )}
         {status !== "loading" && status !== "error" && candles.length === 0 && (
-          <div className="h-[440px] flex items-center justify-center text-gray-500">Không có dữ liệu nến.</div>
+          <div className="h-[440px] flex items-center justify-center text-gray-400">Không có dữ liệu nến.</div>
         )}
       </div>
 
@@ -451,7 +451,7 @@ export function ChartPanel({
         {searchLoading && (
           <div className="space-y-2">
             <p className="text-sm text-teal-400">Đang tìm cửa sổ tương tự…</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               feature={selectedFeature} · {timeframe} · {symbol}
             </p>
             <div className="h-2 bg-gray-800 rounded overflow-hidden">
@@ -481,13 +481,13 @@ export function ChartPanel({
         {!searchLoading && !searchError && searchResults.length > 0 && (
           <div className="space-y-2">
             {searchMeta && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 feature={searchMeta.featureType} | scanned={searchMeta.scannedWindows} | latency={searchMeta.latencyMs}ms | store=
                 {searchMeta.fromVectorStore ? "db" : "fallback"}
               </p>
             )}
             <p className="text-sm font-medium text-gray-200">Cửa sổ tương tự (top {searchResults.length})</p>
-            <p className="text-xs text-gray-500">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
+            <p className="text-xs text-gray-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {searchResults.map((r) => (
                 <button
@@ -502,7 +502,7 @@ export function ChartPanel({
                   <div className="font-medium text-gray-200">
                     {r.windowId} — score={r.similarity.toFixed(3)}
                   </div>
-                  <div className="text-gray-500 mt-0.5">
+                  <div className="text-gray-400 mt-0.5">
                     {new Date(r.startTimeMs).toLocaleString()} →{" "}
                     {new Date(r.endTimeMs).toLocaleTimeString()}
                   </div>
@@ -513,12 +513,12 @@ export function ChartPanel({
         )}
 
         {!searchLoading && !searchError && searchResults.length === 0 && !searchMeta && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             Chưa có kết quả. Chọn kiểu đặc trưng, rồi bấm Search pattern.
           </p>
         )}
         {!searchLoading && !searchError && searchResults.length === 0 && searchMeta && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             Không tìm thấy cửa sổ tương tự (scanned={searchMeta.scannedWindows}, store={searchMeta.fromVectorStore ? "db" : "fallback"}).
           </p>
         )}
@@ -526,7 +526,7 @@ export function ChartPanel({
 
       {/* Pattern type search */}
       <div className="space-y-2 border-t border-gray-800 pt-3">
-        <p className="text-xs text-gray-500">Tìm window theo loại nến</p>
+        <p className="text-xs text-gray-400">Tìm window theo loại nến</p>
         <div className="flex flex-wrap gap-2 items-center">
           <select
             value={selectedPatternType}
@@ -576,14 +576,14 @@ export function ChartPanel({
         {!patternSearchLoading && !patternSearchError && patternSearchResults.length > 0 && (
           <div className="space-y-2">
             {patternSearchMeta && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 pattern={patternSearchMeta.patternType} | total={patternSearchMeta.total} | page={patternSearchMeta.page}
               </p>
             )}
             <p className="text-sm font-medium text-gray-200">
               Các vùng {PATTERN_TYPES.find((p) => p.value === selectedPatternType)?.label ?? selectedPatternType}
             </p>
-            <p className="text-xs text-gray-500">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
+            <p className="text-xs text-gray-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
               {patternSearchResults.map((r) => {
                 const window = patternWindowFor(r);
@@ -600,7 +600,7 @@ export function ChartPanel({
                     <div className="font-medium text-gray-200">
                       {r.patternType} — {r.trendDirection}
                     </div>
-                    <div className="text-gray-500 mt-0.5">
+                    <div className="text-gray-400 mt-0.5">
                       {new Date(window.startTimeMs).toLocaleString()} →{" "}
                       {new Date(window.endTimeMs).toLocaleTimeString()}
                     </div>
@@ -612,7 +612,7 @@ export function ChartPanel({
         )}
 
         {!patternSearchLoading && !patternSearchError && patternSearchResults.length === 0 && patternSearchMeta && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             Không tìm thấy vùng nến {selectedPatternType} nào.
           </p>
         )}

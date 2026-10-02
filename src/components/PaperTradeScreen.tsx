@@ -7,6 +7,7 @@ import type { PaperObservationListResponse, PaperTradeItem, PaperTradeSummary, E
 import { createChart, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { ACTIVE_TIMEFRAMES } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
+import { GlossaryTerm } from "./GlossaryTerm";
 
 function formatPct(v: number) {
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
@@ -147,7 +148,7 @@ export function PaperTradeScreen() {
             <LineChart className="text-teal-400" />
             Paper Trading
           </h2>
-          <p className="text-xs text-gray-500">Theo dõi lệnh giao dịch mô phỏng realtime</p>
+          <p className="text-xs text-gray-400">Theo dõi lệnh giao dịch mô phỏng realtime</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -203,25 +204,25 @@ export function PaperTradeScreen() {
 
       <div className="bg-amber-950/20 border border-amber-900/50 rounded-2xl p-4">
         <div>
-          <h3 className="text-sm font-semibold text-amber-300">Ensemble đang được quarantine</h3>
-          <p className="text-xs text-gray-400 mt-1">Pipeline ensemble legacy chưa qua promotion gate; Paper Journal không tạo tín hiệu mới từ pipeline này.</p>
+          <h3 className="text-sm font-semibold text-amber-300"><GlossaryTerm term="ensemble">Ensemble</GlossaryTerm> đang được <GlossaryTerm term="quarantine">quarantine</GlossaryTerm></h3>
+          <p className="text-xs text-gray-400 mt-1">Pipeline <GlossaryTerm term="ensemble">ensemble</GlossaryTerm> <GlossaryTerm term="legacy">legacy</GlossaryTerm> chưa qua <GlossaryTerm term="promotion-gate">promotion gate</GlossaryTerm>; Paper Journal không tạo tín hiệu mới từ pipeline này.</p>
         </div>
       </div>
 
       <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-200">Forward observation journal · BTCUSDT 4h cố định</h3>
-            <p className="text-xs text-gray-500 mt-1">Độc lập với bộ lọc lịch sử phía trên. Bản ghi append-only tại thời điểm quyết định; fill, outcome và PnL chỉ hiện khi được quan sát thật.</p>
+            <h3 className="text-sm font-semibold text-gray-200"><GlossaryTerm term="forward-journal">Forward observation journal</GlossaryTerm> · BTCUSDT 4h cố định</h3>
+            <p className="text-xs text-gray-400 mt-1">Độc lập với bộ lọc lịch sử phía trên. Bản ghi <GlossaryTerm term="append-only">append-only</GlossaryTerm> tại thời điểm quyết định; <GlossaryTerm term="fill">fill</GlossaryTerm>, <GlossaryTerm term="outcome">outcome</GlossaryTerm> và <GlossaryTerm term="pnl">PnL</GlossaryTerm> chỉ hiện khi được quan sát thật.</p>
           </div>
           <span className={`text-[11px] px-2 py-1 rounded-full border ${observations?.available ? "border-emerald-700/60 bg-emerald-950/40 text-emerald-300" : "border-amber-700/60 bg-amber-950/40 text-amber-300"}`}>
             {observations?.available ? `${observations.items.length} bản ghi` : "Chưa khả dụng"}
           </span>
         </div>
         {!observations?.available ? (
-          <div className="text-xs text-amber-300/90">{observations?.reason ?? "Chưa có registry forward observation."}</div>
+          <div className="text-xs text-amber-300/90">{observations?.reason ?? <>Chưa có <GlossaryTerm term="registry">registry</GlossaryTerm> forward observation.</>}</div>
         ) : observations.items.length === 0 ? (
-          <div className="text-sm text-gray-500 py-3">Chưa có quyết định forward nào được ghi.</div>
+          <div className="text-sm text-gray-400 py-3">Chưa có quyết định forward nào được ghi.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -231,9 +232,9 @@ export function PaperTradeScreen() {
                   <th className="text-left py-2 px-2">Khung</th>
                   <th className="text-left py-2 px-2">Quyết định</th>
                   <th className="text-left py-2 px-2">Lý do / model</th>
-                  <th className="text-right py-2 px-2">Quote thật</th>
-                  <th className="text-right py-2 px-2">Fill</th>
-                  <th className="text-right py-2 px-2">Outcome</th>
+                  <th className="text-right py-2 px-2"><GlossaryTerm term="quote">Quote thật</GlossaryTerm></th>
+                  <th className="text-right py-2 px-2"><GlossaryTerm term="fill">Fill</GlossaryTerm></th>
+                  <th className="text-right py-2 px-2"><GlossaryTerm term="outcome">Outcome</GlossaryTerm></th>
                 </tr>
               </thead>
               <tbody>
@@ -241,7 +242,7 @@ export function PaperTradeScreen() {
                   <tr key={item.decisionId} className="border-b border-gray-800/30">
                     <td className="py-2 px-2 text-gray-400 whitespace-nowrap">{formatTime(item.signalBarCloseTimeMs)}</td>
                     <td className="py-2 px-2 text-gray-400">{item.timeframe}</td>
-                    <td className="py-2 px-2"><span className={`px-2 py-0.5 rounded font-medium ${item.decision === "abstain" ? "bg-amber-500/15 text-amber-300" : "bg-teal-500/15 text-teal-300"}`}>{item.decision}</span></td>
+                    <td className="py-2 px-2"><span className={`px-2 py-0.5 rounded font-medium ${item.decision === "abstain" ? "bg-amber-500/15 text-amber-300" : "bg-teal-500/15 text-teal-300"}`}><GlossaryTerm term={item.decision}>{item.decision}</GlossaryTerm></span></td>
                     <td className="py-2 px-2 text-gray-400">{item.abstentionReason ?? item.modelVersion ?? "-"}</td>
                     <td className="py-2 px-2 text-right text-gray-300">{item.quotePrice == null ? "-" : item.quotePrice.toLocaleString()}</td>
                     <td className="py-2 px-2 text-right text-gray-400">{item.fillPrice == null ? "Chưa có" : item.fillPrice.toLocaleString()}</td>
@@ -271,21 +272,21 @@ export function PaperTradeScreen() {
         </div>
 
         <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4 transition-all duration-200">
-          <div className="text-xs text-gray-400 mb-1">Win Rate</div>
+          <div className="text-xs text-gray-400 mb-1"><GlossaryTerm term="win-rate">Win Rate</GlossaryTerm></div>
           <div className={`text-2xl font-bold ${winRateColor}`}>
             {summary ? (summary.winRate * 100).toFixed(1) + "%" : "0.0%"}
           </div>
         </div>
 
         <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4 transition-all duration-200">
-          <div className="text-xs text-gray-400 mb-1">Net Return</div>
+          <div className="text-xs text-gray-400 mb-1"><GlossaryTerm term="net-return">Net Return</GlossaryTerm></div>
           <div className={`text-2xl font-bold ${returnColor}`}>
             {summary ? formatPct(summary.totalNetReturnPct) : "0.00%"}
           </div>
         </div>
 
         <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4 transition-all duration-200">
-          <div className="text-xs text-gray-400 mb-1">Max Drawdown</div>
+          <div className="text-xs text-gray-400 mb-1"><GlossaryTerm term="drawdown">Max Drawdown</GlossaryTerm></div>
           <div className="text-2xl font-bold text-rose-400">
             {summary ? summary.maxDrawdownPct.toFixed(1) + "%" : "0.0%"}
           </div>
@@ -294,9 +295,9 @@ export function PaperTradeScreen() {
 
       {/* Equity Curve */}
       <div className="bg-gray-900/50 backdrop-blur border border-gray-800/50 rounded-2xl p-4">
-        <h3 className="text-sm font-semibold mb-4 text-gray-300">Đường vốn (Equity Curve)</h3>
+        <h3 className="text-sm font-semibold mb-4 text-gray-300"><GlossaryTerm term="equity-curve">Đường vốn (Equity Curve)</GlossaryTerm></h3>
         {equityPoints.length === 0 && !loading ? (
-          <div className="h-[300px] flex items-center justify-center text-sm text-gray-500">
+          <div className="h-[300px] flex items-center justify-center text-sm text-gray-400">
             Chưa có dữ liệu
           </div>
         ) : (
@@ -320,8 +321,8 @@ export function PaperTradeScreen() {
                 <tr>
                   <th className="text-left py-2 px-2">Hướng</th>
                   <th className="text-right py-2 px-2">Giá vào</th>
-                  <th className="text-right py-2 px-2">Mục tiêu (SL/TP)</th>
-                  <th className="text-right py-2 px-2">Confidence</th>
+                  <th className="text-right py-2 px-2">Mục tiêu (<GlossaryTerm term="sl-tp">SL/TP</GlossaryTerm>)</th>
+                  <th className="text-right py-2 px-2"><GlossaryTerm term="confidence">Confidence</GlossaryTerm></th>
                   <th className="text-left py-2 px-2">Tags / Model</th>
                   <th className="text-left py-2 px-2">Thời gian vào</th>
                 </tr>
@@ -339,7 +340,7 @@ export function PaperTradeScreen() {
                     <td className="py-2 px-2 text-right">
                       {t.stopLossPrice && <span className="text-rose-400 text-xs mr-2">SL: {t.stopLossPrice.toLocaleString()}</span>}
                       {t.takeProfitPrice && <span className="text-emerald-400 text-xs">TP: {t.takeProfitPrice.toLocaleString()}</span>}
-                      {(!t.stopLossPrice && !t.takeProfitPrice) && <span className="text-gray-500 text-xs">-</span>}
+                      {(!t.stopLossPrice && !t.takeProfitPrice) && <span className="text-gray-400 text-xs">-</span>}
                     </td>
                     <td className="py-2 px-2 text-right text-gray-300">{t.confidence ? (t.confidence * 100).toFixed(0) + "%" : "-"}</td>
                     <td className="py-2 px-2">
@@ -347,7 +348,7 @@ export function PaperTradeScreen() {
                         {t.tags?.map(tag => (
                           <span key={tag} className="px-1.5 py-0.5 bg-gray-800 text-gray-300 rounded text-[10px]">{tag}</span>
                         ))}
-                        {(!t.tags || t.tags.length === 0) && <span className="text-xs text-gray-500">{t.modelVersion ?? "-"}</span>}
+                        {(!t.tags || t.tags.length === 0) && <span className="text-xs text-gray-400">{t.modelVersion ?? "-"}</span>}
                       </div>
                     </td>
                     <td className="py-2 px-2 text-gray-400">{formatTime(t.entryTimeMs)}</td>
@@ -373,8 +374,8 @@ export function PaperTradeScreen() {
                 <th className="text-left py-2 px-2">Hướng</th>
                 <th className="text-right py-2 px-2">Giá vào</th>
                 <th className="text-right py-2 px-2">Giá ra</th>
-                <th className="text-right py-2 px-2">PnL %</th>
-                <th className="text-right py-2 px-2">Conf</th>
+                <th className="text-right py-2 px-2"><GlossaryTerm term="pnl">PnL</GlossaryTerm> %</th>
+                <th className="text-right py-2 px-2"><GlossaryTerm term="confidence">Conf</GlossaryTerm></th>
                 <th className="text-left py-2 px-2">Model</th>
               </tr>
             </thead>
@@ -398,7 +399,7 @@ export function PaperTradeScreen() {
               ))}
               {closedTrades.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={7} className="py-4 text-center text-gray-500">Chưa có giao dịch nào hoàn tất</td>
+                  <td colSpan={7} className="py-4 text-center text-gray-400">Chưa có giao dịch nào hoàn tất</td>
                 </tr>
               )}
             </tbody>

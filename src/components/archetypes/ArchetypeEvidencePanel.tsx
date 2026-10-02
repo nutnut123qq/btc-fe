@@ -9,6 +9,7 @@ import type {
   ArchetypeFixedHorizonSummaryDto,
   ArchetypeOccurrenceDto,
 } from "@/lib/types";
+import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { ArchetypeGlyph } from "./ArchetypeGlyph";
 
 const PAGE_SIZE = 8;
@@ -59,7 +60,7 @@ function EvidenceCard({
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
           <div className="text-[11px] font-semibold text-gray-300">Mẫu #{index}</div>
-          <time className="text-[10px] text-gray-500" dateTime={new Date(occurrence.windowEndMs).toISOString()}>
+          <time className="text-[10px] text-gray-400" dateTime={new Date(occurrence.windowEndMs).toISOString()}>
             {formatTime(occurrence.windowEndMs)}
           </time>
         </div>
@@ -78,15 +79,15 @@ function EvidenceCard({
 
       <div className="grid grid-cols-2 gap-1.5">
         <div>
-          <div className="mb-1 text-[9px] text-gray-500">{windowSize} nến của mẫu</div>
+          <div className="mb-1 text-[9px] text-gray-400">{windowSize} nến của mẫu</div>
           <div className="h-20 rounded bg-gray-950 p-1.5">
-            {bars.length > 0 ? <ArchetypeGlyph bars={bars} /> : <div className="flex h-full items-center justify-center text-[10px] text-rose-300">Thiếu OHLC</div>}
+            {bars.length > 0 ? <ArchetypeGlyph bars={bars} /> : <div className="flex h-full items-center justify-center text-[10px] text-rose-300">Thiếu <GlossaryTerm term="ohlc">OHLC</GlossaryTerm></div>}
           </div>
         </div>
         <div>
-          <div className="mb-1 text-[9px] text-gray-500">6 nến ngay sau mẫu</div>
+          <div className="mb-1 text-[9px] text-gray-400">6 nến ngay sau mẫu</div>
           <div className="h-20 rounded bg-gray-950 p-1.5">
-            {futureBars.length > 0 ? <ArchetypeGlyph bars={futureBars} /> : <div className="flex h-full items-center justify-center text-[10px] text-gray-500">Chưa có nến sau</div>}
+            {futureBars.length > 0 ? <ArchetypeGlyph bars={futureBars} /> : <div className="flex h-full items-center justify-center text-[10px] text-gray-400">Chưa có nến sau</div>}
           </div>
         </div>
       </div>
@@ -97,18 +98,18 @@ function EvidenceCard({
           const matched = isDirectionMatch(outcome.direction, summary?.dominantDirection ?? null);
           return (
             <div key={outcome.barsAhead} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-1">
-              <span className="text-gray-500">Sau {outcome.barsAhead} nến</span>
+              <span className="text-gray-400">Sau {outcome.barsAhead} nến</span>
               <span className={`font-bold ${directionColor(outcome.direction)}`}>
                 {outcome.available ? `${getDirectionText(outcome.direction)} ${outcome.returnPct!.toFixed(2)}%` : "CHƯA CÓ"}
               </span>
-              <span className={matched === true ? "text-emerald-400" : matched === false ? "text-rose-400" : "text-gray-500"}>
+              <span className={matched === true ? "text-emerald-400" : matched === false ? "text-rose-400" : "text-gray-400"}>
                 {matched === true ? "ĐÚNG" : matched === false ? "SAI" : "—"}
               </span>
             </div>
           );
         })}
-        <div className="grid grid-cols-2 gap-x-2 pt-1 text-gray-500">
-          <span>Khoảng cách</span>
+        <div className="grid grid-cols-2 gap-x-2 pt-1 text-gray-400">
+          <span><GlossaryTerm term="centroid-distance">Khoảng cách</GlossaryTerm></span>
           <span className="text-right text-gray-300">{occurrence.distanceToCentroid.toFixed(3)}</span>
         </div>
       </div>
@@ -196,10 +197,10 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
             <Database className="h-4 w-4 text-teal-400" />
             Các mẫu nến gốc tạo thành {archetype.archetypeCode}
           </h3>
-          <p className="mt-1 text-[11px] text-gray-500">
-            Close-to-close sau 1, 3 và 6 nến · mốc chính: sau 1 nến · ĐÚNG/SAI so với hướng chủ đạo lịch sử cùng mốc.
+          <p className="mt-1 text-[11px] text-gray-400">
+            <GlossaryTerm term="close-to-close">Close-to-close</GlossaryTerm> sau 1, 3 và 6 nến · mốc chính: sau 1 nến · ĐÚNG/SAI so với hướng chủ đạo lịch sử cùng mốc.
           </p>
-          <p className="mt-1 text-[10px] text-gray-600">
+          <p className="mt-1 text-[10px] text-gray-400">
             Biến động = (giá đóng sau N nến / giá đóng cuối mẫu − 1) × 100%.
           </p>
           {summaries.length > 0 && (
@@ -216,13 +217,13 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
         {total > 0 && (
           <div className="text-right text-[11px] text-gray-400">
             <div>{firstIndex}–{lastIndex} / {total} mẫu</div>
-            <div className="text-gray-600">Nguồn: giá đóng cửa Klines</div>
+            <div className="text-gray-400">Nguồn: giá đóng cửa <GlossaryTerm term="klines">Klines</GlossaryTerm></div>
           </div>
         )}
       </div>
 
       {!visible || loading ? (
-        <div className="flex min-h-48 items-center justify-center text-sm text-gray-500">
+        <div className="flex min-h-48 items-center justify-center text-sm text-gray-400">
           <RefreshCw className="mr-2 h-5 w-5 animate-spin text-teal-500" /> Đang tải bằng chứng gốc…
         </div>
       ) : error ? (
@@ -231,7 +232,7 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
           <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="rounded border border-rose-400/30 px-3 py-1.5 text-xs">Thử lại</button>
         </div>
       ) : items.length === 0 ? (
-        <div className="flex min-h-48 items-center justify-center text-sm text-gray-500">Không có mẫu gốc</div>
+        <div className="flex min-h-48 items-center justify-center text-sm text-gray-400">Không có mẫu gốc</div>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">

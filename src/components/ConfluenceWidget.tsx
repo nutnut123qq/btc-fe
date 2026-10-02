@@ -58,7 +58,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
   if (!data && loading) {
     return (
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex justify-center items-center h-[200px]">
-        <RefreshCw className="w-6 h-6 text-zinc-500 animate-spin" />
+        <RefreshCw className="w-6 h-6 text-zinc-400 animate-spin" />
       </div>
     );
   }
@@ -115,7 +115,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
               {directionMap[data.overallDirection] || data.overallDirection}
             </span>
           </h3>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Heuristic mô tả từ các thành phần ({symbol}) · không phải xác suất · {data.capabilityState ?? "descriptive"}
           </p>
         </div>
@@ -155,10 +155,10 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
         <div className="md:col-span-4 flex flex-col items-center justify-center">
           <div className={`w-32 h-32 rounded-full border-4 ${ringColor} flex flex-col items-center justify-center bg-zinc-950 shadow-inner`}>
             <span className={`text-4xl font-black ${scoreColor}`}>{Math.round(score)}</span>
-            <span className="text-xs text-zinc-500 font-medium">/ 100</span>
+            <span className="text-xs text-zinc-400 font-medium">/ 100</span>
           </div>
           <span className="mt-3 text-sm font-medium text-zinc-400">Heuristic index</span>
-          <span className="mt-1 text-[10px] text-zinc-600">isProbability = false</span>
+          <span className="mt-1 text-[10px] text-zinc-400">isProbability = false</span>
         </div>
 
         <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -166,7 +166,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
             <div key={i} className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3 flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-zinc-200">{tf.timeframe}</span>
-                <span className="text-xs text-zinc-500 font-mono">w:{tf.weight}</span>
+                <span className="text-xs text-zinc-400 font-mono">w:{tf.weight}</span>
               </div>
               <div className={`text-sm font-semibold ${tf.direction === 'Bullish' ? 'text-emerald-400' : tf.direction === 'Bearish' ? 'text-rose-400' : 'text-zinc-400'}`}>
                 {tf.direction}

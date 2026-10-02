@@ -38,7 +38,7 @@ const BtcCandlestickChart = dynamic(
       <div className="h-[480px] flex items-center justify-center bg-gray-900/50 rounded-xl border border-gray-800">
         <div className="text-center space-y-2">
           <div className="w-8 h-8 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-gray-500 font-mono">Đang tải Lightweight Canvas Chart Engine...</p>
+          <p className="text-xs text-gray-400 font-mono">Đang tải Lightweight Canvas Chart Engine...</p>
         </div>
       </div>
     ),
@@ -258,7 +258,7 @@ export function BinanceTradingScreen() {
             <div className="p-2.5 bg-gray-950/80 border-b border-gray-800 flex flex-wrap items-center justify-between gap-2 text-xs">
               {/* Timeframe buttons */}
               <div className="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800">
-                <span className="text-[10px] text-gray-500 font-semibold px-1.5 uppercase">Khung:</span>
+                <span className="text-[10px] text-gray-400 font-semibold px-1.5 uppercase">Khung:</span>
                 {TIMEFRAMES.map((tf) => (
                   <button
                     type="button"
@@ -392,11 +392,11 @@ export function BinanceTradingScreen() {
                 </div>
               )}
               {loadingKlines && klines.length === 0 ? (
-                <div className="h-[440px] flex items-center justify-center text-xs text-gray-500 gap-2">
+                <div className="h-[440px] flex items-center justify-center text-xs text-gray-400 gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin text-teal-400" /> Đang tải biểu đồ nến {selectedSymbol}...
                 </div>
               ) : klines.length === 0 ? (
-                <div className="h-[440px] flex items-center justify-center text-xs text-gray-500">
+                <div className="h-[440px] flex items-center justify-center text-xs text-gray-400">
                   Không có dữ liệu nến cho {selectedSymbol} ({selectedTf})
                 </div>
               ) : (
@@ -495,11 +495,11 @@ export function BinanceTradingScreen() {
                           >
                             <div>
                               <span className="font-bold text-indigo-400">{sm.eventType.replace("_", " ")}</span>
-                              <span className="text-[10px] text-gray-500 ml-2">{sm.timeframe}</span>
+                              <span className="text-[10px] text-gray-400 ml-2">{sm.timeframe}</span>
                               <div className="text-[11px] text-gray-300 mt-0.5">
                                 Giá: ${sm.price.toFixed(2)} {sm.lowPrice != null && sm.highPrice != null ? `(Zone: $${sm.lowPrice.toFixed(2)} - $${sm.highPrice.toFixed(2)})` : ""}
                               </div>
-                              <div className="text-[10px] text-gray-500 mt-0.5">
+                              <div className="text-[10px] text-gray-400 mt-0.5">
                                 Origin {new Date(sm.originTimeMs ?? sm.timeMs).toLocaleString("vi-VN")} · biết được từ {new Date(sm.availableTimeMs ?? sm.timeMs).toLocaleString("vi-VN")}
                               </div>
                             </div>
@@ -515,7 +515,7 @@ export function BinanceTradingScreen() {
                       })}
                     </div>
                   ) : (
-                    <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-500">
+                    <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-400">
                       Chưa phát hiện sự kiện hình học giá SMC (BOS/CHOCH/FVG/swing) trên {selectedSymbol} ({selectedTf}) tại mốc đang xem.
                     </div>
                   )}

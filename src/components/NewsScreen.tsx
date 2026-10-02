@@ -106,7 +106,7 @@ export function NewsScreen() {
 
       {sources.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <Filter className="w-4 h-4 text-gray-500 shrink-0" />
+          <Filter className="w-4 h-4 text-gray-400 shrink-0" />
           <button
             onClick={() => setSelectedSource(null)}
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -134,7 +134,7 @@ export function NewsScreen() {
       )}
 
       {loading && items.length === 0 && (
-        <div className="flex items-center justify-center py-20 text-gray-500">
+        <div className="flex items-center justify-center py-20 text-gray-400">
           <RefreshCw className="animate-spin w-6 h-6 mr-2" /> Đang tải tin…
         </div>
       )}
@@ -158,11 +158,11 @@ export function NewsScreen() {
       
       {!loading && !error && items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 bg-gray-900/40 rounded-xl border border-gray-800 border-dashed">
-          <Newspaper className="w-10 h-10 text-gray-600 mb-3" />
+          <Newspaper className="w-10 h-10 text-gray-400 mb-3" />
           <p className="text-gray-400 text-sm">
             Chưa có bài viết nào.
           </p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 text-xs mt-1">
             Vui lòng kiểm tra RSS worker và PostgreSQL.
           </p>
         </div>
@@ -183,7 +183,7 @@ export function NewsScreen() {
                 <span className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${getSourceColorClass(n.source)}`}>
                   {n.source}
                 </span>
-                <span className="text-[11px] text-gray-500 whitespace-nowrap shrink-0 group-hover:text-gray-400 transition-colors">
+                <span className="text-[11px] text-gray-400 whitespace-nowrap shrink-0 group-hover:text-gray-400 transition-colors">
                   {getRelativeTime(n.publishedAt)}
                 </span>
               </div>
@@ -203,7 +203,7 @@ export function NewsScreen() {
       </div>
       
       {!loading && filteredItems.length > 0 && selectedSource !== null && filteredItems.length < items.filter(i => i.source === selectedSource).length && (
-        <p className="text-center text-xs text-gray-500 pt-2">
+        <p className="text-center text-xs text-gray-400 pt-2">
           Hiển thị {filteredItems.length} bài mới nhất từ {selectedSource}.
         </p>
       )}

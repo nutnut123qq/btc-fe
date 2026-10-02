@@ -16,6 +16,7 @@ import {
 } from "@/lib/currentConditions";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, intervalToMs, type ActiveTimeframe } from "@/lib/timeframe";
 import { LatestRequestGate } from "@/lib/technicalReplay";
+import { GlossaryTerm } from "./GlossaryTerm";
 
 // Matches the screen's evidence read budget: the first call after a backend
 // restart waits on cold catalog hash-verification plus AI window compute.
@@ -87,26 +88,26 @@ function EvidenceCell({ cell, horizon, metric }: { cell: ConditionEvidenceCell |
   const label = `h${horizon} · ${metric}`;
   if (cell === undefined) {
     return <div className="min-w-0 rounded border border-gray-800/70 bg-gray-950/40 p-2 text-[10px]">
-      <div className="font-mono text-gray-600">{label}</div>
-      <div className="mt-1 text-gray-600">Chưa báo cáo cho ô này.</div>
+      <div className="font-mono text-gray-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
+      <div className="mt-1 text-gray-400">Chưa báo cáo cho ô này.</div>
     </div>;
   }
   if (!cell.tested) {
     return <div className="min-w-0 rounded border border-gray-800/70 bg-gray-950/40 p-2 text-[10px]">
-      <div className="font-mono text-gray-600">{label}</div>
+      <div className="font-mono text-gray-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
       <div className="mt-1 break-words text-amber-300/90">Chưa kiểm chứng — {cell.reason}</div>
     </div>;
   }
   return <div className="min-w-0 rounded border border-gray-800/70 bg-gray-950/40 p-2 text-[10px]">
-    <div className="font-mono text-gray-600">{label}</div>
+    <div className="font-mono text-gray-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
     <dl className="mt-1 grid min-w-0 grid-cols-[auto,minmax(0,1fr)] gap-x-2 gap-y-0.5 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
-      <dt className="text-gray-600">Effect</dt><dd className="text-gray-300">{percent(cell.effect)}</dd>
-      <dt className="text-gray-600">CI</dt><dd className="font-mono text-gray-300">[{percent(cell.ciLower)}, {percent(cell.ciUpper)}]</dd>
-      <dt className="text-gray-600">q / p</dt><dd className="font-mono text-gray-300">{decimal(cell.adjustedQValue)} / {decimal(cell.rawP)}</dd>
-      <dt className="text-gray-600">n không chồng lấn</dt><dd className="text-gray-300">{cell.nonOverlappingPairs.toLocaleString("vi-VN")}</dd>
-      <dt className="text-gray-600">Đạt FDR khai báo</dt><dd className={cell.passesDeclaredFdr === true ? "text-emerald-300" : "text-gray-300"}>{gateText(cell.passesDeclaredFdr)}</dd>
-      <dt className="text-gray-600">Đủ mẫu</dt><dd className="text-gray-300">{gateText(cell.sufficientSample)}</dd>
-      <dt className="text-gray-600">Mean paired Δ</dt><dd className="font-mono text-gray-500">{percent(cell.meanPairedDifference)}</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="effect">Effect</GlossaryTerm></dt><dd className="text-gray-300">{percent(cell.effect)}</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="ci">CI</GlossaryTerm></dt><dd className="font-mono text-gray-300">[{percent(cell.ciLower)}, {percent(cell.ciUpper)}]</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="q-p">q / p</GlossaryTerm></dt><dd className="font-mono text-gray-300">{decimal(cell.adjustedQValue)} / {decimal(cell.rawP)}</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="nonOverlappingPairs">n không chồng lấn</GlossaryTerm></dt><dd className="text-gray-300">{cell.nonOverlappingPairs.toLocaleString("vi-VN")}</dd>
+      <dt className="text-gray-400">Đạt <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo</dt><dd className={cell.passesDeclaredFdr === true ? "text-emerald-300" : "text-gray-300"}>{gateText(cell.passesDeclaredFdr)}</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="sufficient-sample">Đủ mẫu</GlossaryTerm></dt><dd className="text-gray-300">{gateText(cell.sufficientSample)}</dd>
+      <dt className="text-gray-400"><GlossaryTerm term="mean-paired-delta">Mean paired Δ</GlossaryTerm></dt><dd className="font-mono text-gray-400">{percent(cell.meanPairedDifference)}</dd>
     </dl>
   </div>;
 }
@@ -120,7 +121,7 @@ function ConditionCard({ condition, manifestSha256, onOpenDossier }: {
     <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
       <div className="min-w-0">
         <h4 className="break-all font-mono text-xs font-semibold text-gray-200">{condition.eventType}</h4>
-        <p className="mt-1 text-[10px] text-gray-600">trend {condition.context.trend ?? "—"} · volatility {condition.context.volatility ?? "—"} · formed {formatTimeMs(condition.formedTimeMs)} · khả dụng từ {formatTimeMs(condition.availableTimeMs)}</p>
+        <p className="mt-1 text-[10px] text-gray-400">trend {condition.context.trend ?? "—"} · volatility {condition.context.volatility ?? "—"} · formed {formatTimeMs(condition.formedTimeMs)} · khả dụng từ {formatTimeMs(condition.availableTimeMs)}</p>
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-1.5">
         <span className={`rounded-full border px-2 py-1 text-[10px] font-bold ${KIND_CLASS[condition.kind]}`}>{KIND_LABEL[condition.kind]}</span>
@@ -132,9 +133,9 @@ function ConditionCard({ condition, manifestSha256, onOpenDossier }: {
       ? <p className="mt-2 rounded border border-gray-800/70 bg-gray-950/40 p-2 text-[10px] text-amber-300/90">Backend chưa gắn bằng chứng cho điều kiện này; UI không suy diễn ô số liệu.</p>
       : <div className="mt-3 grid min-w-0 gap-2 lg:grid-cols-3">{CONDITION_HORIZON_KEYS.map((horizon) => {
         const horizonEvidence = condition.evidence?.[horizon];
-        return <div key={horizon} className="min-w-0 space-y-1.5"><div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Horizon {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
+        return <div key={horizon} className="min-w-0 space-y-1.5"><div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400"><GlossaryTerm term="horizon">Horizon</GlossaryTerm> {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
       })}</div>}
-    {condition.details && <details className="mt-2 text-[10px] text-gray-500"><summary className="cursor-pointer">Chi tiết detector</summary><pre className="mt-1 max-w-full overflow-x-auto break-all rounded border border-gray-800/70 bg-gray-950/60 p-2 font-mono text-gray-500">{JSON.stringify(condition.details, null, 2)}</pre></details>}
+    {condition.details && <details className="mt-2 text-[10px] text-gray-400"><summary className="cursor-pointer">Chi tiết detector</summary><pre className="mt-1 max-w-full overflow-x-auto break-all rounded border border-gray-800/70 bg-gray-950/60 p-2 font-mono text-gray-400">{JSON.stringify(condition.details, null, 2)}</pre></details>}
   </article>;
 }
 
@@ -184,7 +185,7 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
     <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
         <h3 id="current-conditions-title" className="flex items-center gap-2 text-sm font-semibold text-gray-100">Điều kiện hiện tại & bằng chứng · BTCUSDT</h3>
-        <p className="mt-1 text-[11px] leading-5 text-gray-500">Điều kiện kỹ thuật trên nến đóng gần nhất, nối với thống kê mô tả lịch sử theo từng horizon. Đây không phải xác suất, tỷ lệ thắng hay tín hiệu giao dịch.</p>
+        <p className="mt-1 text-[11px] leading-5 text-gray-400">Điều kiện kỹ thuật trên nến đóng gần nhất, nối với thống kê mô tả lịch sử theo từng horizon. Đây không phải xác suất, tỷ lệ thắng hay tín hiệu giao dịch.</p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <select value={timeframe} onChange={(event) => setTimeframe(event.target.value as ActiveTimeframe)} className="rounded border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-gray-200" aria-label="Timeframe điều kiện hiện tại">
@@ -208,14 +209,14 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
     {data && <>
       <dl className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
         <div className="min-w-0 rounded-lg border border-gray-800 bg-gray-950/50 p-3">
-          <dt className="text-[10px] uppercase tracking-wide text-gray-500">Nến phân tích (asOf)</dt>
+          <dt className="text-[10px] uppercase tracking-wide text-gray-400"><GlossaryTerm term="asOf">Nến phân tích (asOf)</GlossaryTerm></dt>
           <dd className="mt-1 break-words text-sm font-semibold text-gray-200">{formatTimeMs(data.asOfMs)}</dd>
-          <dd className="mt-0.5 text-[10px] text-gray-500">BTCUSDT · {data.timeframe} · thời điểm nến thị trường được phân tích</dd>
+          <dd className="mt-0.5 text-[10px] text-gray-400">BTCUSDT · {data.timeframe} · thời điểm nến thị trường được phân tích</dd>
         </div>
         <div className="min-w-0 rounded-lg border border-gray-800 bg-gray-950/50 p-3">
-          <dt className="text-[10px] uppercase tracking-wide text-gray-500">Nghiên cứu cắt tại</dt>
+          <dt className="text-[10px] uppercase tracking-wide text-gray-400"><GlossaryTerm term="cutoff">Nghiên cứu cắt tại</GlossaryTerm></dt>
           {evidence?.available
-            ? <><dd className="mt-1 break-words text-sm font-semibold text-gray-200">{formatTimeMs(evidence.cutoffMs)}</dd><dd className="mt-0.5 text-[10px] text-gray-500">{evidenceAgeText(evidence.evidenceAgeBars ?? 0, data.timeframe)} so với nến phân tích · run {evidence.runId}</dd></>
+            ? <><dd className="mt-1 break-words text-sm font-semibold text-gray-200">{formatTimeMs(evidence.cutoffMs)}</dd><dd className="mt-0.5 text-[10px] text-gray-400">{evidenceAgeText(evidence.evidenceAgeBars ?? 0, data.timeframe)} so với nến phân tích · <GlossaryTerm term="run">run</GlossaryTerm> {evidence.runId}</dd></>
             : <dd className="mt-1 break-words text-xs text-amber-300">Bằng chứng không khả dụng{evidence?.reason ? ` — ${evidence.reason}` : ""}; các ô bên dưới không suy diễn số liệu.</dd>}
         </div>
       </dl>
@@ -226,15 +227,15 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
       </div>}
 
       {data.unavailableModules.length > 0 && <div className="mt-3 rounded-lg border border-rose-900/70 bg-rose-950/20 p-3" role="note">
-        <h4 className="flex items-center gap-1.5 text-xs font-semibold text-rose-300"><AlertTriangle className="h-3.5 w-3.5" /> Module không khả dụng</h4>
+        <h4 className="flex items-center gap-1.5 text-xs font-semibold text-rose-300"><AlertTriangle className="h-3.5 w-3.5" /> <GlossaryTerm term="unavailable-module">Module không khả dụng</GlossaryTerm></h4>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-[11px] leading-4 text-rose-100/80">{data.unavailableModules.map((item) => <li key={item.module} className="break-words"><span className="font-mono">{item.module}</span>: {item.reason}</li>)}</ul>
       </div>}
 
       {data.conflicts.length > 0 && <div data-testid="conditions-conflicts" className="mt-3 rounded-lg border border-violet-900/70 bg-violet-950/20 p-3">
-        <h4 className="text-xs font-semibold text-violet-300">Xung đột bằng chứng (render verbatim)</h4>
-        <p className="mt-1 text-[11px] leading-4 text-violet-100/70">Bằng chứng mô tả lịch sử đạt ngưỡng FDR khai báo ở cả hai chiều trong cùng horizon/metric. Đây là xung đột thật trong dữ liệu quá khứ — không có winner và UI không tổng hợp thành kết luận.</p>
+        <h4 className="text-xs font-semibold text-violet-300"><GlossaryTerm term="conflict">Xung đột bằng chứng</GlossaryTerm> (render verbatim)</h4>
+        <p className="mt-1 text-[11px] leading-4 text-violet-100/70">Bằng chứng mô tả lịch sử đạt ngưỡng <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo ở cả hai chiều trong cùng <GlossaryTerm term="horizon">horizon</GlossaryTerm>/<GlossaryTerm term="metric">metric</GlossaryTerm>. Đây là xung đột thật trong dữ liệu quá khứ — không có winner và UI không tổng hợp thành kết luận.</p>
         <ul className="mt-2 space-y-2">{data.conflicts.map((conflict, index) => <li key={`${conflict.horizon}-${conflict.metric}-${index}`} className="min-w-0 rounded border border-violet-900/60 bg-gray-950/50 p-2 text-[11px]">
-          <div className="font-mono text-gray-400">h{conflict.horizon} · {conflict.metric}</div>
+          <div className="font-mono text-gray-400"><GlossaryTerm term={conflict.metric}>h{conflict.horizon} · {conflict.metric}</GlossaryTerm></div>
           <div className="mt-1 flex min-w-0 flex-wrap gap-x-4 gap-y-1">
             <span className="min-w-0 break-words text-emerald-300">Tăng: {conflict.bullish.join(", ")}</span>
             <span className="min-w-0 break-words text-rose-300">Giảm: {conflict.bearish.join(", ")}</span>
@@ -242,14 +243,14 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
         </li>)}</ul>
       </div>}
 
-      {!loading && data.conditions.length === 0 && <div className="mt-4 rounded-xl border border-gray-800 bg-gray-900/40 p-5 text-sm text-gray-500"><CheckCircle2 className="mb-2 h-5 w-5" />Không có điều kiện nào thỏa trên nến đóng gần nhất.</div>}
+      {!loading && data.conditions.length === 0 && <div className="mt-4 rounded-xl border border-gray-800 bg-gray-900/40 p-5 text-sm text-gray-400"><CheckCircle2 className="mb-2 h-5 w-5" />Không có điều kiện nào thỏa trên nến đóng gần nhất.</div>}
 
       {groups.map(([module, items]) => <div key={module} className="mt-4 min-w-0">
-        <h4 className="break-all font-mono text-[11px] font-semibold uppercase tracking-widest text-gray-500">{module} <span className="normal-case text-gray-600">· {items.length} điều kiện</span></h4>
+        <h4 className="break-all font-mono text-[11px] font-semibold uppercase tracking-widest text-gray-400">{module} <span className="normal-case text-gray-400">· {items.length} điều kiện</span></h4>
         <div className="mt-2 space-y-2">{items.map((condition) => <ConditionCard key={`${condition.module}|${condition.eventType}|${condition.kind}|${condition.eventId ?? "state"}`} condition={condition} manifestSha256={evidence?.manifestSha256 ?? null} onOpenDossier={onOpenDossier} />)}</div>
       </div>)}
 
-      <p className="mt-4 break-words text-[10px] leading-4 text-gray-600">generatedAt {formatTimeMs(data.generatedAtMs)} · manifest {shortHash(evidence?.manifestSha256 ?? null)} · spec {shortHash(evidence?.specSha256 ?? null)} · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
+      <p className="mt-4 break-words text-[10px] leading-4 text-gray-400"><GlossaryTerm term="generatedAt">generatedAt</GlossaryTerm> {formatTimeMs(data.generatedAtMs)} · <GlossaryTerm term="manifest">manifest</GlossaryTerm> {shortHash(evidence?.manifestSha256 ?? null)} · <GlossaryTerm term="spec">spec</GlossaryTerm> {shortHash(evidence?.specSha256 ?? null)} · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
     </>}
   </section>;
 }

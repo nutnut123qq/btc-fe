@@ -382,7 +382,7 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
         className="w-full rounded-lg border border-gray-800 overflow-hidden"
         style={{ minHeight: height }}
       />
-      <p className="text-[11px] text-gray-500 mt-2 px-1 leading-relaxed">
+      <p className="text-[11px] text-gray-400 mt-2 px-1 leading-relaxed">
         <span className="text-gray-400">Giao diện kiểu sàn:</span> cuộn chuột = zoom trục thởi gian · giữ và kéo =
         xem vùng khác · giữ <kbd className="px-1 rounded bg-gray-800 text-gray-300">Shift</kbd> + cuộn = zoom
         giá · chạm (mobile): kéo / chụm.

@@ -22,19 +22,19 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
           <>
             <div className="flex items-center justify-between mb-4 bg-gray-900 p-3 rounded-lg border border-gray-800">
               <div>
-                <div className="text-xs text-gray-500 mb-1">Mẫu hiện tại</div>
+                <div className="text-xs text-gray-400 mb-1">Mẫu hiện tại</div>
                 <div className="font-mono text-lg text-teal-300">
                   {nextPred.currentArchetypeCode || "N/A"}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-gray-500 mb-1">Độ đo entropy (bits)</div>
+                <div className="text-xs text-gray-400 mb-1">Độ đo entropy (bits)</div>
                 <div className="font-bold text-gray-300">
                   {nextPred.entropyBits?.toFixed(2) || "0.00"}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-gray-500 mb-1">Tính dự báo</div>
+                <div className="text-xs text-gray-400 mb-1">Tính dự báo</div>
                 <div
                   className={`font-bold ${
                     nextPred.predictability === "High"
@@ -66,14 +66,14 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
                 </div>
               ))}
               {(!nextPred.topTransitions || nextPred.topTransitions.length === 0) && (
-                <div className="text-gray-500 text-sm text-center py-4">
+                <div className="text-gray-400 text-sm text-center py-4">
                   Không có dự báo tiếp theo
                 </div>
               )}
             </div>
           </>
         ) : (
-          <div className="text-gray-500 text-sm py-8 text-center">
+          <div className="text-gray-400 text-sm py-8 text-center">
             <span className="mb-1 block text-amber-400">EXPERIMENTAL</span>
             {getPredictionUnavailableMessage(nextPred)}
           </div>
@@ -92,11 +92,11 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
               <span className="font-mono text-gray-400">
                 {seqPred.previousArchetypeCode || "?"}
               </span>
-              <span className="text-gray-600">→</span>
+              <span className="text-gray-400">→</span>
               <span className="font-mono text-teal-300">
                 {seqPred.currentArchetypeCode || "?"}
               </span>
-              <span className="text-gray-600">→</span>
+              <span className="text-gray-400">→</span>
               <span className="font-mono text-amber-400">?</span>
             </div>
             <div className="space-y-4">
@@ -109,7 +109,7 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
                     <span className="font-mono text-amber-300 font-bold">
                       {seq.thirdArchetypeCode}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-400">
                       {seq.occurrenceCount} lần
                     </span>
                   </div>
@@ -150,14 +150,14 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
                 </div>
               ))}
               {(!seqPred.topSequences || seqPred.topSequences.length === 0) && (
-                <div className="text-gray-500 text-sm text-center py-4">
+                <div className="text-gray-400 text-sm text-center py-4">
                   Không có dự báo chuỗi
                 </div>
               )}
             </div>
           </>
         ) : (
-          <div className="text-gray-500 text-sm py-8 text-center">
+          <div className="text-gray-400 text-sm py-8 text-center">
             <span className="mb-1 block text-amber-400">EXPERIMENTAL</span>
             {getPredictionUnavailableMessage(seqPred, "Chưa có dự báo chuỗi đã được xác thực")}
           </div>

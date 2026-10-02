@@ -66,7 +66,7 @@ export function SystemStatusPanel() {
           <h3 className="flex items-center gap-2 font-semibold text-gray-100">
             <Activity className="h-4 w-4 text-teal-400" /> Trạng thái hệ thống
           </h3>
-          <p className="mt-1 text-[11px] text-gray-500">Health nhẹ; không chạy Data Audit khi mở Settings.</p>
+          <p className="mt-1 text-[11px] text-gray-400">Health nhẹ; không chạy Data Audit khi mở Settings.</p>
         </div>
         <button
           type="button"
@@ -112,7 +112,7 @@ export function SystemStatusPanel() {
                   <span className="ml-1">{freshnessStatusLabel(item.status)}</span>
                   <div className="mt-0.5 text-[10px] opacity-80">Nến cuối: {ageLabel(item.ageSeconds)} trước</div>
                 </div>
-              )) : <span className="text-gray-500">Không có dữ liệu freshness.</span>}
+              )) : <span className="text-gray-400">Không có dữ liệu freshness.</span>}
             </div>
           </div>
 
@@ -130,7 +130,7 @@ export function SystemStatusPanel() {
                     <div className="text-[10px] opacity-80">{ageLabel(worker.ageSeconds)}</div>
                   </div>
                 </div>
-              )) : <span className="text-gray-500">Không có worker heartbeat.</span>}
+              )) : <span className="text-gray-400">Không có worker heartbeat.</span>}
             </div>
           </div>
         </>

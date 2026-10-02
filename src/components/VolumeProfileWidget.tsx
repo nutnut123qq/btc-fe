@@ -55,7 +55,7 @@ export function VolumeProfileWidget({
           </svg>
           Volume Profile ước lượng
         </h3>
-        <div className="text-xs text-gray-500">Descriptive · Lookback: 200 bars</div>
+        <div className="text-xs text-gray-400">Descriptive · Lookback: 200 bars</div>
       </div>
 
       <div className="rounded-lg border border-amber-800/40 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200/90">
@@ -64,7 +64,7 @@ export function VolumeProfileWidget({
         {data.limitation && <span className="ml-1">{data.limitation}</span>}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500">
+      <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-400">
         <span>Allocated volume: {allocatedVolume.toLocaleString("en-US", { maximumFractionDigits: 2 })}</span>
         <span>Conservation error: {conservationErrorPct == null ? "API chưa cung cấp input volume" : `${conservationErrorPct.toFixed(6)}%`}</span>
       </div>

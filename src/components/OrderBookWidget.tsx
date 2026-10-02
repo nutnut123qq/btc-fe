@@ -109,7 +109,7 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
           <Layers className="w-4 h-4 text-teal-400" />
           <div>
             <h3 className="font-bold text-xs text-gray-100 uppercase tracking-wider">Sổ lệnh</h3>
-            <p className={`text-[9px] ${stale ? "text-amber-400" : "text-gray-500"}`}>
+            <p className={`text-[9px] ${stale ? "text-amber-400" : "text-gray-400"}`}>
               Binance Spot · REST snapshot mỗi 2s · {snapshotAgeMs == null ? "chưa nhận" : `${(snapshotAgeMs / 1000).toFixed(0)}s trước`}
             </p>
           </div>
@@ -121,7 +121,7 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
         )}
       </div>
 
-      <div className="border-b border-gray-800/60 bg-gray-950/50 px-3 py-1 text-[9px] leading-relaxed text-gray-500">
+      <div className="border-b border-gray-800/60 bg-gray-950/50 px-3 py-1 text-[9px] leading-relaxed text-gray-400">
         Không phải local order book đồng bộ theo sequence; mỗi lần tải là một ảnh chụp độc lập.
         {error && <span className="ml-1 text-amber-400">Lần tải gần nhất lỗi: {error}</span>}
       </div>
@@ -136,7 +136,7 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
       {/* Orderbook Rows */}
       <div className="flex-1 flex flex-col justify-between overflow-hidden p-1 font-mono text-xs">
         {loading && !depth ? (
-          <div className="p-8 text-center text-xs text-gray-500 flex items-center justify-center gap-2">
+          <div className="p-8 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" /> Đang tải sổ lệnh...
           </div>
         ) : (
