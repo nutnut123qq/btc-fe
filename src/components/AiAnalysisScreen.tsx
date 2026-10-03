@@ -46,15 +46,17 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Bot className="text-teal-400" />
-          Phân tích AI Đa Tác Tử (LangGraph Multi-Agent)
-        </h2>
-
-        <span className="self-start rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
-          BTC/USDT · tài sản nghiên cứu hiện tại
+    <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Bot className="text-teal-400" />
+            Phân tích AI Đa Tác Tử
+          </h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">LangGraph multi-agent cho BTC/USDT trong phạm vi nghiên cứu hiện tại.</p>
+        </div>
+        <span className="shrink-0 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300">
+          BTC/USDT
         </span>
       </div>
 
@@ -62,12 +64,8 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
         <SentimentBadge symbol={AI_ANALYSIS_SYMBOL} />
       </ErrorBoundary>
 
-      <p className="text-sm text-slate-400">
-        Phân tích đa góc nhìn cho BTC/USDT trong phạm vi nghiên cứu hiện tại.
-      </p>
-
       {llmState === "unknown" && (
-        <div className="rounded-xl border border-slate-700 bg-slate-900 p-5 text-sm text-slate-300">
+        <div className="rounded bg-slate-800/40 px-4 py-2.5 text-xs text-slate-300">
           Đang kiểm tra khả năng giải thích LLM…
         </div>
       )}
@@ -80,7 +78,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       <button
         onClick={() => void analyze()}
         disabled={loading || llmUnavailable}
-        className="w-full py-3 px-4 rounded-xl font-bold tracking-wide flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white shadow-lg shadow-teal-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+        className="w-full py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors bg-teal-700 hover:bg-teal-600 text-white disabled:opacity-50"
       >
         {loading ? (
           <>
@@ -112,8 +110,8 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
                 <TrendingDown className="text-rose-400 w-8 h-8" />
               )}
               <div>
-                <div className="text-lg font-bold text-white">{String(data.forecast).split("_").join(" ")}</div>
-                <div className="text-xs text-teal-400 bg-teal-900/40 inline-flex px-2 py-0.5 rounded">
+                <div className="text-xl font-semibold text-slate-50">{String(data.forecast).split("_").join(" ")}</div>
+                <div className="mt-0.5 text-xs text-slate-400">
                   Độ tin cậy: {data.confidence}%
                 </div>
               </div>
@@ -157,12 +155,12 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           <Accordion title="Bằng chứng kỹ thuật">
             {data.tech_evidence ? (
               <div className="text-xs text-slate-300 space-y-1.5">
-                <div><span className="text-slate-400">first_close:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
-                <div><span className="text-slate-400">last_close:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
-                <div><span className="text-slate-400">change_pct:</span> {data.tech_evidence.change_pct ?? "n/a"}</div>
-                <div><span className="text-slate-400">period_high:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
-                <div><span className="text-slate-400">period_low:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
-                <div><span className="text-slate-400">rsi:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
+                <div><span className="text-slate-400">Close đầu kỳ:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
+                <div><span className="text-slate-400">Close cuối kỳ:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
+                <div><span className="text-slate-400">Biến động:</span> {data.tech_evidence.change_pct ?? "n/a"}%</div>
+                <div><span className="text-slate-400">Đỉnh kỳ:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
+                <div><span className="text-slate-400">Đáy kỳ:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
+                <div><span className="text-slate-400">RSI:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
               </div>
             ) : (
               <p className="text-slate-400 text-xs">Không có dữ liệu kỹ thuật.</p>

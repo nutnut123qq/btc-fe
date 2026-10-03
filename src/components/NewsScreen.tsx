@@ -88,12 +88,15 @@ export function NewsScreen() {
     .sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null, [items]);
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Newspaper className="text-teal-400" />
-          Tin tức
-        </h2>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Newspaper className="text-teal-400" />
+            Tin tức
+          </h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">Feed RSS đã ingest; mở bài gốc ở nguồn.</p>
+        </div>
         <button
           onClick={() => void load()}
           disabled={loading}
@@ -105,14 +108,14 @@ export function NewsScreen() {
       </div>
 
       {sources.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide text-xs">
+          <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <button
             onClick={() => setSelectedSource(null)}
-            className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
- selectedSource === null 
- ? "bg-teal-600 text-white" 
- : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+            className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
+ selectedSource === null
+ ? "border-teal-400 text-teal-300"
+ : "border-transparent text-slate-500 hover:text-slate-300"
  }`}
           >
             Tất cả
@@ -121,10 +124,10 @@ export function NewsScreen() {
             <button
               key={s}
               onClick={() => setSelectedSource(s)}
-              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
- selectedSource === s 
- ? "bg-teal-600 text-white" 
- : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+              className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
+ selectedSource === s
+ ? "border-teal-400 text-teal-300"
+ : "border-transparent text-slate-500 hover:text-slate-300"
  }`}
             >
               {s}
@@ -138,37 +141,29 @@ export function NewsScreen() {
           <RefreshCw className="animate-spin w-6 h-6 mr-2" /> Đang tải tin…
         </div>
       )}
-      
+
       {error && (
-        <div className="p-5 rounded-xl bg-rose-950/30 border border-rose-900 text-rose-200 text-sm text-center">
+        <div className="rounded bg-rose-950/30 px-4 py-2.5 text-xs text-rose-200">
           {error}
-          <div className="mt-3">
-            <button onClick={() => void load()} className="px-3 py-1.5 rounded bg-rose-900/50 hover:bg-rose-900 text-sm transition-colors">
-              Thử lại
-            </button>
-          </div>
+          <button onClick={() => void load()} className="ml-3 rounded bg-rose-900/50 px-2.5 py-1 hover:bg-rose-900 transition-colors">
+            Thử lại
+          </button>
         </div>
       )}
 
       {!loading && !error && newestPublishedAt && isDataStale(newestPublishedAt, 6 * 60 * 60_000) && (
-        <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-5 text-sm text-amber-300">
+        <div className="rounded bg-amber-950/20 px-4 py-2.5 text-xs text-amber-300">
           Nguồn tin đã ngừng cập nhật ({formatDataAge(newestPublishedAt)}). Không dùng danh sách này như tin tức hiện tại.
         </div>
       )}
-      
+
       {!loading && !error && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 bg-slate-900/40 rounded-xl border border-slate-800 border-dashed">
-          <Newspaper className="w-10 h-10 text-slate-400 mb-3" />
-          <p className="text-slate-400 text-sm">
-            Chưa có bài viết nào.
-          </p>
-          <p className="text-slate-400 text-xs mt-1">
-            Vui lòng kiểm tra RSS worker và PostgreSQL.
-          </p>
+        <div className="rounded bg-slate-800/40 px-4 py-2.5 text-xs text-slate-400">
+          Chưa có bài viết nào — RSS ingestion worker hoặc PostgreSQL chưa chạy.
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredItems.map((n) => {
           const summary = n.summary ? stripHtml(n.summary) : null;
           return (
