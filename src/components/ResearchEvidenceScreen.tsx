@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BarChart3,
-  CheckCircle2,
   ChevronRight,
   Database,
   FileCheck2,

@@ -8,19 +8,15 @@ import { RuleConditionsDisplay } from "./RuleConditionsDisplay";
 import { RuleDiscoverySummary } from "./RuleDiscoverySummary";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
-import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
+import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 import { CapabilityStateBadge } from "./CapabilityStateBadge";
 import { ruleEvidenceView } from "@/lib/evidencePresentation";
 
 import type { CapabilityState, RuleDiscoveryRunResponse, SequenceRule } from "@/lib/types";
 
-const SYMBOL_OPTIONS = [
-  { value: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
-];
-
 export function DiscoveryScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
-  const [symbol, setSymbol] = useState<string>(ACTIVE_SYMBOL);
+  const [symbol] = useState<string>(ACTIVE_SYMBOL);
   const timeframe = DEFAULT_TIMEFRAME;
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
