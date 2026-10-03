@@ -226,8 +226,8 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col lg:pl-16">
-      <header className=" bg-slate-950/80 backdrop-blur sticky top-0 z-40">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <header className=" bg-slate-950/80 backdrop-blur sticky top-0 z-40 lg:order-1">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-teal-600 bg-clip-text text-transparent flex items-center gap-2">
             <Activity className="text-teal-400" />
@@ -261,7 +261,7 @@ export function AppShell() {
       </header>
 
       {contractState !== "compatible" && (
-        <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-200" role="alert">
+        <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-200 lg:order-3" role="alert">
           {contractState === "checking"
             ? "Đang kiểm tra API contract; mutation tạm khóa."
             : contractState === "mismatch"
@@ -270,7 +270,7 @@ export function AppShell() {
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-4">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4 lg:order-4">
         {visitedTabs.has("market") && (
           <div className={activeTab === "market" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab Thị trường">
@@ -350,16 +350,16 @@ export function AppShell() {
         )}
       </main>
 
-      <nav aria-label="Điều hướng chính" className=" bg-slate-950 sticky bottom-0 z-40 lg:fixed lg:left-0 lg:top-14 lg:bottom-0 lg:w-16 lg:border-r lg:border-slate-800 lg:flex lg:flex-col">
+      <nav aria-label="Điều hướng chính" className=" bg-slate-950 sticky bottom-0 z-40 lg:order-2 lg:sticky lg:top-[60px] lg:bottom-auto lg:border-b lg:border-slate-800">
         {openGroupDef && openGroupDef.children.length > 1 && (
           <div
             id={`nav-sub-${openGroupDef.key}`}
             data-testid="nav-sub-row"
             role="group"
             aria-label={`${openGroupDef.label} — mục con`}
-            className=" bg-slate-900/90 lg:absolute lg:left-16 lg:top-0 lg:w-56 lg:rounded-r-xl lg:border lg:border-l-0 lg:border-slate-800 lg:shadow-2xl"
+            className=" bg-slate-900/90 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-slate-800 lg:shadow-2xl"
           >
-            <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center lg:flex-col lg:items-stretch lg:overflow-x-visible">
+            <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center lg:justify-center">
               {openGroupDef.children.map((childKey, index) => {
                 const child = TAB_BY_KEY.get(childKey)!;
                 const ChildIcon = child.icon;
@@ -374,7 +374,7 @@ export function AppShell() {
                     onClick={() => selectChild(openGroupDef.key, childKey)}
                     onKeyDown={(event) => handleChipKeyDown(event, openGroupDef, index)}
                     aria-current={childActive ? "page" : undefined}
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors lg:rounded-lg lg:w-full ${
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
  childActive
  ? " bg-teal-500/10 text-teal-300"
  : " bg-slate-900 text-slate-400 hover:text-slate-200"
@@ -388,7 +388,7 @@ export function AppShell() {
             </div>
           </div>
         )}
-        <div data-testid="nav-groups" className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around lg:flex-col lg:items-center lg:gap-1 lg:pt-3 lg:overflow-y-auto lg:overflow-x-visible lg:w-full">
+        <div data-testid="nav-groups" className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around lg:justify-center lg:gap-1">
           {NAV_GROUPS.map((group) => {
             const multi = group.children.length > 1;
             const expanded = openGroup === group.key;
@@ -406,16 +406,16 @@ export function AppShell() {
                 aria-expanded={multi ? expanded : undefined}
                 aria-controls={multi ? `nav-sub-${group.key}` : undefined}
                 aria-current={containsActive ? (multi ? "true" : "page") : undefined}
-                className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors lg:min-w-0 lg:flex-none lg:w-12 lg:h-12 lg:justify-center lg:rounded-xl lg:p-0 ${
-                  containsActive ? "text-teal-400 lg:bg-slate-900" : "text-slate-500 hover:text-slate-300"
+                className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors lg:min-w-0 lg:flex-none lg:flex-row lg:gap-1.5 lg:px-4 lg:h-11 lg:border-b-2 ${
+                  containsActive ? "text-teal-400 lg:border-teal-400" : "text-slate-500 hover:text-slate-300 lg:border-transparent"
                 }`}
               >
                 <GroupIcon className="w-5 h-5" />
-                <span className="flex items-center gap-1 text-xs font-medium lg:sr-only">
+                <span className="flex items-center gap-1 text-xs font-medium">
                   {group.label}
                   {multi && (
                     <ChevronUp
-                      className={`w-3 h-3 transition-transform ${expanded ? "rotate-180" : ""}`}
+                      className={`w-3 h-3 transition-transform lg:rotate-180 ${expanded ? "rotate-180 lg:rotate-0" : ""}`}
                       aria-hidden="true"
                     />
                   )}

@@ -35,7 +35,7 @@ const BtcCandlestickChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[480px] flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-800">
+      <div className="h-[560px] flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-800">
         <div className="text-center space-y-2">
           <div className="w-8 h-8 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs text-slate-400 font-mono">Đang tải Lightweight Canvas Chart Engine...</p>
@@ -52,6 +52,8 @@ import {
   BrainCircuit,
   RefreshCw,
   Activity,
+  PanelRightOpen,
+  PanelRightClose,
 } from "lucide-react";
 
 const TIMEFRAMES = ACTIVE_TIMEFRAMES.map((timeframe) => ({ label: timeframe, value: timeframe }));
@@ -105,6 +107,7 @@ export function BinanceTradingScreen() {
 
   // Tabs
   const [rightTab, setRightTab] = useState<RightTab>("trades");
+  const [asideOpen, setAsideOpen] = useState<boolean>(false);
   const [bottomTab, setBottomTab] = useState<BottomTab>("market_trades");
 
   // Active Ticker
@@ -230,10 +233,10 @@ export function BinanceTradingScreen() {
       />
 
       {/* Main Grid: Watchlist (Left) + Chart/Bottom (Center) + Orderbook/Trades (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-[240px_minmax(0,1fr)_48px] gap-4 items-start">
         {/* Left Column: Watchlist / Market Selector (Desktop sidebar) */}
         {showWatchlistSidebar && (
-          <div className="hidden xl:block xl:col-span-3 h-[780px] sticky top-16">
+          <div className="hidden xl:block xl:col-span-1 h-[780px] sticky top-[104px]">
             <SymbolWatchlistPanel
               tickers={tickers}
               selectedSymbol={selectedSymbol}
@@ -249,7 +252,7 @@ export function BinanceTradingScreen() {
         {/* Center Column: Chart & Trading Panel */}
         <div
           className={`space-y-4 ${
-            showWatchlistSidebar ? "lg:col-span-8 xl:col-span-6" : "lg:col-span-8 xl:col-span-9"
+            showWatchlistSidebar ? "lg:col-span-8 xl:col-span-1" : "lg:col-span-8 xl:col-span-2"
           }`}
         >
           {/* Chart Container Card */}
@@ -382,7 +385,7 @@ export function BinanceTradingScreen() {
             />
 
             {/* Candlestick Chart Area */}
-            <div className="p-2 min-h-[460px] relative bg-slate-950">
+            <div className="p-2 min-h-[580px] relative bg-slate-950">
               {klines.length > 0 && (
                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
                   <span>Stored finalized Binance Spot klines · cùng nguồn với replay layers</span>
@@ -392,17 +395,17 @@ export function BinanceTradingScreen() {
                 </div>
               )}
               {loadingKlines && klines.length === 0 ? (
-                <div className="h-[440px] flex items-center justify-center text-xs text-slate-400 gap-2">
+                <div className="h-[540px] flex items-center justify-center text-xs text-slate-400 gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin text-teal-400" /> Đang tải biểu đồ nến {selectedSymbol}...
                 </div>
               ) : klines.length === 0 ? (
-                <div className="h-[440px] flex items-center justify-center text-xs text-slate-400">
+                <div className="h-[540px] flex items-center justify-center text-xs text-slate-400">
                   Không có dữ liệu nến cho {selectedSymbol} ({selectedTf})
                 </div>
               ) : (
                 <BtcCandlestickChart
                   data={klines}
-                  height={460}
+                  height={560}
                   volumeProfile={showVolumeProfile ? technicalReplay?.layers.volumeProfile.payload ?? null : null}
                   smartMoney={showSmartMoney ? smartMoney : null}
                   replayPatterns={showPatterns ? technicalReplay?.layers.candlePatterns.payload ?? null : null}
@@ -527,7 +530,49 @@ export function BinanceTradingScreen() {
         </div>
 
         {/* Realtime microstructure is deliberately separated from replay evidence. */}
-        <aside className="min-w-0 space-y-4 lg:col-span-4 xl:col-span-3" aria-label="Dữ liệu thị trường realtime độc lập với Technical Replay">
+        <aside className="min-w-0 relative lg:col-span-4 xl:col-span-1" aria-label="Dữ liệu thị trường realtime độc lập với Technical Replay">
+          {/* Collapsed rail strip — xl only */}
+          {!asideOpen && (
+            <div className="hidden xl:flex flex-col items-center gap-1 w-12 py-2 rounded-xl border border-slate-800 bg-slate-900">
+              <button
+                type="button"
+                onClick={() => setAsideOpen(true)}
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                aria-label="Mở panel dữ liệu realtime"
+              >
+                <PanelRightOpen className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRightTab("trades"); setAsideOpen(true); }}
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                aria-label="Mở khớp lệnh realtime"
+              >
+                <ArrowDownUp className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRightTab("depth"); setAsideOpen(true); }}
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                aria-label="Mở sổ lệnh"
+              >
+                <Layers className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Panel: block flow dưới xl; overlay phải trên xl khi mở */}
+          <div className={`space-y-4 ${asideOpen ? "xl:absolute xl:right-0 xl:top-0 xl:z-30 xl:block xl:w-80 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto xl:rounded-xl xl:border xl:border-slate-800 xl:bg-slate-950 xl:p-3 xl:shadow-2xl" : "xl:hidden"}`}>
+          <div className="hidden xl:flex justify-end">
+            <button
+              type="button"
+              onClick={() => setAsideOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              aria-label="Đóng panel dữ liệu realtime"
+            >
+              <PanelRightClose className="w-4 h-4" />
+            </button>
+          </div>
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-xs leading-relaxed text-slate-300">
             <strong className="block text-sm font-semibold text-slate-200">Realtime market data</strong>
             Khớp lệnh và sổ lệnh bên dưới cập nhật theo thời gian thực, không thuộc cutoff {technicalReplay?.effectiveAsOfTimeMs ? new Date(technicalReplay.effectiveAsOfTimeMs).toLocaleString("vi-VN") : "Technical Replay"} và không phải layer bằng chứng lịch sử.
@@ -571,6 +616,7 @@ export function BinanceTradingScreen() {
               <OrderBookWidget symbol={selectedSymbol} limit={11} />
             )}
 
+          </div>
           </div>
         </aside>
       </div>
