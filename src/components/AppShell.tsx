@@ -224,7 +224,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
+      <header className=" bg-slate-950/80 backdrop-blur sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-teal-600 bg-clip-text text-transparent flex items-center gap-2">
             <Activity className="text-teal-400" />
@@ -232,23 +232,23 @@ export function AppShell() {
           </h1>
           <div className="flex items-center gap-2">
             {llmState === "unknown" && (
-              <span className="hidden sm:inline-flex rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-400">
+              <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs font-bold text-slate-400">
                 LLM · đang kiểm tra
               </span>
             )}
             {llmState === "off" && (
-              <span className="hidden sm:inline-flex rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-300">
+              <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-300">
                 LLM OFF · định lượng vẫn hoạt động
               </span>
             )}
             <button
               onClick={() => setAlertsOpen(true)}
-              className="relative p-2 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300"
+              className="relative p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300"
               aria-label="Thông báo"
             >
               <Bell className="w-5 h-5" />
               {unread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-[10px] font-bold bg-rose-600 text-white rounded-full">
+                <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-xs font-bold bg-rose-600 text-white rounded-full">
                   {unread > 99 ? "99+" : unread}
                 </span>
               )}
@@ -347,14 +347,14 @@ export function AppShell() {
         )}
       </main>
 
-      <nav aria-label="Điều hướng chính" className="border-t border-slate-800 bg-slate-950 sticky bottom-0 z-40">
+      <nav aria-label="Điều hướng chính" className=" bg-slate-950 sticky bottom-0 z-40">
         {openGroupDef && openGroupDef.children.length > 1 && (
           <div
             id={`nav-sub-${openGroupDef.key}`}
             data-testid="nav-sub-row"
             role="group"
             aria-label={`${openGroupDef.label} — mục con`}
-            className="border-b border-slate-800 bg-slate-900/90"
+            className=" bg-slate-900/90"
           >
             <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center">
               {openGroupDef.children.map((childKey, index) => {
@@ -371,11 +371,11 @@ export function AppShell() {
                     onClick={() => selectChild(openGroupDef.key, childKey)}
                     onKeyDown={(event) => handleChipKeyDown(event, openGroupDef, index)}
                     aria-current={childActive ? "page" : undefined}
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                      childActive
-                        ? "border-teal-500/60 bg-teal-500/10 text-teal-300"
-                        : "border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500 hover:text-slate-200"
-                    }`}
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+ childActive
+ ? " bg-teal-500/10 text-teal-300"
+ : " bg-slate-900 text-slate-400 hover:text-slate-200"
+ }`}
                   >
                     <ChildIcon className="w-3.5 h-3.5" />
                     {child.label}
@@ -408,7 +408,7 @@ export function AppShell() {
                 }`}
               >
                 <GroupIcon className="w-5 h-5" />
-                <span className="flex items-center gap-1 text-[11px] font-medium">
+                <span className="flex items-center gap-1 text-xs font-medium">
                   {group.label}
                   {multi && (
                     <ChevronUp

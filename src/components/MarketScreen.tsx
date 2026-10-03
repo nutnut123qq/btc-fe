@@ -11,9 +11,9 @@ type Props = {
 /** Canonical technical surface. Legacy snapshot widgets are intentionally not mounted here. */
 export function MarketScreen({ onOpenEvidence }: Props) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <section
-        className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:flex-row sm:items-center sm:justify-between"
         aria-labelledby="canonical-technical-title"
       >
         <div className="flex items-start gap-2">
@@ -31,7 +31,7 @@ export function MarketScreen({ onOpenEvidence }: Props) {
         <button
           type="button"
           onClick={onOpenEvidence}
-          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-teal-700 bg-teal-950/60 px-3 py-2 text-xs font-semibold text-teal-200 transition-colors hover:bg-teal-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-teal-950/60 px-3 py-2 text-xs font-semibold text-teal-200 transition-colors hover:bg-teal-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
         >
           <FileCheck2 className="h-4 w-4" aria-hidden="true" />
           Mở Evidence Center

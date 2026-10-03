@@ -13,14 +13,14 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Next Prediction */}
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
-        <h3 className="text-md font-semibold text-teal-400 mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+      <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
+        <h3 className="text-md font-semibold text-teal-400 mb-4 pb-2 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
           Dự đoán tiếp theo
         </h3>
         {nextPred?.validated ? (
           <>
-            <div className="flex items-center justify-between mb-4 bg-slate-900 p-3 rounded-lg border border-slate-800">
+            <div className="flex items-center justify-between mb-4 bg-slate-900 p-3 rounded-lg ">
               <div>
                 <div className="text-xs text-slate-400 mb-1">Mẫu hiện tại</div>
                 <div className="font-mono text-lg text-teal-300">
@@ -81,14 +81,14 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
       </div>
 
       {/* Sequence Prediction */}
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
-        <h3 className="text-md font-semibold text-teal-400 mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+      <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
+        <h3 className="text-md font-semibold text-teal-400 mb-4 pb-2 flex items-center gap-2">
           <BarChart2 className="w-4 h-4" />
           Dự đoán chuỗi
         </h3>
         {seqPred?.validated ? (
           <>
-            <div className="mb-4 bg-slate-900 p-3 rounded-lg border border-slate-800 flex items-center gap-3">
+            <div className="mb-4 bg-slate-900 p-3 rounded-lg flex items-center gap-3">
               <span className="font-mono text-slate-400">
                 {seqPred.previousArchetypeCode || "?"}
               </span>
@@ -103,7 +103,7 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
               {seqPred.topSequences?.map((seq, i) => (
                 <div
                   key={i}
-                  className="bg-slate-900 p-3 rounded-lg border border-slate-800"
+                  className="bg-slate-900 p-3 rounded-lg "
                 >
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-mono text-teal-300 font-bold">

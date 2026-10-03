@@ -176,10 +176,10 @@ export function PaperTradeScreen() {
                 key={tf.id}
                 onClick={() => setSelectedTf(tf.id)}
                 className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all ${
-                  selectedTf === tf.id
-                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
+ selectedTf === tf.id
+ ? "bg-teal-500/20 text-teal-300 font-bold"
+ : "text-slate-400 hover:text-slate-200"
+ }`}
               >
                 {tf.label}
               </button>
@@ -197,12 +197,12 @@ export function PaperTradeScreen() {
       </div>
 
       {error && (
-        <div className="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg px-3 py-2 text-sm">
+        <div className="bg-rose-950/50 text-rose-300 rounded-lg px-3 py-2 text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-amber-950/20 border border-amber-900/50 rounded-2xl p-4">
+      <div className="bg-amber-950/20 border border-amber-900/50 rounded-2xl px-4 py-2.5">
         <div>
           <h3 className="text-sm font-semibold text-amber-300"><GlossaryTerm term="ensemble">Ensemble</GlossaryTerm> đang được <GlossaryTerm term="quarantine">quarantine</GlossaryTerm></h3>
           <p className="text-xs text-slate-400 mt-1">Pipeline <GlossaryTerm term="ensemble">ensemble</GlossaryTerm> <GlossaryTerm term="legacy">legacy</GlossaryTerm> chưa qua <GlossaryTerm term="promotion-gate">promotion gate</GlossaryTerm>; Paper Journal không tạo tín hiệu mới từ pipeline này.</p>
@@ -215,7 +215,7 @@ export function PaperTradeScreen() {
             <h3 className="text-sm font-semibold text-slate-200"><GlossaryTerm term="forward-journal">Forward observation journal</GlossaryTerm> · BTCUSDT 4h cố định</h3>
             <p className="text-xs text-slate-400 mt-1">Độc lập với bộ lọc lịch sử phía trên. Bản ghi <GlossaryTerm term="append-only">append-only</GlossaryTerm> tại thời điểm quyết định; <GlossaryTerm term="fill">fill</GlossaryTerm>, <GlossaryTerm term="outcome">outcome</GlossaryTerm> và <GlossaryTerm term="pnl">PnL</GlossaryTerm> chỉ hiện khi được quan sát thật.</p>
           </div>
-          <span className={`text-[11px] px-2 py-1 rounded-full border ${observations?.available ? "border-emerald-700/60 bg-emerald-950/40 text-emerald-300" : "border-amber-700/60 bg-amber-950/40 text-amber-300"}`}>
+          <span className={`text-xs px-2 py-1 rounded-full ${observations?.available ? " bg-emerald-950/40 text-emerald-300" : " bg-amber-950/40 text-amber-300"}`}>
             {observations?.available ? `${observations.items.length} bản ghi` : "Chưa khả dụng"}
           </span>
         </div>
@@ -265,7 +265,7 @@ export function PaperTradeScreen() {
           <div className="text-2xl font-bold text-slate-100 mb-2">
             {summary?.totalTrades ?? 0}
           </div>
-          <div className="flex gap-2 text-[10px]">
+          <div className="flex gap-2 text-xs">
             <span className="bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">Đóng: {summary?.closedTrades ?? 0}</span>
             <span className="bg-slate-500/20 text-slate-400 px-1.5 py-0.5 rounded">Mở: {summary?.openTrades ?? 0}</span>
           </div>
@@ -331,7 +331,7 @@ export function PaperTradeScreen() {
                 {openTrades.map((t) => (
                   <tr key={t.id} className="border-b border-slate-800/30 hover:bg-slate-800/50 transition-colors">
                     <td className="py-2 px-2">
-                      <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${t.side === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${t.side === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
                         {t.side === "long" ? <ArrowUpRight className="inline w-3 h-3 mr-1" /> : <ArrowDownRight className="inline w-3 h-3 mr-1" />}
                         {t.side.toUpperCase()}
                       </span>
@@ -384,7 +384,7 @@ export function PaperTradeScreen() {
                 <tr key={t.id} className="border-b border-slate-800/30 hover:bg-slate-800/50 transition-colors">
                   <td className="py-2 px-2 text-slate-400">{t.exitTimeMs ? formatTime(t.exitTimeMs) : "-"}</td>
                   <td className="py-2 px-2">
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${t.side.toLowerCase() === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${t.side.toLowerCase() === "long" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
                       {t.side.toUpperCase()}
                     </span>
                   </td>

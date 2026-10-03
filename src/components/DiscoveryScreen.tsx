@@ -113,7 +113,7 @@ export function DiscoveryScreen() {
         <button
           onClick={() => void handleEvaluate()}
           disabled={evaluating || rules.length === 0 || !adminUnlocked}
-          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-50"
+          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-50"
         >
           <Play className="w-3.5 h-3.5" />
           {evaluating ? "Đang chạy…" : "Evaluate"}
@@ -121,7 +121,7 @@ export function DiscoveryScreen() {
         <button
           onClick={() => void loadRules()}
           disabled={loading || !adminUnlocked}
-          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-50"
+          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Làm mới
@@ -137,7 +137,7 @@ export function DiscoveryScreen() {
         {rules.length > 0 && (
           <button
             onClick={() => void handleClear()}
-            className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-rose-200 border border-rose-800"
+            className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-rose-200 "
           >
             <Trash2 className="w-3.5 h-3.5" />
             Xóa
@@ -148,7 +148,7 @@ export function DiscoveryScreen() {
       {error && <div className="text-rose-400 text-xs break-words whitespace-pre-wrap">{error}</div>}
 
       {result && (
-        <div className="bg-slate-900/60 rounded-xl border border-teal-900/40 p-4 text-xs space-y-1">
+        <div className="bg-slate-900/60 rounded-xl border border-teal-900/40 p-5 text-xs space-y-1">
           <div className="text-teal-400 font-medium">Discovery OOS hoàn tất · chưa phải promotion</div>
           <div className="text-slate-400">
             {result.method || "legacy/unversioned"} · {result.trialCount ?? "—"}/{result.candidateBudget ?? "—"} trials · {result.rejected ?? "—"} bị loại · {result.candidatesFound} survivor experimental
@@ -163,11 +163,11 @@ export function DiscoveryScreen() {
       )}
 
       {evalResult && (
-        <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-4 text-xs space-y-2">
+        <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 text-xs space-y-2">
           <div className="text-emerald-400 font-medium">Evaluate hiện tại</div>
           <div className="text-slate-400">Signals khớp: {evalResult.signals?.length ?? 0}</div>
           {(evalResult.signals ?? []).map((s: { ruleName: string; message: string }, i: number) => (
-            <div key={i} className="bg-slate-950 rounded-lg p-2 border border-slate-800">
+            <div key={i} className="bg-slate-950 rounded-lg p-2 ">
               <div className="text-teal-400 font-medium">{s.ruleName}</div>
               <div className="text-slate-400">{s.message}</div>
             </div>
@@ -181,7 +181,7 @@ export function DiscoveryScreen() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {rules.map((rule) => (
           <DiscoveredRuleCard key={rule.id} rule={rule} />
         ))}
@@ -198,20 +198,20 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
   const capability = normalizeCapability(rule.capabilityState);
 
   return (
-    <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-4 text-sm">
+    <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 text-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-slate-200">{rule.name}</span>
-          <span className="text-[11px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+          <span className="text-xs text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded ">
             {rule.symbol} {rule.timeframe}
           </span>
           {rule.isAutoDiscovered && (
-            <span className="text-[11px] text-teal-500/90 bg-teal-950/30 px-1.5 py-0.5 rounded border border-teal-900/40">
+            <span className="text-xs text-teal-500/90 bg-teal-950/30 px-1.5 py-0.5 rounded ">
               Auto
             </span>
           )}
           <CapabilityStateBadge state={capability} />
-          <span className={`text-[10px] rounded border px-1.5 py-0.5 ${rule.isEnabled ? "border-rose-800 text-rose-300" : "border-slate-700 text-slate-400"}`}>
+          <span className={`text-xs rounded px-1.5 py-0.5 ${rule.isEnabled ? "bg-rose-500/15 text-rose-300" : "bg-slate-800/60 text-slate-400"}`}>
             {rule.isEnabled ? "Đang phát alert" : "Tắt · không phát alert"}
           </span>
         </div>
@@ -228,13 +228,13 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
         </div>
       )}
       {expanded && (
-        <div className="mt-3 space-y-3 text-xs text-slate-400">
+        <div className="mt-3 space-y-4 text-xs text-slate-400">
           <div className="flex flex-wrap gap-3 text-slate-400">
             <span>Cooldown: {rule.cooldownMinutes} phút</span>
             <span>·</span>
             <span>Cần tối thiểu {rule.requiredBars} nến trong buffer</span>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 space-y-1">
+          <div className="rounded-lg bg-slate-950/60 p-3 space-y-1">
             <div>Method: <span className="text-slate-300">{rule.methodVersion || "legacy/unversioned"}</span></div>
             <div>Selection: <span className="text-slate-300">{formatMsRange(rule.selectionStartTimeMs, rule.selectionEndTimeMs)} · n={rule.selectionSampleCount ?? "—"}</span></div>
             <div>Held-out: <span className="text-slate-300">{formatMsRange(rule.evaluationStartTimeMs, rule.evaluationEndTimeMs)} · n={rule.oosSampleCount ?? "—"}</span></div>
@@ -247,12 +247,12 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
           <button
             type="button"
             onClick={() => setShowRawJson((v) => !v)}
-            className="text-[11px] text-slate-400 hover:text-slate-400 underline-offset-2 hover:underline"
+            className="text-xs text-slate-400 hover:text-slate-400 underline-offset-2 hover:underline"
           >
             {showRawJson ? "Ẩn JSON kỹ thuật" : "Xem JSON kỹ thuật"}
           </button>
           {showRawJson && (
-            <pre className="bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-[10px] text-slate-400 overflow-x-auto">
+            <pre className="bg-slate-950 rounded-lg p-3 font-mono text-[10px] text-slate-400 overflow-x-auto">
               {JSON.stringify(conditions, null, 2)}
             </pre>
           )}

@@ -190,15 +190,15 @@ export function ExecutionPanel({
   };
 
   return (
-    <div className="space-y-3 bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-lg text-xs">
+    <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-5.5 shadow-lg text-xs">
       {/* Header & Stream Status */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+      <div className="flex items-center justify-between pb-2.5">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-slate-400" />
           <h3 className="font-bold text-slate-100 uppercase tracking-wide">
             Binance Futures Testnet Execution
           </h3>
-          <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-1.5 py-0.2 rounded">
+          <span className="bg-amber-500/20 text-amber-300 text-xs font-bold px-1.5 py-0.5 rounded">
             Live Orders
           </span>
         </div>
@@ -206,11 +206,11 @@ export function ExecutionPanel({
         <div className="flex items-center gap-2">
           {/* Stream Connection Pill */}
           <div
-            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${
-              streamStatus?.connected
-                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                : "bg-rose-500/15 text-rose-400 border-rose-500/30"
-            }`}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+ streamStatus?.connected
+ ? "bg-emerald-500/15 text-emerald-400"
+ : "bg-rose-500/15 text-rose-400"
+ }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
@@ -249,11 +249,11 @@ export function ExecutionPanel({
       {/* Message Banner */}
       {message && (
         <div
-          className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 text-xs ${
-            message.type === "success"
-              ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
-              : "bg-rose-950/60 border-rose-500/40 text-rose-300"
-          }`}
+          className={`p-2.5 rounded-lg flex items-center justify-between gap-2 text-xs ${
+ message.type === "success"
+ ? "bg-emerald-950/60 text-emerald-300"
+ : "bg-rose-950/60 text-rose-300"
+ }`}
         >
           <div className="flex items-center gap-2">
             {message.type === "success" ? (
@@ -263,7 +263,7 @@ export function ExecutionPanel({
             )}
             <span>{message.text}</span>
           </div>
-          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-slate-200 text-[10px]">
+          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-slate-200 text-xs">
             Đóng
           </button>
         </div>
@@ -271,21 +271,21 @@ export function ExecutionPanel({
 
       {/* Account Balances Grid */}
       {account && (
-        <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
+        <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-lg ">
           <div>
-            <div className="text-[10px] text-slate-400 font-semibold">Số dư Ví (USDT)</div>
+            <div className="text-xs text-slate-400 font-semibold">Số dư Ví (USDT)</div>
             <div className="font-bold text-slate-100 text-sm">
               ${account.totalWalletBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 font-semibold">Khả dụng (Available)</div>
+            <div className="text-xs text-slate-400 font-semibold">Khả dụng (Available)</div>
             <div className="font-bold text-teal-400 text-sm">
               ${account.availableBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 font-semibold">PnL Chưa thực hiện</div>
+            <div className="text-xs text-slate-400 font-semibold">PnL Chưa thực hiện</div>
             <div
               className={`font-bold text-sm ${
                 account.totalUnrealizedProfit >= 0 ? "text-emerald-400" : "text-rose-400"
@@ -301,7 +301,7 @@ export function ExecutionPanel({
       {/* Open Positions List */}
       {account && account.positions && account.positions.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+          <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
             <Activity className="w-3.5 h-3.5 text-slate-400" />
             Vị thế Testnet đang mở ({account.positions.length}):
           </div>
@@ -311,11 +311,11 @@ export function ExecutionPanel({
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between bg-slate-950/70 p-2 rounded border border-slate-800 font-mono text-[11px]"
+                  className="flex items-center justify-between bg-slate-950/70 p-2 rounded font-mono text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
+                      className={`px-1.5 py-0.2 rounded font-bold text-xs ${
                         isLong ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
                       }`}
                     >
@@ -338,13 +338,13 @@ export function ExecutionPanel({
       )}
 
       {/* Live Order Placement Form */}
-      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
+      <div className="bg-slate-950 p-3 rounded-lg space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="font-bold text-slate-200">Đặt Lệnh Testnet ({symbol})</span>
-          <div className="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-800">
+          <div className="inline-flex rounded-lg bg-slate-900 p-0.5 ">
             <button
               onClick={() => setOrderType("market")}
-              className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
+              className={`px-2 py-0.5 rounded font-bold text-xs transition-colors ${
                 orderType === "market" ? "bg-teal-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -352,7 +352,7 @@ export function ExecutionPanel({
             </button>
             <button
               onClick={() => setOrderType("stop_loss")}
-              className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
+              className={`px-2 py-0.5 rounded font-bold text-xs transition-colors ${
                 orderType === "stop_loss" ? "bg-rose-500 text-white shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -360,7 +360,7 @@ export function ExecutionPanel({
             </button>
             <button
               onClick={() => setOrderType("take_profit")}
-              className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
+              className={`px-2 py-0.5 rounded font-bold text-xs transition-colors ${
                 orderType === "take_profit" ? "bg-emerald-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -373,22 +373,22 @@ export function ExecutionPanel({
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setOrderSide("BUY")}
-            className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 border transition-all ${
-              orderSide === "BUY"
-                ? "bg-emerald-500/25 text-emerald-300 border-emerald-500/50 shadow"
-                : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800"
-            }`}
+            className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
+ orderSide === "BUY"
+ ? "bg-emerald-500/25 text-emerald-300 shadow"
+ : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ }`}
           >
             <ArrowUpRight className="w-3.5 h-3.5" />
             MUA / LONG
           </button>
           <button
             onClick={() => setOrderSide("SELL")}
-            className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 border transition-all ${
-              orderSide === "SELL"
-                ? "bg-rose-500/25 text-rose-300 border-rose-500/50 shadow"
-                : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800"
-            }`}
+            className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
+ orderSide === "SELL"
+ ? "bg-rose-500/25 text-rose-300 shadow"
+ : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ }`}
           >
             <ArrowDownRight className="w-3.5 h-3.5" />
             BÁN / SHORT
@@ -398,7 +398,7 @@ export function ExecutionPanel({
         {/* Quantity & Price Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
-            <label className="block text-[10px] text-slate-400 mb-1">
+            <label className="block text-xs text-slate-400 mb-1">
               Khối lượng ({symbol.replace("USDT", "")})
             </label>
             <input
@@ -407,13 +407,13 @@ export function ExecutionPanel({
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="0.005"
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
             />
           </div>
 
           {orderType !== "market" && (
             <div>
-              <label className="block text-[10px] text-slate-400 mb-1">
+              <label className="block text-xs text-slate-400 mb-1">
                 {orderType === "stop_loss" ? "Giá Cắt Lỗ (Stop Price $)" : "Giá Chốt Lời (TP Price $)"}
               </label>
               <input
@@ -422,7 +422,7 @@ export function ExecutionPanel({
                 value={stopPrice}
                 onChange={(e) => setStopPrice(e.target.value)}
                 placeholder={currentPrice ? String(currentPrice) : "95000"}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
           )}
@@ -448,7 +448,7 @@ export function ExecutionPanel({
           <button
             onClick={() => void handleCancelAll()}
             disabled={actionLoading || !executionUnlocked}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded-lg font-semibold text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
+            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 rounded-lg font-semibold text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
             title="Hủy toàn bộ lệnh mở của mã này"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -460,7 +460,7 @@ export function ExecutionPanel({
       {/* Balance Snapshots Collapsible */}
       {snapshots.length > 0 && (
         <div className="space-y-1">
-          <div className="text-[10px] text-slate-400 font-semibold">
+          <div className="text-xs text-slate-400 font-semibold">
             Lịch sử cập nhật số dư gần nhất ({snapshots.length})
           </div>
           <div className="space-y-1 max-h-24 overflow-y-auto">

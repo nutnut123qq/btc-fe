@@ -26,7 +26,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
           {rankings.map((r) => (
             <tr
               key={r.archetypeId}
-              className="border-b border-slate-800/50 hover:bg-slate-800/30"
+              className=" hover:bg-slate-800/30"
             >
               <td className="py-2 px-2">#{r.rank}</td>
               <td className="py-2 px-2 font-mono text-teal-400">{r.archetypeCode}</td>

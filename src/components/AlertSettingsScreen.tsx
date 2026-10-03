@@ -133,7 +133,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
       />
 
       {!contractCompatible && (
-        <p className="rounded-lg border border-amber-900/60 bg-amber-950/30 p-2 text-xs text-amber-300">
+        <p className="rounded-lg bg-amber-950/30 p-2 text-xs text-amber-300">
           API contract chưa được xác nhận; các thao tác ghi trong Settings và Lab đang bị khóa.
         </p>
       )}
@@ -191,7 +191,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
               />
             </div>
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs text-slate-400">
             Nếu nhập cả hai: <strong className="text-slate-400 font-medium">giá trên &gt; giá dưới</strong> (dải giữa hai mức; báo khi
             vượt trên hoặc rơi dưới).
           </p>

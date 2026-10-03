@@ -13,7 +13,7 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-xl border border-slate-800 bg-slate-950 p-4 text-left transition-colors hover:border-teal-500/50"
+      className="w-full rounded-xl border border-slate-800 bg-slate-950 p-5 text-left transition-colors hover:border-teal-500/50"
     >
       <div className="mb-3 flex items-center justify-between">
         <span className="rounded bg-slate-800 px-2 py-1 font-mono text-sm font-bold text-teal-400">
@@ -26,7 +26,7 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
         {arc.representativeOhlc && <ArchetypeGlyph bars={arc.representativeOhlc} />}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3 text-xs">
+      <div className="mt-3 grid grid-cols-2 gap-2 pt-3 text-xs">
         <div className="rounded bg-slate-900 p-2">
           <div className="text-slate-400">Số mẫu gốc</div>
           <div className="mt-1 font-semibold text-slate-200">{arc.memberCount}</div>
@@ -36,7 +36,7 @@ export function ArchetypeCard({ archetype: arc, onClick }: ArchetypeCardProps) {
           <div className="mt-1 font-semibold text-slate-200">{arc.intraClusterDistance.toFixed(3)}</div>
         </div>
       </div>
-      <div className="mt-3 text-[11px] text-teal-400">Mở chi tiết mẫu</div>
+      <div className="mt-3 text-xs text-teal-400">Mở chi tiết mẫu</div>
     </button>
   );
 }

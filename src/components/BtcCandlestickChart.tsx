@@ -379,15 +379,15 @@ export function BtcCandlestickChart({ data, height = 440, highlightWindow, volum
     <div className="w-full">
       <div
         ref={wrapRef}
-        className="w-full rounded-lg border border-slate-800 overflow-hidden"
+        className="w-full rounded-lg overflow-hidden"
         style={{ minHeight: height }}
       />
-      <p className="text-[11px] text-slate-400 mt-2 px-1 leading-relaxed">
+      <p className="text-xs text-slate-400 mt-2 px-1 leading-relaxed">
         <span className="text-slate-400">Giao diện kiểu sàn:</span> cuộn chuột = zoom trục thởi gian · giữ và kéo =
         xem vùng khác · giữ <kbd className="px-1 rounded bg-slate-800 text-slate-300">Shift</kbd> + cuộn = zoom
         giá · chạm (mobile): kéo / chụm.
       </p>
-      <p className={`text-[11px] mt-1 px-1 ${latestCandleLifecycle(data, timeframe) === "forming" ? "text-slate-400" : "text-emerald-500"}`}>
+      <p className={`text-xs mt-1 px-1 ${latestCandleLifecycle(data, timeframe) === "forming" ? "text-slate-400" : "text-emerald-500"}`}>
         Nến cuối: {latestCandleLifecycle(data, timeframe) === "forming" ? "đang hình thành; indicator hiển thị có thể còn thay đổi" : "đã đóng"}.
       </p>
     </div>

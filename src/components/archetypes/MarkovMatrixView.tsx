@@ -33,7 +33,7 @@ export function MarkovMatrixView({
         Tổng số mẫu: {matrix.totalTransitions} | Số loại: {matrix.archetypeCount}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 max-h-[500px] overflow-y-auto">
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 max-h-[500px] overflow-y-auto">
           <h3 className="text-sm font-semibold mb-3 text-teal-400">Heatmap Chuyển đổi (Top)</h3>
           <div className="space-y-2">
             {matrix.cells
@@ -43,11 +43,11 @@ export function MarkovMatrixView({
               .map((cell, i) => (
                 <div
                   key={i}
-                  className={`p-3 rounded-lg border border-slate-800 cursor-pointer flex items-center justify-between transition-colors ${
-                    selectedArcForTrans === cell.fromId
-                      ? "bg-slate-800 border-teal-500/50"
-                      : "bg-slate-900 hover:bg-slate-800"
-                  }`}
+                  className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
+ selectedArcForTrans === cell.fromId
+ ? "bg-slate-800"
+ : "bg-slate-900 hover:bg-slate-800"
+ }`}
                   onClick={() => onSelectArc(cell.fromId)}
                 >
                   <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function MarkovMatrixView({
           </div>
         </div>
 
-        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
           {selectedArcForTrans ? (
             arcTransLoading ? (
               <div className="py-12 flex justify-center">
@@ -82,7 +82,7 @@ export function MarkovMatrixView({
               </div>
             ) : (
               <>
-                <h3 className="text-sm font-semibold mb-4 text-teal-400 border-b border-slate-800 pb-2">
+                <h3 className="text-sm font-semibold mb-4 text-teal-400 pb-2">
                   Top chuyển đổi tiếp theo
                 </h3>
                 <div className="space-y-4">

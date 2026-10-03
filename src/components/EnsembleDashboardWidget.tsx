@@ -78,17 +78,17 @@ export function EnsembleDashboardWidget({
 
   if (!showExperimental) {
     return (
-      <div className="rounded-xl border border-slate-500/40 bg-slate-900/15 p-4">
+      <div className="rounded-xl border border-slate-500/40 bg-slate-900/15 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 font-semibold text-slate-300">
               Ensemble challenger
               <CapabilityStateBadge state="experimental" />
-              <span className="text-[10px] font-bold text-slate-400">Legacy records</span>
+              <span className="text-xs font-bold text-slate-400">Legacy records</span>
             </div>
             <p className="mt-1 text-xs text-slate-400">Kết quả lịch sử chưa vượt promotion gate; chỉ mở số liệu trong phạm vi Lab.</p>
           </div>
-          <button onClick={() => setShowExperimental(true)} className="rounded border border-teal-600/50 px-3 py-1.5 text-xs text-teal-300 hover:bg-teal-500/10">
+          <button onClick={() => setShowExperimental(true)} className="rounded px-3 py-1.5 text-xs text-teal-300 hover:bg-teal-500/10">
             Mở trong Lab
           </button>
         </div>
@@ -102,7 +102,7 @@ export function EnsembleDashboardWidget({
 
   if (error) {
     return (
-      <div className="p-4 bg-rose-900/50 border border-rose-500 rounded text-rose-200">
+      <div className="p-4 bg-rose-900/50 rounded text-rose-200">
         <h3 className="font-bold mb-2">Không tải được ensemble experimental</h3>
         <p>{error}</p>
         <button onClick={loadData} className="mt-2 px-3 py-1 bg-rose-800 rounded hover:bg-rose-700">Retry</button>
@@ -111,10 +111,10 @@ export function EnsembleDashboardWidget({
   }
 
   const dirColor = ensemble?.finalDirection === "Bullish"
-      ? "text-emerald-400 bg-emerald-400/10 border-emerald-400/30"
+      ? "text-emerald-400 bg-emerald-400/10"
       : ensemble?.finalDirection === "Bearish"
-      ? "text-rose-400 bg-rose-400/10 border-rose-400/30"
-      : "text-slate-300 bg-slate-400/10 border-slate-400/30";
+      ? "text-rose-400 bg-rose-400/10"
+      : "text-slate-300 bg-slate-400/10";
 
   const layers = ensemble?.layers ?? [];
   const unavailable = isEnsembleUnavailable(ensemble);
@@ -132,31 +132,31 @@ export function EnsembleDashboardWidget({
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl relative overflow-hidden">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-200 tracking-tight flex items-center gap-2">
               <CapabilityStateBadge state={capabilityState} />
               Ensemble challenger
             </h2>
             <div className="text-sm text-slate-400 mt-1">Nghiên cứu legacy cho {symbol} ({timeframe}); không phải tín hiệu production.</div>
             <div className="mt-1 text-xs text-slate-300">{ensemble.promotionReason}</div>
-            <div className="mt-1 text-[11px] text-slate-400">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
-            {freshness?.status === "stale" && <div className="mt-1 text-[10px] font-black text-rose-300">STALE SNAPSHOT · không dùng làm quyết định mới</div>}
+            <div className="mt-1 text-xs text-slate-400">{ensemble.validityStatus} · pipeline {ensemble.pipelineVersion} · evaluation {ensemble.evaluationVersion}</div>
+            {freshness?.status === "stale" && <div className="mt-1 text-xs font-black text-rose-300">STALE SNAPSHOT · không dùng làm quyết định mới</div>}
           </div>
-          <div className={`px-4 py-2 rounded-full border ${dirColor} font-bold text-lg shadow-sm flex items-center gap-2`}>
+          <div className={`px-4 py-2 rounded-full ${dirColor} font-bold text-lg shadow-sm flex items-center gap-2`}>
             {unavailable ? "UNAVAILABLE" : ensemble.finalDirection}
           </div>
         </div>
 
         {unavailable ? (
-          <div role="status" className="mt-6 rounded-lg border border-amber-500/30 bg-amber-950/20 p-4">
+          <div role="status" className="mt-6 rounded-lg bg-amber-950/20 px-4 py-2.5">
             <div className="text-sm font-bold text-amber-200">Không có kết luận ensemble khả dụng</div>
             <p className="mt-1 text-xs leading-5 text-slate-400">
               {ensemble.availabilityReason || ensemble.invalidReason || "Thiếu đầu vào thật hoặc đầu vào chưa qua evidence gate."}
             </p>
-            <p className="mt-2 text-[11px] text-slate-400">Không thay thế dữ liệu thiếu bằng giá, xác suất hoặc điểm mặc định.</p>
+            <p className="mt-2 text-xs text-slate-400">Không thay thế dữ liệu thiếu bằng giá, xác suất hoặc điểm mặc định.</p>
           </div>
         ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Gauge & Probabilities */}
-          <div className="flex flex-col justify-center items-center p-4 bg-slate-900 rounded-lg border border-slate-700/50 relative">
+          <div className="flex flex-col justify-center items-center p-4 bg-slate-900 rounded-lg relative">
             <div className="text-slate-400 text-xs font-medium mb-2">{scoreLabel}</div>
             <div className="text-5xl font-black text-slate-50 tabular-nums">
               {(ensemble.ensembleConfidence * 100).toFixed(1)}{ensemble.isCalibratedProbability ? "%" : " / 100"}
@@ -166,7 +166,7 @@ export function EnsembleDashboardWidget({
             )}
           </div>
 
-          <div className="flex flex-col justify-center p-4 bg-slate-900 rounded-lg border border-slate-700/50 gap-3">
+          <div className="flex flex-col justify-center p-4 bg-slate-900 rounded-lg gap-3">
             <div className="text-slate-400 text-xs font-medium">
               {ensemble.isCalibratedProbability ? "Xác suất xu hướng đã hiệu chỉnh" : "Điểm bình chọn theo hướng · không phải xác suất"}
             </div>
@@ -202,9 +202,9 @@ export function EnsembleDashboardWidget({
 
       {/* T / F / N Scoreboard & Evaluation History Table */}
       <div className="bg-slate-800 border border-teal-500/30 rounded-xl p-5 shadow-xl">
-        <div className="mb-4 border-b border-slate-700 pb-4">
+        <div className="mb-4 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
               Bảng đánh giá ensemble Experimental / Legacy (T / F / N)
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -214,11 +214,11 @@ export function EnsembleDashboardWidget({
         </div>
 
         {/* Stats Metrics Grid */}
-        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/15 px-3 py-2 text-xs text-amber-200">
+        <div className="mb-4 rounded-lg bg-amber-950/15 px-3 py-2 text-xs text-amber-200">
           {evalSummary?.promotionReason ?? "Ensemble chưa qua promotion gate."}
         </div>
         <div className="grid gap-4 xl:grid-cols-3 mb-6">
-          <div className="rounded-lg border border-amber-500/30 bg-slate-900 p-3">
+          <div className="rounded-lg bg-amber-950/15 p-3">
             <div className="mb-2 text-xs font-semibold text-amber-300">Raw legacy · có thể chứa duplicate</div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs text-slate-400">
               <div>Tổng<strong className="block text-lg text-white">{evalSummary?.totalPredictions ?? 0}</strong></div>
@@ -227,7 +227,7 @@ export function EnsembleDashboardWidget({
             </div>
             <div className="mt-2 text-center text-sm text-slate-300">Raw directional accuracy: <strong>{evalSummary?.winRatePct ?? 0}%</strong></div>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-3">
+          <div className="rounded-lg bg-slate-900 p-3">
             <div className="mb-2 text-xs font-semibold text-slate-400">Canonical audit · deduplicated</div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs text-slate-400">
               <div>Đã đánh giá<strong className="block text-lg text-white">{evalSummary?.canonicalEvaluatedCount ?? 0}</strong></div>
@@ -236,7 +236,7 @@ export function EnsembleDashboardWidget({
             </div>
             <div className="mt-2 text-center text-sm text-slate-300">Canonical directional accuracy: <strong>{evalSummary?.canonicalWinRatePct ?? 0}%</strong></div>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-3">
+          <div className="rounded-lg bg-slate-900 p-3">
             <div className="mb-2 text-xs font-semibold text-slate-400">Versioned re-evaluation · Experimental · non-promotable</div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs text-slate-400">
               <div>Tổng<strong className="block text-lg text-white">{evalSummary?.reevaluatedCount ?? 0}</strong></div>
@@ -249,7 +249,7 @@ export function EnsembleDashboardWidget({
 
         {/* Records Table */}
         <h4 className="mb-2 text-xs font-semibold text-slate-400">Raw legacy records</h4>
-        <div className="overflow-x-auto rounded-lg border border-slate-700 max-h-96">
+        <div className="overflow-x-auto rounded-lg max-h-96">
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-slate-900 text-slate-400 font-mono border-b border-slate-700 sticky top-0">
               <tr>
@@ -268,10 +268,10 @@ export function EnsembleDashboardWidget({
                   const status = item.evaluationStatus || "N";
                   const statusColor =
                     status === "T"
-                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                      ? "bg-emerald-500/20 text-emerald-400"
                       : status === "F"
-                      ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
-                      : "bg-slate-500/20 text-slate-300 border-slate-500/40";
+                      ? "bg-rose-500/20 text-rose-400"
+                      : "bg-slate-500/20 text-slate-300";
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-800 transition-colors">
@@ -296,7 +296,7 @@ export function EnsembleDashboardWidget({
                         )}
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`inline-block px-3 py-1 text-xs font-black rounded-full border ${statusColor}`}>
+                        <span className={`inline-block px-3 py-1 text-xs font-black rounded-full ${statusColor}`}>
                           {status === "T" && "T (ĐÚNG)"}
                           {status === "F" && "F (SAI)"}
                           {status === "N" && "N (CHỜ)"}
@@ -317,7 +317,7 @@ export function EnsembleDashboardWidget({
         </div>
 
         <h4 className="mb-2 mt-5 text-xs font-semibold text-slate-400">Versioned re-evaluation lineage</h4>
-        <div className="overflow-x-auto rounded-lg border border-slate-800 max-h-72">
+        <div className="overflow-x-auto rounded-lg max-h-72">
           {evalSummary?.reevaluatedItems.length ? (
             <table className="w-full text-left text-xs text-slate-300">
               <thead className="sticky top-0 border-b border-slate-700 bg-slate-900 text-slate-400">
@@ -350,7 +350,7 @@ export function EnsembleDashboardWidget({
       {/* Layer Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {layers.map((layer: EnsembleLayer, idx: number) => (
-          <div key={idx} className="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col hover:border-slate-500 transition-colors">
+          <div key={idx} className="bg-slate-800 rounded-lg p-4 flex flex-col transition-colors">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-slate-400 font-mono text-xs">L{idx + 1}</span>
@@ -367,7 +367,7 @@ export function EnsembleDashboardWidget({
             
             <p className="text-sm text-slate-400 mb-4 flex-1">{layer.summary}</p>
             
-            <div className="flex items-center justify-between text-xs border-t border-slate-700 pt-3">
+            <div className="flex items-center justify-between text-xs pt-3">
               <span className="text-slate-400" title="Trọng số">W: {layer.weight.toFixed(2)}</span>
               <div className="flex gap-2 font-mono">
                 <span className="text-emerald-400/80" title="Điểm heuristic tăng">↑{(layer.probUp * 100).toFixed(0)}</span>

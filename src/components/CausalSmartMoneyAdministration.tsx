@@ -113,29 +113,29 @@ export function CausalSmartMoneyAdministration() {
   };
 
   return (
-    <section className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-4" aria-labelledby="causal-smc-admin-title">
+    <section className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-5" aria-labelledby="causal-smc-admin-title">
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 id="causal-smc-admin-title" className="flex items-center gap-2 text-sm font-semibold text-slate-100">
             <DatabaseZap className="h-4 w-4 shrink-0 text-slate-400" /> Causal SMC ledger administration
           </h3>
-          <p className="mt-1 text-[11px] leading-5 text-slate-400">Ledger SMC lịch sử dùng nến đã chốt và reset state tại gap/invalid-duration. Event count là coverage mô tả, không phải xác suất hay tín hiệu giao dịch.</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">Ledger SMC lịch sử dùng nến đã chốt và reset state tại gap/invalid-duration. Event count là coverage mô tả, không phải xác suất hay tín hiệu giao dịch.</p>
         </div>
-        <button type="button" onClick={() => void loadCoverage()} disabled={coverageLoading} className="shrink-0 rounded border border-slate-700 bg-slate-950 p-2 text-slate-400 hover:text-slate-200 disabled:opacity-50" aria-label="Làm mới causal SMC coverage">
+        <button type="button" onClick={() => void loadCoverage()} disabled={coverageLoading} className="shrink-0 rounded bg-slate-950 p-2 text-slate-400 hover:text-slate-200 disabled:opacity-50" aria-label="Làm mới causal SMC coverage">
           <RefreshCw className={`h-4 w-4 ${coverageLoading ? "animate-spin" : ""}`} />
         </button>
       </div>
 
-      {error && <div role="alert" className="mt-3 max-w-full break-words rounded border border-rose-800 bg-rose-900/30 p-3 text-xs text-rose-300 [overflow-wrap:anywhere]">{error}</div>}
+      {error && <div role="alert" className="mt-3 max-w-full break-words rounded bg-rose-900/30 p-3 text-xs text-rose-300 [overflow-wrap:anywhere]">{error}</div>}
 
       <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-3">
         {ACTIVE_TIMEFRAMES.map((timeframe) => {
           const item = coverage.find((row) => row.timeframe === timeframe);
           return (
-            <article key={timeframe} className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs">
+            <article key={timeframe} className="min-w-0 max-w-full overflow-hidden rounded-lg bg-slate-950/60 p-3 text-xs">
               <div className="flex min-w-0 items-start justify-between gap-2"><strong>{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-rose-300"}`}>{item?.checkpointStatus ?? "unavailable"}</span></div>
               {item ? <>
-                <dl className="mt-2 grid min-w-0 grid-cols-2 gap-1 text-[11px] [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
+                <dl className="mt-2 grid min-w-0 grid-cols-2 gap-1 text-xs [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
                   <dt className="text-slate-400">Coverage start</dt><dd>{time(item.coverageStartOpenTimeMs)}</dd>
                   <dt className="text-slate-400">Checkpoint</dt><dd>{time(item.lastProcessedOpenTimeMs)}</dd>
                   <dt className="text-slate-400">Latest segment</dt><dd>{time(item.latestSegmentStartOpenTimeMs)}</dd>
@@ -147,33 +147,33 @@ export function CausalSmartMoneyAdministration() {
                   <dt className="text-slate-400">Unavailable gaps</dt><dd>{item.unavailableGapRanges.toLocaleString("vi-VN")}</dd>
                   <dt className="text-slate-400">Trailing gaps</dt><dd>{item.trailingNotYetFinalizedGapRanges.toLocaleString("vi-VN")}</dd>
                 </dl>
-                <details className="mt-2 min-w-0 max-w-full overflow-hidden text-[10px] text-slate-400"><summary className="cursor-pointer">Persisted event types ({Object.keys(item.eventsByType).length})</summary><ul className="mt-1 space-y-1">{Object.entries(item.eventsByType).map(([key, value]) => <li key={key} className="flex min-w-0 justify-between gap-2"><span className="min-w-0 break-all">{key}</span><span className="shrink-0">{value.toLocaleString("vi-VN")}</span></li>)}</ul></details>
+                <details className="mt-2 min-w-0 max-w-full overflow-hidden text-xs text-slate-400"><summary className="cursor-pointer">Persisted event types ({Object.keys(item.eventsByType).length})</summary><ul className="mt-1 space-y-1">{Object.entries(item.eventsByType).map(([key, value]) => <li key={key} className="flex min-w-0 justify-between gap-2"><span className="min-w-0 break-all">{key}</span><span className="shrink-0">{value.toLocaleString("vi-VN")}</span></li>)}</ul></details>
                 <div className="mt-2 max-w-full break-all font-mono text-[9px] text-slate-400">{item.calculationVersion}</div>
-                <div className="mt-1 max-w-full break-words text-[9px] text-slate-400/70">Legacy: {item.legacyStorageStatus}</div>
+                <div className="mt-1 max-w-full break-words text-xs text-slate-400/70">Legacy: {item.legacyStorageStatus}</div>
               </> : <p className="mt-2 break-words text-rose-300">Không có causal coverage contract cho khung này.</p>}
             </article>
           );
         })}
       </div>
 
-      <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-950/60 p-3">
-        <div className="grid min-w-0 gap-2 text-[10px] text-slate-400 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded-lg bg-slate-950/60 p-3">
+        <div className="grid min-w-0 gap-2 text-xs text-slate-400 sm:grid-cols-2 lg:grid-cols-4">
           <span>Candidate cap <b className="text-slate-300">{CAUSAL_SMC_MAX_CANDIDATE_CANDLES.toLocaleString("vi-VN")}</b></span>
           <span>Context cap <b className="text-slate-300">{CAUSAL_SMC_MAX_CONTEXT_CANDLES.toLocaleString("vi-VN")}</b></span>
           <span>Event mutation cap <b className="text-slate-300">{CAUSAL_SMC_MAX_EVENT_MUTATIONS.toLocaleString("vi-VN")}</b></span>
           <span>Evidence cap <b className="text-slate-300">{(CAUSAL_SMC_MAX_EVIDENCE_BYTES / 1024 / 1024).toLocaleString("vi-VN")} MiB</b></span>
         </div>
         <div className="mt-3 flex min-w-0 max-w-full flex-wrap items-end gap-3">
-          <label className="text-[10px] font-medium text-slate-400">Timeframe<select value={selectedTimeframe} onChange={(event) => { invalidatePreview(); setSelectedTimeframe(event.target.value as ActiveTimeframe); }} className="mt-1 block rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-200">{ACTIVE_TIMEFRAMES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label className="text-[10px] font-medium text-slate-400">Batch cap (1–5.000)<input type="number" min={1} max={CAUSAL_SMC_MAX_CANDIDATE_CANDLES} value={maxCandles} onChange={(event) => { invalidatePreview(); setMaxCandles(Math.max(1, Math.min(CAUSAL_SMC_MAX_CANDIDATE_CANDLES, Number(event.target.value) || 1))); }} className="mt-1 block w-28 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-200" /></label>
-          <button type="button" onClick={() => void run(true)} disabled={rebuildLoading} className="rounded border border-slate-800 bg-slate-950/30 px-3 py-2 text-xs font-semibold text-slate-300 disabled:opacity-50">1. Ước tính dry-run</button>
-          <button type="button" onClick={() => void run(false)} disabled={rebuildLoading || !previewMatches} className="rounded border border-slate-700 bg-slate-900/30 px-3 py-2 text-xs font-semibold text-slate-300 disabled:cursor-not-allowed disabled:opacity-40">2. Apply batch đã preview</button>
+          <label className="text-xs font-medium text-slate-400">Timeframe<select value={selectedTimeframe} onChange={(event) => { invalidatePreview(); setSelectedTimeframe(event.target.value as ActiveTimeframe); }} className="mt-1 block rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200">{ACTIVE_TIMEFRAMES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label className="text-xs font-medium text-slate-400">Batch cap (1–5.000)<input type="number" min={1} max={CAUSAL_SMC_MAX_CANDIDATE_CANDLES} value={maxCandles} onChange={(event) => { invalidatePreview(); setMaxCandles(Math.max(1, Math.min(CAUSAL_SMC_MAX_CANDIDATE_CANDLES, Number(event.target.value) || 1))); }} className="mt-1 block w-28 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200" /></label>
+          <button type="button" onClick={() => void run(true)} disabled={rebuildLoading} className="rounded bg-slate-950/30 px-3 py-2 text-xs font-semibold text-slate-300 disabled:opacity-50">1. Ước tính dry-run</button>
+          <button type="button" onClick={() => void run(false)} disabled={rebuildLoading || !previewMatches} className="rounded bg-slate-800/40 px-3 py-2 text-xs font-semibold text-slate-300 disabled:cursor-not-allowed disabled:opacity-40">2. Apply batch đã preview</button>
         </div>
-        <p className="mt-2 flex min-w-0 items-start gap-1 text-[10px] text-slate-400"><ShieldAlert className="h-3 w-3 shrink-0" /><span className="min-w-0 break-words">Apply đi qua AdminGuard, cần xác nhận và chỉ mở sau dry-run cùng timeframe, cap, calculation version và checkpoint. Mỗi lần bấm chỉ chạy một batch; UI không tự lặp.</span></p>
+        <p className="mt-2 flex min-w-0 items-start gap-1 text-xs text-slate-400"><ShieldAlert className="h-3 w-3 shrink-0" /><span className="min-w-0 break-words">Apply đi qua AdminGuard, cần xác nhận và chỉ mở sau dry-run cùng timeframe, cap, calculation version và checkpoint. Mỗi lần bấm chỉ chạy một batch; UI không tự lặp.</span></p>
 
-        {preview && <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded border border-slate-900 bg-slate-950/20 p-3 text-xs text-slate-100">
+        {preview && <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded bg-slate-950/20 p-3 text-xs text-slate-100">
           <strong className="break-words">Dry-run · {preview.result.timeframe} · cap {preview.requestedMaxCandles.toLocaleString("vi-VN")}</strong>
-          <dl className="mt-2 grid min-w-0 grid-cols-2 gap-1 text-[11px] sm:grid-cols-4 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
+          <dl className="mt-2 grid min-w-0 grid-cols-2 gap-1 text-xs sm:grid-cols-4 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
             <dt className="text-slate-300/60">Candidates</dt><dd>{preview.result.candidateCandles.toLocaleString("vi-VN")}</dd>
             <dt className="text-slate-300/60">Valid / invalid</dt><dd>{preview.result.validCandidateCandles.toLocaleString("vi-VN")} / {preview.result.invalidDurationCandles.toLocaleString("vi-VN")}</dd>
             <dt className="text-slate-300/60">Context</dt><dd>{preview.result.contextCandles.toLocaleString("vi-VN")}</dd>
@@ -183,11 +183,11 @@ export function CausalSmartMoneyAdministration() {
             <dt className="text-slate-300/60">Batch start</dt><dd>{time(preview.result.batchStartOpenTimeMs)}</dd>
             <dt className="text-slate-300/60">Checkpoint →</dt><dd>{time(preview.result.lastProcessedOpenTimeMs)}</dd>
           </dl>
-          <details className="mt-3 min-w-0 max-w-full text-[10px]"><summary className="cursor-pointer text-slate-200">Gap boundaries ({preview.result.gapBoundaries.length})</summary>{preview.result.gapBoundaries.length === 0 ? <p className="mt-2 text-slate-300/60">Không có boundary trong batch.</p> : <ul className="mt-2 space-y-2">{preview.result.gapBoundaries.map((gap, index) => <li key={`${gap.boundaryType}-${gap.invalidOpenTimeMs ?? gap.nextOpenTimeMs ?? index}`} className="min-w-0 max-w-full break-words rounded border border-slate-900/60 p-2 [overflow-wrap:anywhere]">{gap.boundaryType} · ledger {gap.ledgerStatus} · missing {gap.missingBars.toLocaleString("vi-VN")} · prev {time(gap.previousOpenTimeMs)} · next {time(gap.nextOpenTimeMs)} · invalid {time(gap.invalidOpenTimeMs)}</li>)}</ul>}</details>
-          <ul className="mt-3 list-disc space-y-1 break-words pl-4 text-[10px] text-amber-200/70">{preview.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
+          <details className="mt-3 min-w-0 max-w-full text-xs"><summary className="cursor-pointer text-slate-200">Gap boundaries ({preview.result.gapBoundaries.length})</summary>{preview.result.gapBoundaries.length === 0 ? <p className="mt-2 text-slate-300/60">Không có boundary trong batch.</p> : <ul className="mt-2 space-y-2">{preview.result.gapBoundaries.map((gap, index) => <li key={`${gap.boundaryType}-${gap.invalidOpenTimeMs ?? gap.nextOpenTimeMs ?? index}`} className="min-w-0 max-w-full break-words rounded p-2 [overflow-wrap:anywhere]">{gap.boundaryType} · ledger {gap.ledgerStatus} · missing {gap.missingBars.toLocaleString("vi-VN")} · prev {time(gap.previousOpenTimeMs)} · next {time(gap.nextOpenTimeMs)} · invalid {time(gap.invalidOpenTimeMs)}</li>)}</ul>}</details>
+          <ul className="mt-3 list-disc space-y-1 break-words pl-4 text-xs text-amber-200/70">{preview.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
         </div>}
 
-        {result && <div className="mt-3 min-w-0 max-w-full break-words rounded border border-emerald-900 bg-emerald-950/20 p-3 text-xs text-emerald-200 [overflow-wrap:anywhere]">Apply {result.status}: inserted {result.insertedEvents.toLocaleString("vi-VN")}, updated {result.updatedEvents.toLocaleString("vi-VN")}, existing {result.existingEvents.toLocaleString("vi-VN")}; checkpoint {time(result.lastProcessedOpenTimeMs)}.</div>}
+        {result && <div className="mt-3 min-w-0 max-w-full break-words rounded bg-emerald-950/20 p-3 text-xs text-emerald-200 [overflow-wrap:anywhere]">Apply {result.status}: inserted {result.insertedEvents.toLocaleString("vi-VN")}, updated {result.updatedEvents.toLocaleString("vi-VN")}, existing {result.existingEvents.toLocaleString("vi-VN")}; checkpoint {time(result.lastProcessedOpenTimeMs)}.</div>}
       </div>
     </section>
   );

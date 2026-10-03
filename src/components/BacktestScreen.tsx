@@ -162,13 +162,13 @@ export function BacktestScreen() {
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab("ml")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ml" ? "bg-teal-500/20 text-teal-400 border border-teal-500/40 font-bold" : "bg-slate-900 border border-slate-800 text-slate-400"}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ml" ? "bg-teal-500/15 text-teal-300 font-semibold" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"}`}
           >
             Single Model Backtests
           </button>
           <button
             onClick={() => setActiveTab("ensemble")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ensemble" ? "bg-teal-500/20 text-teal-400 border border-teal-500/40 font-bold" : "bg-slate-900 border border-slate-800 text-slate-400"}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ensemble" ? "bg-teal-500/15 text-teal-300 font-semibold" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"}`}
           >
             Ensemble (Experimental)
           </button>
@@ -177,7 +177,7 @@ export function BacktestScreen() {
 
       {activeTab === "ml" && (
         <>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-teal-400" />
@@ -197,7 +197,7 @@ export function BacktestScreen() {
         )}
 
         {error && (
-          <div className="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg px-3 py-2 text-sm mb-4">
+          <div className="bg-rose-950/50 text-rose-300 rounded-lg px-3 py-2 text-sm mb-4">
             {error}
           </div>
         )}
@@ -220,19 +220,19 @@ export function BacktestScreen() {
                 <th className="text-left py-2 px-2">Ngày chạy</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800/50">
               {runs.map((r) => (
                 <tr
                   key={r.id}
                   onClick={() => void loadDetail(r.id)}
-                  className="border-b border-slate-800/50 hover:bg-slate-800/30 cursor-pointer"
+                  className="hover:bg-slate-800/30 cursor-pointer"
                 >
                   <td className="py-2 px-2 text-slate-400">{r.id}</td>
                   <td className="py-2 px-2">{r.modelName}</td>
                   <td className="py-2 px-2">{r.timeframe}</td>
                   <td className="py-2 px-2">{r.horizon}</td>
                   <td className="py-2 px-2">
-                    <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${r.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : r.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-slate-500/40 text-slate-300"}`}>
+                    <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${r.validityStatus === "Valid" ? "bg-emerald-500/15 text-emerald-400" : r.validityStatus === "Invalid" ? "bg-rose-500/15 text-rose-400" : "bg-slate-800 text-slate-300"}`}>
                       {r.validityStatus}
                     </span>
                     {r.invalidReason && <div className="mt-1 max-w-56 text-[10px] text-slate-400">{r.invalidReason}</div>}
@@ -263,11 +263,11 @@ export function BacktestScreen() {
       </div>
 
       {selected && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
             <Activity className="w-4 h-4 text-teal-400" />
             Chi tiết backtest #{selected.id} — {selected.modelName}
-            <span className={`rounded border px-2 py-0.5 text-[10px] ${selected.validityStatus === "Valid" ? "border-emerald-500/40 text-emerald-400" : selected.validityStatus === "Invalid" ? "border-rose-500/40 text-rose-400" : "border-slate-500/40 text-slate-300"}`}>{selected.validityStatus}</span>
+            <span className={`rounded px-2 py-0.5 text-xs ${selected.validityStatus === "Valid" ? "bg-emerald-500/15 text-emerald-400" : selected.validityStatus === "Invalid" ? "bg-rose-500/15 text-rose-400" : "bg-slate-800 text-slate-300"}`}>{selected.validityStatus}</span>
           </h3>
           <p className="mb-3 text-xs text-slate-400">
             Pipeline {selected.pipelineVersion} · Evaluation {selected.evaluationVersion}
@@ -275,21 +275,21 @@ export function BacktestScreen() {
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+            <div className="bg-slate-950/60 rounded-lg p-3">
               <div className="text-xs text-slate-400">Total return</div>
               <div className={`text-xl font-bold ${selected.totalReturnPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {formatPct(selected.totalReturnPct)}
               </div>
             </div>
-            <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+            <div className="bg-slate-950/60 rounded-lg p-3">
               <div className="text-xs text-slate-400">Win rate</div>
               <div className="text-xl font-bold">{(selected.winRate * 100).toFixed(1)}%</div>
             </div>
-            <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+            <div className="bg-slate-950/60 rounded-lg p-3">
               <div className="text-xs text-slate-400">Max drawdown</div>
               <div className="text-xl font-bold text-rose-400">{selected.maxDrawdownPct.toFixed(1)}%</div>
             </div>
-            <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+            <div className="bg-slate-950/60 rounded-lg p-3">
               <div className="text-xs text-slate-400">Sharpe</div>
               <div className="text-xl font-bold">{selected.sharpeRatio.toFixed(2)}</div>
             </div>
@@ -308,9 +308,9 @@ export function BacktestScreen() {
                   <th className="text-right py-2 px-2">Conf</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-800/50">
                 {selected.trades.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-800/50">
+                  <tr key={t.id}>
                     <td className="py-2 px-2">{formatTime(t.entryTimeMs)}</td>
                     <td className="py-2 px-2">{formatTime(t.exitTimeMs)}</td>
                     <td className={`py-2 px-2 font-medium ${t.side === "long" ? "text-emerald-400" : "text-rose-400"}`}>
@@ -334,8 +334,8 @@ export function BacktestScreen() {
 
       {activeTab === "ensemble" && (
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-slate-200">
               <Activity className="w-5 h-5 text-teal-400" />
               Cấu hình Ensemble Backtest
             </h2>
@@ -367,21 +367,21 @@ export function BacktestScreen() {
               <button
                 onClick={() => void runEnsBacktest()}
                 disabled={ensLoading || !adminUnlocked}
-                className="px-4 py-2 bg-teal-500/20 text-teal-400 border border-teal-500/40 rounded-lg text-sm font-medium hover:bg-teal-500/30 disabled:opacity-50"
+                className="px-4 py-2 bg-teal-500/15 text-teal-300 rounded-lg text-sm font-medium hover:bg-teal-500/25 disabled:opacity-50"
               >
                 {ensLoading ? "Running..." : "Run Ensemble Backtest"}
               </button>
               <button
                 onClick={() => void handleOptimize()}
                 disabled={ensLoading || !adminUnlocked}
-                className="px-4 py-2 bg-teal-500/20 text-teal-400 border border-teal-500/40 rounded-lg text-sm font-medium hover:bg-teal-500/30 disabled:opacity-50"
+                className="px-4 py-2 bg-teal-500/15 text-teal-300 rounded-lg text-sm font-medium hover:bg-teal-500/25 disabled:opacity-50"
               >
                 Optimize Weights
               </button>
             </div>
 
             {ensError && ensError.includes("INSUFFICIENT_POINT_IN_TIME_DATA") ? (
-              <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm">
+              <div className="mt-4 px-4 py-2.5 bg-amber-500/10 rounded-xl text-amber-300 text-xs">
                 <p className="font-bold mb-1">Chưa hỗ trợ Ensemble Backtest trung thực</p>
                 <p>Hệ thống hiện thiếu dữ liệu dự đoán point-in-time lịch sử (không bị look-ahead bias). Việc dùng mô hình hiện tại để dự đoán ngược quá khứ sẽ gây sai số và làm kết quả Buy & Hold đẹp một cách giả tạo. Vui lòng thu thập đủ log dự đoán real-time trước khi backtest.</p>
               </div>
@@ -391,13 +391,13 @@ export function BacktestScreen() {
           </div>
 
           {optResult && (
-            <div className="bg-slate-900/20 border border-slate-800/50 rounded-xl p-4">
-              <h3 className="text-md font-semibold text-slate-400 mb-3">Kết quả Optimize Weights</h3>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-slate-200 mb-3">Kết quả Optimize Weights</h3>
               <p className="text-sm text-slate-300 mb-2">Đã test {optResult.testedCombinationsCount} tổ hợp trọng số.</p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
                 {Object.entries(optResult.bestWeights).map(([k, v]) => (
-                  <div key={k} className="bg-slate-900 border border-slate-800 p-2 rounded text-center">
-                    <div className="text-[10px] text-slate-400 uppercase">{k}</div>
+                  <div key={k} className="bg-slate-800/40 p-2 rounded text-center">
+                    <div className="text-xs text-slate-400 uppercase">{k}</div>
                     <div className="font-bold text-teal-400">{v.toFixed(2)}</div>
                   </div>
                 ))}
@@ -413,25 +413,25 @@ export function BacktestScreen() {
           {ensResult && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center">
                   <div className="text-xs text-slate-400">Total Return</div>
                   <div className={`text-xl font-bold ${ensResult.totalReturnPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{formatPct(ensResult.totalReturnPct)}</div>
                 </div>
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center">
                   <div className="text-xs text-slate-400">Win Rate</div>
                   <div className="text-xl font-bold">{(ensResult.winRate * 100).toFixed(1)}%</div>
                 </div>
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center">
                   <div className="text-xs text-slate-400">Sharpe Ratio</div>
                   <div className="text-xl font-bold">{ensResult.sharpeRatio.toFixed(2)}</div>
                 </div>
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center">
                   <div className="text-xs text-slate-400">Max DD</div>
                   <div className="text-xl font-bold text-rose-400">{ensResult.maxDrawdownPct.toFixed(1)}%</div>
                 </div>
               </div>
               
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
                 <h3 className="text-sm font-semibold mb-4 text-slate-300">Equity Curve</h3>
                 <div ref={chartContainerRef} className="w-full h-[300px]" />
               </div>

@@ -30,7 +30,7 @@ export function ArchetypeRankingsView({
   onHorizonChange,
 }: ArchetypeRankingsViewProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
       <div className="flex flex-wrap gap-4 mb-6">
         <div>
           <label className="text-xs text-slate-400 block mb-1">Timeframe</label>

@@ -46,7 +46,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   if (error) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm text-rose-400">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-sm text-rose-400">
         <p>Error: {error}</p>
         <button onClick={fetchConfluence} className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200">
           <RefreshCw className="w-3 h-3" /> Retry
@@ -65,7 +65,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   if (!data) {
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm text-slate-300">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 text-sm text-slate-300">
         <p>Chưa có dữ liệu Confluence cho {symbol}. Chức năng còn lại vẫn hoạt động.</p>
         {adminUnlocked && (
           <button onClick={handleRecalculate} disabled={loading} className="mt-2 flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs hover:bg-slate-700 disabled:opacity-50">
@@ -100,18 +100,18 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
   };
 
   const getDirectionColor = (dir: string) => {
-    if (dir.includes("Bullish")) return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-    if (dir.includes("Bearish")) return "bg-rose-500/20 text-rose-400 border-rose-500/30";
-    return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+    if (dir.includes("Bullish")) return "bg-emerald-500/20 text-emerald-400";
+    if (dir.includes("Bearish")) return "bg-rose-500/20 text-rose-400";
+    return "bg-slate-500/20 text-slate-400";
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-6 mb-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 md:p-6 mb-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
             Chỉ số hội tụ đa khung
-            <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getDirectionColor(data.overallDirection)}`}>
+            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getDirectionColor(data.overallDirection)}`}>
               {directionMap[data.overallDirection] || data.overallDirection}
             </span>
           </h3>
@@ -130,19 +130,19 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
       </div>
 
       {stale && (
-        <div className="mb-4 rounded-lg border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+        <div className="mb-4 rounded-lg bg-amber-950/30 p-3 text-xs text-amber-300">
           Snapshot Confluence đã cũ ({formatDataAge(data.createdAtUtc)}); không dùng như tín hiệu hiện tại.
         </div>
       )}
 
       {(data.missingInputs?.length ?? 0) > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+        <div className="mb-4 rounded-lg bg-amber-950/30 p-3 text-xs text-amber-300">
           Thiếu đầu vào: {data.missingInputs!.join(", ")}. Chỉ số không nên được dùng như tín hiệu đầy đủ.
         </div>
       )}
 
       {data.hasConflict && (
-        <div className="mb-6 flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-sm">
+        <div className="mb-6 flex items-start gap-2 px-3 py-2.5 bg-amber-500/10 rounded-lg text-amber-400 text-xs">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">Cảnh báo Xung đột (Conflict Alert)</p>
@@ -158,12 +158,12 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
             <span className="text-xs text-slate-400 font-medium">/ 100</span>
           </div>
           <span className="mt-3 text-sm font-medium text-slate-400">Heuristic index</span>
-          <span className="mt-1 text-[10px] text-slate-400">isProbability = false</span>
+          <span className="mt-1 text-xs text-slate-400">isProbability = false</span>
         </div>
 
         <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
           {data.timeframeAlignments.map((tf, i) => (
-            <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 flex flex-col gap-2">
+            <div key={i} className="bg-slate-800/50 rounded-lg p-3 flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-200">{tf.timeframe}</span>
                 <span className="text-xs text-slate-400 font-mono">w:{tf.weight}</span>

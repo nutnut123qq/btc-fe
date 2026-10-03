@@ -104,33 +104,33 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
       {/* Widget Header */}
-      <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+      <div className="p-3 flex items-center justify-between bg-slate-900/90">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-slate-400" />
           <div>
             <h3 className="text-sm font-semibold text-slate-200">Sổ lệnh</h3>
-            <p className={`text-[9px] ${stale ? "text-amber-400" : "text-slate-400"}`}>
+            <p className={`text-xs ${stale ? "text-amber-400" : "text-slate-400"}`}>
               Binance Spot · REST snapshot mỗi 2s · {snapshotAgeMs == null ? "chưa nhận" : `${(snapshotAgeMs / 1000).toFixed(0)}s trước`}
             </p>
           </div>
         </div>
         {spread > 0 && (
-          <div className="text-[10px] text-slate-400">
+          <div className="text-xs text-slate-400">
             Spread: <span className="text-slate-200 font-mono">${spread.toFixed(2)}</span> ({spreadPct.toFixed(3)}%)
           </div>
         )}
       </div>
 
-      <div className="border-b border-slate-800/60 bg-slate-950/50 px-3 py-1 text-[9px] leading-relaxed text-slate-400">
+      <div className=" bg-slate-950/50 px-3 py-1 text-xs leading-relaxed text-slate-400">
         Không phải local order book đồng bộ theo sequence; mỗi lần tải là một ảnh chụp độc lập.
         {error && <span className="ml-1 text-amber-400">Lần tải gần nhất lỗi: {error}</span>}
       </div>
 
       {/* Table Column Headers */}
-      <div className="grid grid-cols-12 px-3 py-1.5 text-[10px] font-semibold text-slate-400 border-b border-slate-800/60 bg-slate-950/60">
-        <div className="col-span-4">Giá (USDT)</div>
-        <div className="col-span-4 text-right">Số lượng</div>
-        <div className="col-span-4 text-right">Tổng (USDT)</div>
+      <div className="grid grid-cols-12 px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-950/60">
+        <div className="col-span-5 @max-[280px]:col-span-6 min-w-0">Giá (USDT)</div>
+        <div className="col-span-3 @max-[280px]:col-span-6 text-right">Số lượng</div>
+        <div className="col-span-4 @max-[280px]:hidden text-right">Tổng (USDT)</div>
       </div>
 
       {/* Orderbook Rows */}
@@ -152,13 +152,13 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
                       className="absolute right-0 top-0 bottom-0 bg-rose-500/15 pointer-events-none transition-all duration-300"
                       style={{ width: `${depthPct}%` }}
                     />
-                    <div className="col-span-4 text-rose-400 font-semibold relative z-10">
+                    <div className="col-span-5 @max-[280px]:col-span-6 min-w-0 truncate text-rose-400 font-semibold tabular-nums relative z-10">
                       {formatPrice(ask.price)}
                     </div>
-                    <div className="col-span-4 text-right text-slate-200 relative z-10">
+                    <div className="col-span-3 @max-[280px]:col-span-6 min-w-0 truncate text-right text-slate-200 tabular-nums relative z-10">
                       {formatQty(ask.qty)}
                     </div>
-                    <div className="col-span-4 text-right text-slate-400 text-[11px] relative z-10">
+                    <div className="col-span-4 @max-[280px]:hidden min-w-0 truncate text-right text-slate-400 text-xs tabular-nums relative z-10">
                       {ask.total.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
 
             {/* Mid Price / Spread Bar */}
             <div className="my-1 py-1.5 px-3 bg-slate-950/80 border-y border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 text-[10px]">Giá giữa:</span>
+              <span className="text-slate-400 text-xs">Giá giữa:</span>
               <span className="font-bold text-slate-100 font-mono">
                 ${bestAsk != null && bestBid != null ? formatPrice((bestAsk + bestBid) / 2) : "--"}
               </span>
@@ -185,13 +185,13 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
                       className="absolute right-0 top-0 bottom-0 bg-emerald-500/15 pointer-events-none transition-all duration-300"
                       style={{ width: `${depthPct}%` }}
                     />
-                    <div className="col-span-4 text-emerald-400 font-semibold relative z-10">
+                    <div className="col-span-5 @max-[280px]:col-span-6 min-w-0 truncate text-emerald-400 font-semibold tabular-nums relative z-10">
                       {formatPrice(bid.price)}
                     </div>
-                    <div className="col-span-4 text-right text-slate-200 relative z-10">
+                    <div className="col-span-3 @max-[280px]:col-span-6 min-w-0 truncate text-right text-slate-200 tabular-nums relative z-10">
                       {formatQty(bid.qty)}
                     </div>
-                    <div className="col-span-4 text-right text-slate-400 text-[11px] relative z-10">
+                    <div className="col-span-4 @max-[280px]:hidden min-w-0 truncate text-right text-slate-400 text-xs tabular-nums relative z-10">
                       {bid.total.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </div>
                   </div>

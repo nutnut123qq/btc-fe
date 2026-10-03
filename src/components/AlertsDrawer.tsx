@@ -74,8 +74,8 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+      <div className="relative w-full max-w-md bg-slate-900 h-full flex flex-col shadow-2xl">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-teal-400" />
             <span className="font-semibold text-slate-200">Thông báo</span>
@@ -131,36 +131,36 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               const evidence = alertEvidenceView(a);
               return <div
                 key={a.id}
-                className={`rounded-lg border px-3 py-2.5 text-sm ${
-                  a.isRead
-                    ? "border-slate-800 bg-slate-950/50 text-slate-400"
-                    : "border-teal-900/40 bg-teal-950/15 text-slate-200"
-                }`}
+                className={`rounded-lg px-3 py-2.5 text-sm ${
+ a.isRead
+ ? " bg-slate-950/50 text-slate-400"
+ : " bg-teal-950/15 text-slate-200"
+ }`}
               >
                 <div className="font-semibold text-slate-100 text-sm">{a.title}</div>
                 <p className="mt-1 text-slate-400 text-xs leading-relaxed">{a.message}</p>
-                <div className="mt-2 rounded border border-slate-800 bg-slate-950/60 p-2 text-[10px] leading-relaxed text-slate-400">
+                <div className="mt-2 rounded bg-slate-950/60 p-2 text-xs leading-relaxed text-slate-400">
                   <div className={evidence.predictive ? "text-emerald-300" : "text-slate-300"}>{evidence.kindLabel}</div>
                   <div>Available: {formatEvidenceTime(a.availableTimeMs)}</div>
                   <div>Provenance: <span className="font-mono">{a.provenance || "legacy/unavailable"}</span></div>
                   <div className={a.deliveryStatus === "failed-at-most-once" ? "text-rose-300" : ""}>{evidence.deliveryLabel}</div>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-xs text-slate-400">
                     {new Date(a.createdAt).toLocaleString()}
                   </span>
                   <div className="flex items-center gap-2">
                     {!a.isRead && (
                       <button
                         onClick={() => void handleMarkRead(a.id)}
-                        className="text-[11px] text-teal-400 hover:underline"
+                        className="text-xs text-teal-400 hover:underline"
                       >
                         Đã đọc
                       </button>
                     )}
                     <button
                       onClick={() => void handleDelete(a.id)}
-                      className="text-[11px] text-rose-400 hover:underline inline-flex items-center gap-0.5"
+                      className="text-xs text-rose-400 hover:underline inline-flex items-center gap-0.5"
                     >
                       <Trash2 className="w-3 h-3" />
                       Xóa

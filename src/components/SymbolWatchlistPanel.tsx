@@ -89,11 +89,11 @@ export function SymbolWatchlistPanel({
       }`}
     >
       {/* Header */}
-      <div className="p-3 border-b border-slate-800 flex items-center justify-between gap-2 bg-slate-900/90">
+      <div className="p-3 flex items-center justify-between gap-2 bg-slate-900/90">
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-teal-400" />
           <span className="font-bold text-sm text-slate-100">Thị trường Binance BTC</span>
-          <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+          <span className="text-xs bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
             BTC/USDT
           </span>
         </div>
@@ -108,7 +108,7 @@ export function SymbolWatchlistPanel({
       </div>
 
       {/* Search Input */}
-      <div className="p-3 border-b border-slate-800/80 bg-slate-950/40">
+      <div className="p-3 bg-slate-950/40">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -116,7 +116,7 @@ export function SymbolWatchlistPanel({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm BTC"
-            className="w-full bg-slate-900 border border-slate-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500 transition-colors"
+            className="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500 transition-colors"
             autoFocus={isModal}
           />
         </div>
@@ -126,40 +126,40 @@ export function SymbolWatchlistPanel({
           <button
             onClick={() => setCategory("all")}
             className={`px-2.5 py-1 rounded-md transition-colors ${
-              category === "all"
-                ? "bg-teal-500/20 text-teal-300 font-semibold border border-teal-500/30"
-                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-            }`}
+ category === "all"
+ ? "bg-teal-500/20 text-teal-300 font-semibold "
+ : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ }`}
           >
             Tất cả
           </button>
           <button
             onClick={() => setCategory("top")}
             className={`px-2.5 py-1 rounded-md transition-colors ${
-              category === "top"
-                ? "bg-teal-500/20 text-teal-300 font-semibold border border-teal-500/30"
-                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-            }`}
+ category === "top"
+ ? "bg-teal-500/20 text-teal-300 font-semibold "
+ : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ }`}
           >
             🔥 Top Vol
           </button>
           <button
             onClick={() => setCategory("gainers")}
             className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors ${
-              category === "gainers"
-                ? "bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30"
-                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-            }`}
+ category === "gainers"
+ ? "bg-emerald-500/20 text-emerald-300 font-semibold "
+ : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ }`}
           >
             <TrendingUp className="w-3 h-3 text-emerald-400" /> Tăng mạnh
           </button>
           <button
             onClick={() => setCategory("losers")}
             className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors ${
-              category === "losers"
-                ? "bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30"
-                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-            }`}
+ category === "losers"
+ ? "bg-rose-500/20 text-rose-300 font-semibold "
+ : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ }`}
           >
             <TrendingDown className="w-3 h-3 text-rose-400" /> Giảm mạnh
           </button>
@@ -167,7 +167,7 @@ export function SymbolWatchlistPanel({
       </div>
 
       {/* Table List Header */}
-      <div className="grid grid-cols-12 px-3 py-2 text-[11px] font-semibold text-slate-400 border-b border-slate-800/80 bg-slate-950/60">
+      <div className="grid grid-cols-12 px-3 py-2 text-xs font-semibold text-slate-400 bg-slate-950/60">
         <div className="col-span-5">Cặp giao dịch</div>
         <div className="col-span-4 text-right">Giá gần nhất</div>
         <div className="col-span-3 text-right">24h (%)</div>
@@ -195,7 +195,7 @@ export function SymbolWatchlistPanel({
                 }}
                 className={`grid grid-cols-12 px-3 py-2 text-xs items-center cursor-pointer transition-colors ${
                   isSelected
-                    ? "bg-teal-500/10 border-l-2 border-teal-400"
+                    ? "bg-teal-500/15"
                     : "hover:bg-slate-800/60"
                 }`}
               >
@@ -213,8 +213,8 @@ export function SymbolWatchlistPanel({
                   </button>
                   <div>
                     <span className="font-bold text-slate-100">{base}</span>
-                    <span className="text-[10px] text-slate-400 ml-1">/USDT</span>
-                    <div className="text-[10px] text-slate-400">
+                    <span className="text-xs text-slate-400 ml-1">/USDT</span>
+                    <div className="text-xs text-slate-400">
                       Vol: ${formatVol(t.quoteVolume)}
                     </div>
                   </div>
@@ -230,7 +230,7 @@ export function SymbolWatchlistPanel({
                 {/* 24h Change */}
                 <div className="col-span-3 text-right">
                   <span
-                    className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-bold ${
+                    className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${
                       isPos
                         ? "bg-emerald-500/15 text-emerald-400"
                         : "bg-rose-500/15 text-rose-400"

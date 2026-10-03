@@ -22,7 +22,7 @@ export function ArchetypeMatchView({
   onMatch,
 }: ArchetypeMatchViewProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
       <div className="flex items-end gap-4 mb-6">
         <div>
           <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
@@ -57,7 +57,7 @@ export function ArchetypeMatchView({
           {matchData.map((m, i) => (
             <div
               key={i}
-              className="bg-slate-950 border border-slate-800 rounded-xl p-4"
+              className="bg-slate-950 border border-slate-800 rounded-xl p-5"
             >
               <div className="text-sm font-medium mb-2 text-slate-300">
                 Window {m.windowSize}

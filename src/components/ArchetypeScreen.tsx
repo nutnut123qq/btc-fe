@@ -252,7 +252,7 @@ export function ArchetypeScreen() {
           <button
             type="button"
             onClick={retryActiveTab}
-            className="shrink-0 rounded-lg border border-rose-400/30 px-3 py-1.5 text-xs font-bold hover:bg-rose-500/10"
+            className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-rose-500/10"
           >
             Thử lại
           </button>

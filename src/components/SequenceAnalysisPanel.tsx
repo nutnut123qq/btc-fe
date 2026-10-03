@@ -12,13 +12,13 @@ import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/li
 
 function TrendBadge({ trend }: { trend: string }) {
   const map: Record<string, { cls: string; icon: React.ReactNode }> = {
-    Uptrend: { cls: "text-emerald-400 border-emerald-700 bg-emerald-950/30", icon: <TrendingUp className="w-3 h-3" /> },
-    Downtrend: { cls: "text-rose-400 border-rose-700 bg-rose-950/30", icon: <TrendingDown className="w-3 h-3" /> },
-    Sideways: { cls: "text-slate-400 border-slate-700 bg-slate-900", icon: <Minus className="w-3 h-3" /> },
+    Uptrend: { cls: "text-emerald-400 bg-emerald-950/40", icon: <TrendingUp className="w-3 h-3" /> },
+    Downtrend: { cls: "text-rose-400 bg-rose-950/40", icon: <TrendingDown className="w-3 h-3" /> },
+    Sideways: { cls: "text-slate-400 bg-slate-800/60", icon: <Minus className="w-3 h-3" /> },
   };
   const s = map[trend] ?? map.Sideways;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${s.cls}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${s.cls}`}>
       {s.icon} {trend}
     </span>
   );
@@ -63,7 +63,7 @@ export function SequenceAnalysisPanel({
   }, [symbol, timeframe, load]);
 
   return (
-    <div className="space-y-3 border border-slate-800 rounded-xl p-4 bg-slate-900/40">
+    <div className="space-y-4 border border-slate-800 rounded-xl p-5 bg-slate-900/40">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold text-slate-100 inline-flex items-center gap-1.5">
           <Activity className="w-4 h-4 text-teal-400" /> Phân tích chuỗi & cấu trúc
@@ -73,11 +73,11 @@ export function SequenceAnalysisPanel({
             <button
               key={tf}
               onClick={() => onTimeframeChange?.(tf)}
-              className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                timeframe === tf
-                  ? "bg-teal-600 border-teal-500 text-white"
-                  : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
-              }`}
+              className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+ timeframe === tf
+ ? "bg-teal-600 text-white"
+ : "bg-slate-900 text-slate-400"
+ }`}
             >
               {tf}
             </button>
@@ -86,14 +86,14 @@ export function SequenceAnalysisPanel({
         <button
           onClick={() => void load(timeframe)}
           disabled={loading}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-slate-700 text-slate-300 hover:border-slate-500 disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-slate-800/60 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
         >
           <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} /> Tải lại
         </button>
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-900 text-rose-200 text-xs">{error}</div>
+        <div className="p-3 rounded-lg bg-rose-950/30 text-rose-200 text-xs">{error}</div>
       )}
 
       {/* Market structure */}
@@ -110,11 +110,11 @@ export function SequenceAnalysisPanel({
                 {structure.events.slice(-5).map((ev, i) => (
                   <span
                     key={i}
-                    className={`px-2 py-0.5 rounded text-[11px] border ${
-                      ev.type === "CHoCH"
-                        ? "text-slate-300 border-slate-700 bg-slate-900"
-                        : "text-slate-300 border-slate-700 bg-slate-900"
-                    }`}
+                    className={`px-2 py-0.5 rounded text-xs ${
+ ev.type === "CHoCH"
+ ? "text-slate-300 bg-slate-900"
+ : "text-slate-300 bg-slate-900"
+ }`}
                     title={ev.message}
                   >
                     {ev.type} @ {ev.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
@@ -134,15 +134,15 @@ export function SequenceAnalysisPanel({
         )}
         <div className="space-y-2">
           {scenarios?.scenarios.map((s, i) => (
-            <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+            <div key={i} className="rounded-lg bg-slate-800/40 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-medium text-slate-200">{s.name}</span>
-                <span className="text-[11px] text-slate-400">{Math.round(s.strength * 100)}%</span>
+                <span className="text-xs text-slate-400">{Math.round(s.strength * 100)}%</span>
               </div>
               <div className="h-1 bg-slate-800 rounded mt-1 overflow-hidden">
                 <div className="h-full bg-teal-500" style={{ width: `${Math.round(s.strength * 100)}%` }} />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">{s.suggestion}</p>
+              <p className="text-xs text-slate-400 mt-1">{s.suggestion}</p>
             </div>
           ))}
         </div>

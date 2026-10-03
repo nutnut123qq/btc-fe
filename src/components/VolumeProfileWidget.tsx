@@ -34,7 +34,7 @@ export function VolumeProfileWidget({
   }, [symbol, timeframe]);
 
   if (loading) return <div className="p-4 rounded-lg bg-slate-800 animate-pulse text-slate-400">Loading Volume Profile...</div>;
-  if (error) return <div className="p-4 rounded-lg bg-rose-900/50 text-rose-400 border border-rose-500/50">{error}</div>;
+  if (error) return <div className="p-4 rounded-lg bg-rose-900/50 text-rose-400 ">{error}</div>;
   if (!data) return null;
 
   const estimatorKind = data.estimatorKind ?? "OHLCV_UNIFORM_RANGE";
@@ -47,7 +47,7 @@ export function VolumeProfileWidget({
   );
 
   return (
-    <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4">
+    <div className="p-5 bg-slate-900 rounded-xl border border-slate-800 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-200 flex items-center gap-2">
           <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,13 +58,13 @@ export function VolumeProfileWidget({
         <div className="text-xs text-slate-400">Descriptive · Lookback: 200 bars</div>
       </div>
 
-      <div className="rounded-lg border border-amber-800/40 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200/90">
+      <div className="rounded-lg bg-amber-950/20 p-3 text-xs leading-relaxed text-amber-200/90">
         {isApproximation ? "Ước lượng từ OHLCV: phân bổ volume nến theo các mức giá; không phải khối lượng giao dịch thực tế tại từng giá." : "Phân bổ volume theo dữ liệu giao dịch tại giá."}
         <span className="ml-1 text-slate-400">Estimator: {estimatorKind}.</span>
         {data.limitation && <span className="ml-1">{data.limitation}</span>}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
+      <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
         <span>Allocated volume: {allocatedVolume.toLocaleString("en-US", { maximumFractionDigits: 2 })}</span>
         <span>Conservation error: {conservationErrorPct == null ? "API chưa cung cấp input volume" : `${conservationErrorPct.toFixed(6)}%`}</span>
       </div>
@@ -84,7 +84,7 @@ export function VolumeProfileWidget({
         </div>
       </div>
 
-      <div className="relative h-48 border-l border-slate-800 pl-2">
+      <div className="relative h-48 pl-2">
         {data.bins.map((bin, i) => (
           <div
             key={i}
@@ -105,7 +105,7 @@ export function VolumeProfileWidget({
               style={{ width: `${bin.volumePct}%`, minWidth: '2px' }}
             />
             {bin.isPoc && (
-              <span className="absolute left-0 text-[10px] text-teal-300 ml-1 bg-slate-900/80 px-1 rounded z-10 font-mono">
+              <span className="absolute left-0 text-[10px] text-teal-300 ml-1 bg-slate-800/40 px-1 rounded z-10 font-mono">
                 POC
               </span>
             )}

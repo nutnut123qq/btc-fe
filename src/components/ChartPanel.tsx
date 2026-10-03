@@ -271,17 +271,17 @@ export function ChartPanel({
   })();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 items-center">
         {ACTIVE_TIMEFRAMES.map((tf) => (
           <button
             key={tf}
             onClick={() => onTimeframeChange?.(tf)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               timeframe === tf
-                ? "bg-teal-600 border-teal-500 text-white"
-                : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
+                ? "bg-teal-500 text-slate-950"
+                : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             {tf}
@@ -307,43 +307,43 @@ export function ChartPanel({
         </button>
 
         {/* Overlay Layer Toggles */}
-        <div className="flex items-center gap-1.5 ml-auto border-l border-slate-800 pl-3">
+        <div className="flex items-center gap-1.5 ml-auto pl-3">
           <button
             onClick={() => setShowHeikinAshi((v) => !v)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showHeikinAshi ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              showHeikinAshi ? "bg-teal-500/15 text-teal-300" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             Nến Heikin-Ashi
           </button>
           <button
             onClick={() => setShowFibonacci((v) => !v)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showFibonacci ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              showFibonacci ? "bg-teal-500/15 text-teal-300" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             Fibonacci (GP)
           </button>
           <button
             onClick={() => setShowPatterns((v) => !v)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              showPatterns ? "bg-teal-500/15 text-teal-300" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             Mẫu nến
           </button>
           <button
             onClick={() => setShowSmc((v) => !v)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showSmc ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              showSmc ? "bg-teal-500/15 text-teal-300" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             SMC / FVG
           </button>
           <button
             onClick={() => setShowVpvr((v) => !v)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showVpvr ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              showVpvr ? "bg-teal-500/15 text-teal-300" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
             }`}
           >
             VPVR
@@ -358,10 +358,10 @@ export function ChartPanel({
             <button
               key={ft.value}
               onClick={() => setSelectedFeature(ft.value)}
-              className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+              className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
                 selectedFeature === ft.value
-                  ? "bg-slate-700 border-slate-600 text-slate-200"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-teal-500/15 text-teal-300"
+                  : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
               }`}
             >
               {ft.label}
@@ -377,10 +377,10 @@ export function ChartPanel({
             <button
               key={ws}
               onClick={() => setSelectedWindowSize(ws)}
-              className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+              className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
                 selectedWindowSize === ws
-                  ? "bg-slate-700 border-slate-600 text-slate-200"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-teal-500/15 text-teal-300"
+                  : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"
               }`}
             >
               {ws}
@@ -390,7 +390,7 @@ export function ChartPanel({
       </div>
 
       {/* Status bar */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 bg-slate-800/40 rounded-lg px-3 py-2">
         <span>TF: {timeframe}</span>
         <span>Candles: {candles.length}</span>
         {candles.length > 0 && (
@@ -459,19 +459,19 @@ export function ChartPanel({
             </div>
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-12 bg-slate-900 rounded border border-slate-800 animate-pulse" />
+                <div key={i} className="h-12 bg-slate-800/40 rounded animate-pulse" />
               ))}
             </div>
           </div>
         )}
 
         {searchError && (
-          <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-900 text-rose-200 text-sm">
+          <div className="p-3 rounded-lg bg-rose-950/30 text-rose-200 text-sm">
             <div className="font-semibold">Không tìm được mẫu</div>
             <p className="text-xs mt-1">{searchError}</p>
             <button
               onClick={() => void runPatternSearch()}
-              className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded border border-rose-800 text-xs hover:bg-rose-900/40"
+              className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded bg-rose-950/50 text-xs text-rose-200 hover:bg-rose-900/40"
             >
               <RefreshCw className="w-3 h-3" /> Thử lại
             </button>
@@ -493,10 +493,10 @@ export function ChartPanel({
                 <button
                   key={r.windowId}
                   onClick={() => void focusWindow(r)}
-                  className={`text-left rounded-lg border px-3 py-2 text-xs transition-colors ${
+                  className={`text-left rounded-lg px-3 py-2 text-xs transition-colors ${
                     highlightWindow?.startTimeMs === r.startTimeMs
-                      ? "border-teal-500 bg-teal-950/20"
-                      : "border-slate-800 bg-slate-900 hover:border-slate-600"
+                      ? "bg-teal-500/15"
+                      : "bg-slate-800/40 hover:bg-slate-800"
                   }`}
                 >
                   <div className="font-medium text-slate-200">
@@ -525,13 +525,13 @@ export function ChartPanel({
       </div>
 
       {/* Pattern type search */}
-      <div className="space-y-2 border-t border-slate-800 pt-3">
+      <div className="space-y-2 pt-3">
         <p className="text-xs text-slate-400">Tìm window theo loại nến</p>
         <div className="flex flex-wrap gap-2 items-center">
           <select
             value={selectedPatternType}
             onChange={(e) => setSelectedPatternType(e.target.value)}
-            className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
+            className="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
           >
             {PATTERN_TYPES.map((pt) => (
               <option key={pt.value} value={pt.value}>
@@ -554,19 +554,19 @@ export function ChartPanel({
             <p className="text-sm text-teal-400">Đang tìm các vùng {selectedPatternType}…</p>
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-12 bg-slate-900 rounded border border-slate-800 animate-pulse" />
+                <div key={i} className="h-12 bg-slate-800/40 rounded animate-pulse" />
               ))}
             </div>
           </div>
         )}
 
         {patternSearchError && (
-          <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-900 text-rose-200 text-sm">
+          <div className="p-3 rounded-lg bg-rose-950/30 text-rose-200 text-sm">
             <div className="font-semibold">Không tìm được mẫu</div>
             <p className="text-xs mt-1">{patternSearchError}</p>
             <button
               onClick={() => void runPatternTypeSearch()}
-              className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded border border-rose-800 text-xs hover:bg-rose-900/40"
+              className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded bg-rose-950/50 text-xs text-rose-200 hover:bg-rose-900/40"
             >
               <RefreshCw className="w-3 h-3" /> Thử lại
             </button>
@@ -591,10 +591,10 @@ export function ChartPanel({
                   <button
                     key={r.id}
                     onClick={() => void focusPatternWindow(r)}
-                    className={`text-left rounded-lg border px-3 py-2 text-xs transition-colors ${
+                    className={`text-left rounded-lg px-3 py-2 text-xs transition-colors ${
                       highlightWindow?.startTimeMs === window.startTimeMs
-                        ? "border-teal-500 bg-teal-950/20"
-                        : "border-slate-800 bg-slate-900 hover:border-slate-600"
+                        ? "bg-teal-500/15"
+                        : "bg-slate-800/40 hover:bg-slate-800"
                     }`}
                   >
                     <div className="font-medium text-slate-200">

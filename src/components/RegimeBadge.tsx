@@ -44,7 +44,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
 
   if (!currentRegime && !isLoading) {
     return (
-      <div className="flex flex-col gap-3 p-4 bg-slate-900 rounded-xl border border-slate-800">
+      <div className="flex flex-col gap-3 p-5 bg-slate-900 rounded-xl border border-slate-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Layers className="w-5 h-5 text-slate-400" />
@@ -99,7 +99,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-slate-900 rounded-xl border border-slate-800">
+    <div className="flex flex-col gap-3 p-5 bg-slate-900 rounded-xl border border-slate-800">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Layers className="w-5 h-5 text-slate-400" />
@@ -142,7 +142,7 @@ export function RegimeBadge({ symbol = "BTCUSDT", timeframe = DEFAULT_TIMEFRAME 
             <div style={{ width: `${(summary.distribution.breakoutPct * 100).toFixed(2)}%` }} className="bg-slate-500" title="Breakout" />
             <div style={{ width: `${(summary.distribution.compressionPct * 100).toFixed(2)}%` }} className="bg-slate-600" title="Compression" />
           </div>
-          <div className="flex justify-between text-[10px] text-slate-400 pt-1">
+          <div className="flex justify-between text-xs text-slate-400 pt-1">
             <span className="text-emerald-500/80">Up {(summary.distribution.trendingUpPct * 100).toFixed(0)}%</span>
             <span className="text-rose-500/80">Down {(summary.distribution.trendingDownPct * 100).toFixed(0)}%</span>
             <span className="text-slate-400">Range {(summary.distribution.rangeBoundPct * 100).toFixed(0)}%</span>

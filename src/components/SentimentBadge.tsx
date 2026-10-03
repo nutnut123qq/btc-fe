@@ -66,7 +66,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     if (band === "extreme-fear") {
       return {
         label: "Cực kỳ sợ hãi",
-        color: "text-rose-400 bg-rose-500/15 border-rose-500/30",
+        color: "text-rose-400 bg-rose-500/15",
         barColor: "bg-rose-500",
         icon: TrendingDown,
       };
@@ -74,7 +74,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     if (band === "fear") {
       return {
         label: "Sợ hãi",
-        color: "text-amber-400 bg-amber-500/15 border-amber-500/30",
+        color: "text-amber-400 bg-amber-500/15",
         barColor: "bg-amber-500",
         icon: TrendingDown,
       };
@@ -82,7 +82,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     if (band === "neutral") {
       return {
         label: "Trung lập",
-        color: "text-slate-300 bg-slate-500/15 border-slate-500/30",
+        color: "text-slate-300 bg-slate-500/15",
         barColor: "bg-slate-500",
         icon: Gauge,
       };
@@ -90,14 +90,14 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     if (band === "greed") {
       return {
         label: "Hưng phấn",
-        color: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
+        color: "text-emerald-400 bg-emerald-500/15",
         barColor: "bg-emerald-500",
         icon: TrendingUp,
       };
     }
     return {
       label: "Cực kỳ hưng phấn",
-      color: "text-teal-300 bg-teal-500/20 border-teal-500/40",
+      color: "text-teal-300 bg-teal-500/20",
       barColor: "bg-teal-400",
       icon: Flame,
     };
@@ -105,8 +105,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
   if (!sentiment) {
     return compact
-      ? <div className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-400">Tâm lý: chưa có dữ liệu</div>
-      : <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">Chưa có snapshot tâm lý.</div>;
+      ? <div className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs text-slate-400">Tâm lý: chưa có dữ liệu</div>
+      : <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-xs text-slate-400">Chưa có snapshot tâm lý.</div>;
   }
 
   const score = sentiment.aggregatedSentiment;
@@ -116,13 +116,13 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs shadow-sm">
+      <div className="flex items-center gap-1.5 bg-slate-900 rounded-lg px-2.5 py-1 text-xs shadow-sm">
         <Gauge className="w-3.5 h-3.5 text-teal-400" />
-        <span className="text-slate-400 text-[11px]">Tâm lý:</span>
-        <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] border ${cfg.color}`}>
+        <span className="text-slate-400 text-xs">Tâm lý:</span>
+        <span className={`px-1.5 py-0.5 rounded font-bold text-xs ${cfg.color}`}>
           {score.toFixed(0)} - {cfg.label}
         </span>
-        {stale && <span className="text-[10px] text-amber-400" title={`Snapshot ${formatDataAge(sentiment.createdAtUtc)}`}>Dữ liệu cũ</span>}
+        {stale && <span className="text-xs text-amber-400" title={`Snapshot ${formatDataAge(sentiment.createdAtUtc)}`}>Dữ liệu cũ</span>}
         <button
           onClick={() => void handleRefresh()}
           disabled={refreshing || !adminUnlocked}
@@ -136,7 +136,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-2.5 text-xs">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5.5 shadow-lg space-y-2.5 text-xs">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
             <h3 className="font-bold text-slate-100 flex items-center gap-1.5">
               Chỉ Số Tâm Lý Vĩ Mô (Macro Sentiment)
             </h3>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-xs text-slate-400">
               Tổng hợp Fear & Greed, Funding Rate, L/S Ratio & Tin tức NLP
             </p>
           </div>
@@ -156,7 +156,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors"
+            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
           >
             {showDetails ? "Thu gọn" : "Chi tiết"}
             {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -175,21 +175,21 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
       {/* Main Meter Gauge */}
       {stale && sentiment && (
-        <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-2 text-[11px] text-amber-300">
+        <div className="rounded-lg bg-amber-950/30 p-2 text-xs text-amber-300">
           Snapshot tâm lý đã cũ ({formatDataAge(sentiment.createdAtUtc)}); không dùng như tín hiệu hiện tại.
         </div>
       )}
-      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800/80 space-y-2">
+      <div className="bg-slate-950 p-3 rounded-lg space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon className="w-5 h-5 text-teal-400" />
             <div>
               <span className="text-xl font-extrabold text-white font-mono">{score.toFixed(1)}</span>
-              <span className="text-slate-400 text-[10px] ml-1">/ 100</span>
+              <span className="text-slate-400 text-xs ml-1">/ 100</span>
             </div>
           </div>
 
-          <span className={`px-2.5 py-1 rounded-md font-bold text-xs border ${cfg.color}`}>
+          <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${cfg.color}`}>
             {cfg.label}
           </span>
         </div>
@@ -216,8 +216,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
       {showDetails && sentiment && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 animate-in fade-in duration-200">
           {/* 1. Fear & Greed */}
-          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
-            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+          <div className="bg-slate-950 p-2 rounded-lg ">
+            <div className="text-xs text-slate-400 uppercase flex items-center gap-1">
               <Coins className="w-3 h-3 text-slate-400" /> Fear & Greed (30%)
             </div>
             <div className="font-bold text-slate-200 text-sm mt-0.5">
@@ -226,8 +226,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           </div>
 
           {/* 2. News NLP */}
-          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
-            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+          <div className="bg-slate-950 p-2 rounded-lg ">
+            <div className="text-xs text-slate-400 uppercase flex items-center gap-1">
               <Newspaper className="w-3 h-3 text-slate-400" /> News NLP (40%)
             </div>
             <div className="font-bold text-slate-200 text-sm mt-0.5">
@@ -236,8 +236,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           </div>
 
           {/* 3. Funding Z-Score */}
-          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
-            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+          <div className="bg-slate-950 p-2 rounded-lg ">
+            <div className="text-xs text-slate-400 uppercase flex items-center gap-1">
               <Percent className="w-3 h-3 text-slate-400" /> Funding Z-Score
             </div>
             <div className="font-bold text-slate-200 text-sm mt-0.5">
@@ -246,8 +246,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           </div>
 
           {/* 4. Long/Short Ratio */}
-          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
-            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+          <div className="bg-slate-950 p-2 rounded-lg ">
+            <div className="text-xs text-slate-400 uppercase flex items-center gap-1">
               <TrendingUp className="w-3 h-3 text-emerald-400" /> L/S Ratio
             </div>
             <div className="font-bold text-slate-200 text-sm mt-0.5">

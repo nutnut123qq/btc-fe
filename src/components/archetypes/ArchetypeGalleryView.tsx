@@ -32,11 +32,11 @@ export function ArchetypeGalleryView({
   onSelectArchetype,
 }: ArchetypeGalleryViewProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
       <div className="flex flex-wrap gap-4 mb-6">
         <div>
           <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
-          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg ">
             {ACTIVE_TIMEFRAMES.map((tf) => (
               <button
                 key={tf}
@@ -52,7 +52,7 @@ export function ArchetypeGalleryView({
         </div>
         <div>
           <label className="text-xs text-slate-400 block mb-1">Window Size</label>
-          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg ">
             {windowSizes.map((ws) => (
               <button
                 key={ws}

@@ -126,7 +126,7 @@ export function GlossaryTerm({ term, children, className }: GlossaryTermProps) {
             // to Tailwind's `block` at equal specificity). aria-describedby still
             // exposes the definition to screen readers while closed.
             className={open
-              ? `fixed z-[100] inline-block w-max max-w-[16rem] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-left text-[11px] font-normal leading-4 normal-case tracking-normal text-slate-200 shadow-xl shadow-black/50 ${
+              ? `fixed z-[100] inline-block w-max max-w-[16rem] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-left text-xs font-normal leading-4 normal-case tracking-normal text-slate-200 shadow-xl shadow-black/50 ${
                 pos?.place === "top"
                   ? "-translate-x-1/2 translate-y-[calc(-100%_-_0.5rem)]"
                   : "-translate-x-1/2 translate-y-2"

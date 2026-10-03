@@ -83,17 +83,17 @@ export function LiquidationHeatmapWidget({
   const biasLabel = longPct > 55 ? "LONG FLUSH BIAS" : shortPct > 55 ? "SHORT SQUEEZE BIAS" : "BALANCED";
   const biasColor =
     longPct > 55
-      ? "text-rose-400 bg-rose-950/40 border-rose-800/40"
+      ? "text-rose-400 bg-rose-950/40"
       : shortPct > 55
-      ? "text-emerald-400 bg-emerald-900/40 border-emerald-700/40"
-      : "text-slate-300 bg-slate-800/40 border-slate-700/40";
+      ? "text-emerald-400 bg-emerald-900/40"
+      : "text-slate-300 bg-slate-800/40";
 
   return (
     <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -101,7 +101,7 @@ export function LiquidationHeatmapWidget({
           <div>
             <h3 className="font-bold text-slate-100 flex items-center gap-2 text-base">
               Ước lượng vùng thanh lý
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 ">
                 Descriptive estimate
               </span>
             </h3>
@@ -137,40 +137,40 @@ export function LiquidationHeatmapWidget({
       )}
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-950/30 text-rose-400 border border-rose-800/40 text-xs">
+        <div className="p-5 rounded-xl bg-rose-950/30 text-rose-400 border border-rose-800/40 text-xs">
           {error}
         </div>
       )}
 
       {!loading && !error && data && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-amber-800/50 bg-amber-950/20 p-3 text-[11px] leading-relaxed text-amber-200/90">
+          <div className="rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-2.5 text-xs leading-relaxed text-amber-200/90">
             Estimator: {data.estimatorKind ?? "leverage-tier exposure model"} · assumptions {data.assumptionsVersion ?? "legacy/unversioned"} · leverage {(data.leverageTiers ?? [25, 50, 100]).join("x, ")}x.
             <span className="ml-1">Các con số là estimated exposure, không phải observed liquidation totals.</span>
             {data.limitation && <span className="ml-1">{data.limitation}</span>}
           </div>
           {stale && (
-            <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-3 text-xs text-amber-300">
+            <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-5 text-xs text-amber-300">
               Dữ liệu liquidation đã cũ ({formatDataAge(data.timestampUtc)}). Các mức giá dưới đây chỉ là snapshot lịch sử, không phải thị trường hiện tại.
             </div>
           )}
           {/* Summary Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/60">
-              <div className="text-[11px] text-slate-400 font-medium mb-1">
+            <div className="p-5 bg-slate-950/60 rounded-xl border border-slate-800/60">
+              <div className="text-xs text-slate-400 font-medium mb-1">
                 Reference Price
               </div>
               <div className="text-lg font-bold font-mono text-slate-100">
                 ${data.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+              <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${stale ? "bg-amber-400" : "bg-emerald-400"}`} />
                 Snapshot: {formatDataAge(data.timestampUtc)} · {data.timeframe}
               </div>
             </div>
 
-            <div className="p-3 bg-rose-950/20 rounded-xl border border-rose-800/30">
-              <div className="text-[11px] text-rose-400 font-medium mb-1 flex items-center justify-between">
+            <div className="p-5 bg-rose-950/20 rounded-xl border border-rose-800/30">
+              <div className="text-xs text-rose-400 font-medium mb-1 flex items-center justify-between">
                 <span>Estimated long exposure (Below)</span>
                 <span className="font-mono">{longPct.toFixed(1)}%</span>
               </div>
@@ -182,8 +182,8 @@ export function LiquidationHeatmapWidget({
               </div>
             </div>
 
-            <div className="p-3 bg-emerald-900/20 rounded-xl border border-emerald-700/30">
-              <div className="text-[11px] text-emerald-400 font-medium mb-1 flex items-center justify-between">
+            <div className="p-5 bg-emerald-900/20 rounded-xl border border-emerald-700/30">
+              <div className="text-xs text-emerald-400 font-medium mb-1 flex items-center justify-between">
                 <span>Estimated short exposure (Above)</span>
                 <span className="font-mono">{shortPct.toFixed(1)}%</span>
               </div>
@@ -200,7 +200,7 @@ export function LiquidationHeatmapWidget({
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-slate-400 font-medium">Estimated exposure imbalance:</span>
-              <span className={`px-2.5 py-0.5 rounded-md font-bold border ${biasColor}`}>
+              <span className={`px-2.5 py-0.5 rounded-md font-bold ${biasColor}`}>
                 {biasLabel}
               </span>
             </div>
@@ -230,8 +230,8 @@ export function LiquidationHeatmapWidget({
 
           {/* Tab 1: Heatmap Depth Bars */}
           {activeTab === "heatmap" && (
-            <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800/80 space-y-1.5 max-h-96 overflow-y-auto pr-1">
-              <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold px-2 pb-1 border-b border-slate-800/60">
+            <div className="bg-slate-950/90 rounded-xl p-5 border border-slate-800/80 space-y-1.5 max-h-96 overflow-y-auto pr-1">
+              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold px-2 pb-1">
                 <span>Price Level</span>
                 <span className="hidden sm:inline">Distance %</span>
                 <span>Est. Liquidation Volume ($)</span>
@@ -246,7 +246,7 @@ export function LiquidationHeatmapWidget({
                   <div key={idx} className="relative group">
                     {/* Current Price Marker line */}
                     {isClose && (
-                      <div className="my-1.5 flex items-center gap-2 px-2 py-0.5 bg-teal-500/10 border border-teal-500/30 rounded text-[11px] font-mono text-teal-400">
+                      <div className="my-1.5 flex items-center gap-2 px-2 py-0.5 bg-teal-500/10 rounded text-xs font-mono text-teal-400">
                         <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
                         <span>SNAPSHOT REFERENCE: ${data.currentPrice.toFixed(2)}</span>
                       </div>
@@ -259,7 +259,7 @@ export function LiquidationHeatmapWidget({
                         </span>
                       </div>
 
-                      <div className="hidden sm:block text-[11px] text-slate-400 w-16 text-center">
+                      <div className="hidden sm:block text-xs text-slate-400 w-16 text-center">
                         {bin.distance_pct > 0 ? `+${bin.distance_pct.toFixed(2)}%` : `${bin.distance_pct.toFixed(2)}%`}
                       </div>
 
@@ -274,7 +274,7 @@ export function LiquidationHeatmapWidget({
                         />
                       </div>
 
-                      <div className="w-24 text-right font-medium text-slate-300 text-[11px]">
+                      <div className="w-24 text-right font-medium text-slate-300 text-xs">
                         ${bin.cumulative_vol_usdt >= 1_000_000
                           ? `${(bin.cumulative_vol_usdt / 1_000_000).toFixed(2)}M`
                           : `${(bin.cumulative_vol_usdt / 1_000).toFixed(1)}k`}
@@ -290,7 +290,7 @@ export function LiquidationHeatmapWidget({
           {activeTab === "targets" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Short Squeeze Targets */}
-              <div className="p-3 bg-emerald-900/10 border border-emerald-700/30 rounded-xl space-y-2">
+              <div className="p-5 bg-emerald-900/10 border border-emerald-700/30 rounded-xl space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 pb-1 border-b border-emerald-700/30">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -304,11 +304,11 @@ export function LiquidationHeatmapWidget({
                     <div key={i} className="flex items-center justify-between p-2 bg-slate-950/60 rounded-lg text-xs font-mono">
                       <div>
                         <span className="text-emerald-300 font-bold">${t.price.toFixed(2)}</span>
-                        <span className="text-[10px] text-emerald-500 ml-1.5">+{t.distance_pct.toFixed(2)}%</span>
+                        <span className="text-xs text-emerald-500 ml-1.5">+{t.distance_pct.toFixed(2)}%</span>
                       </div>
                       <div className="text-right">
                         <div className="text-slate-200 font-medium">${(t.cumulative_vol_usdt / 1_000_000).toFixed(2)}M</div>
-                        <div className="text-[10px] text-slate-400">Density: {t.density_pct.toFixed(1)}%</div>
+                        <div className="text-xs text-slate-400">Density: {t.density_pct.toFixed(1)}%</div>
                       </div>
                     </div>
                   ))
@@ -316,7 +316,7 @@ export function LiquidationHeatmapWidget({
               </div>
 
               {/* Long Flush Targets */}
-              <div className="p-3 bg-rose-950/10 border border-rose-800/30 rounded-xl space-y-2">
+              <div className="p-5 bg-rose-950/10 border border-rose-800/30 rounded-xl space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-rose-400 pb-1 border-b border-rose-800/30">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -330,11 +330,11 @@ export function LiquidationHeatmapWidget({
                     <div key={i} className="flex items-center justify-between p-2 bg-slate-950/60 rounded-lg text-xs font-mono">
                       <div>
                         <span className="text-rose-300 font-bold">${t.price.toFixed(2)}</span>
-                        <span className="text-[10px] text-rose-500 ml-1.5">{t.distance_pct.toFixed(2)}%</span>
+                        <span className="text-xs text-rose-500 ml-1.5">{t.distance_pct.toFixed(2)}%</span>
                       </div>
                       <div className="text-right">
                         <div className="text-slate-200 font-medium">${(t.cumulative_vol_usdt / 1_000_000).toFixed(2)}M</div>
-                        <div className="text-[10px] text-slate-400">Density: {t.density_pct.toFixed(1)}%</div>
+                        <div className="text-xs text-slate-400">Density: {t.density_pct.toFixed(1)}%</div>
                       </div>
                     </div>
                   ))

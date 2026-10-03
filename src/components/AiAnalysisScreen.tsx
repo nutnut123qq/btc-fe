@@ -53,7 +53,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           Phân tích AI Đa Tác Tử (LangGraph Multi-Agent)
         </h2>
 
-        <span className="self-start rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
+        <span className="self-start rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
           BTC/USDT · tài sản nghiên cứu hiện tại
         </span>
       </div>
@@ -67,12 +67,12 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       </p>
 
       {llmState === "unknown" && (
-        <div className="rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-slate-300">
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-5 text-sm text-slate-300">
           Đang kiểm tra khả năng giải thích LLM…
         </div>
       )}
       {llmState === "off" && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-200">
           LLM OFF — phân tích đa tác tử chưa khả dụng; dữ liệu và mô hình định lượng vẫn hoạt động bình thường.
         </div>
       )}
@@ -96,14 +96,14 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       </button>
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-900 text-rose-200 text-sm">
+        <div className="p-5 rounded-xl bg-rose-950/40 border border-rose-900 text-rose-200 text-sm">
           {error}
         </div>
       )}
 
       {data && (
-        <div className="space-y-3">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="space-y-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
             <div className="text-xs font-semibold text-slate-400 mb-2">Dự báo</div>
             <div className="flex items-center gap-3">
               {String(data.forecast).includes("UP") ? (
@@ -125,7 +125,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           </Accordion>
 
           <Accordion title="Debate">
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 text-sm">
               <DebateBlock title="News Agent" body={data.debate_summary?.news_agent} accent="border-emerald-500" textAccent="text-emerald-400" />
               <DebateBlock title="Tech Agent" body={data.debate_summary?.tech_agent} accent="border-teal-500" textAccent="text-teal-400" />
               <DebateBlock title="Quyết định cuối" body={data.debate_summary?.final_decision} accent="border-slate-500" textAccent="text-slate-400" />
@@ -134,13 +134,13 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
 
           <Accordion title="Bằng chứng tin">
             {Array.isArray(data.news_evidence) && data.news_evidence.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {data.news_evidence.slice(0, 5).map((e, idx) => (
-                  <div key={idx} className="border-b border-slate-800 pb-3 last:border-0 last:pb-0">
+                  <div key={idx} className=" pb-3 last:border-0 last:pb-0">
                     <div className="text-xs text-white font-semibold">{e.title ?? "(no title)"}</div>
-                    <div className="text-[11px] text-teal-300">{e.sentiment ?? ""}</div>
+                    <div className="text-xs text-teal-300">{e.sentiment ?? ""}</div>
                     {e.link && (
-                      <a href={e.link} target="_blank" rel="noopener noreferrer" className="text-[11px] text-teal-400 hover:underline break-all mt-1 block">
+                      <a href={e.link} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-400 hover:underline break-all mt-1 block">
                         {e.link}
                       </a>
                     )}
@@ -171,12 +171,12 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
 
           <Accordion title="Rủi ro">
             {Array.isArray(data.risk_conditions) && data.risk_conditions.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {data.risk_conditions.slice(0, 5).map((r, idx) => (
-                  <div key={idx} className="bg-slate-950 p-3 rounded border border-slate-800">
+                  <div key={idx} className="bg-slate-950 p-3 rounded ">
                     <div className="flex items-start justify-between gap-3">
                       <div className="text-xs text-white font-semibold break-words">{r.trigger ?? "(no trigger)"}</div>
-                      <div className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 whitespace-nowrap">
+                      <div className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 whitespace-nowrap">
                         {r.severity ?? "N/A"}
                       </div>
                     </div>

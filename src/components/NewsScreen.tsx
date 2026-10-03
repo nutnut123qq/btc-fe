@@ -38,12 +38,12 @@ function getRelativeTime(dateStr: string | null): string {
 
 function getSourceColorClass(source: string): string {
   const s = source.toLowerCase();
-  if (s.includes("coindesk")) return "bg-slate-800 text-slate-300 border border-slate-700";
-  if (s.includes("cointelegraph")) return "bg-slate-800 text-slate-300 border border-slate-700";
-  if (s.includes("decrypt")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-  if (s.includes("theblock") || s.includes("the block")) return "bg-slate-500/20 text-slate-400 border border-slate-500/30";
-  if (s.includes("bitcoinmagazine") || s.includes("bitcoin magazine")) return "bg-slate-800 text-slate-300 border border-slate-700";
-  return "bg-slate-500/20 text-slate-400 border border-slate-500/30";
+  if (s.includes("coindesk")) return "bg-slate-800 text-slate-300";
+  if (s.includes("cointelegraph")) return "bg-slate-800 text-slate-300";
+  if (s.includes("decrypt")) return "bg-emerald-500/20 text-emerald-400";
+  if (s.includes("theblock") || s.includes("the block")) return "bg-slate-500/20 text-slate-400";
+  if (s.includes("bitcoinmagazine") || s.includes("bitcoin magazine")) return "bg-slate-800 text-slate-300";
+  return "bg-slate-500/20 text-slate-400";
 }
 
 export function NewsScreen() {
@@ -110,10 +110,10 @@ export function NewsScreen() {
           <button
             onClick={() => setSelectedSource(null)}
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              selectedSource === null 
-                ? "bg-teal-600 text-white" 
-                : "bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800"
-            }`}
+ selectedSource === null 
+ ? "bg-teal-600 text-white" 
+ : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ }`}
           >
             Tất cả
           </button>
@@ -122,10 +122,10 @@ export function NewsScreen() {
               key={s}
               onClick={() => setSelectedSource(s)}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                selectedSource === s 
-                  ? "bg-teal-600 text-white" 
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800"
-              }`}
+ selectedSource === s 
+ ? "bg-teal-600 text-white" 
+ : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ }`}
             >
               {s}
             </button>
@@ -140,7 +140,7 @@ export function NewsScreen() {
       )}
       
       {error && (
-        <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-900 text-rose-200 text-sm text-center">
+        <div className="p-5 rounded-xl bg-rose-950/30 border border-rose-900 text-rose-200 text-sm text-center">
           {error}
           <div className="mt-3">
             <button onClick={() => void load()} className="px-3 py-1.5 rounded bg-rose-900/50 hover:bg-rose-900 text-sm transition-colors">
@@ -151,7 +151,7 @@ export function NewsScreen() {
       )}
 
       {!loading && !error && newestPublishedAt && isDataStale(newestPublishedAt, 6 * 60 * 60_000) && (
-        <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-3 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-800/50 bg-amber-950/30 p-5 text-sm text-amber-300">
           Nguồn tin đã ngừng cập nhật ({formatDataAge(newestPublishedAt)}). Không dùng danh sách này như tin tức hiện tại.
         </div>
       )}
@@ -168,7 +168,7 @@ export function NewsScreen() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filteredItems.map((n) => {
           const summary = n.summary ? stripHtml(n.summary) : null;
           return (
@@ -177,13 +177,13 @@ export function NewsScreen() {
               href={n.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-xl border border-slate-800/60 bg-slate-900/40 hover:border-teal-500/30 hover:bg-slate-900/80 transition-all duration-200 p-4 group"
+              className="block rounded-xl border border-slate-800/60 bg-slate-900/40 hover:border-teal-500/30 hover:bg-slate-900/80 transition-all duration-200 p-5 group"
             >
               <div className="flex justify-between items-start mb-2 gap-3">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${getSourceColorClass(n.source)}`}>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wider ${getSourceColorClass(n.source)}`}>
                   {n.source}
                 </span>
-                <span className="text-[11px] text-slate-400 whitespace-nowrap shrink-0 group-hover:text-slate-400 transition-colors">
+                <span className="text-xs text-slate-400 whitespace-nowrap shrink-0 group-hover:text-slate-400 transition-colors">
                   {getRelativeTime(n.publishedAt)}
                 </span>
               </div>

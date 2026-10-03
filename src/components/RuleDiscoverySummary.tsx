@@ -29,19 +29,19 @@ function StatCell({
   Icon: typeof Percent;
 }) {
   const tones = {
-    emerald: "border-emerald-900/40 bg-emerald-950/25 text-emerald-400",
-    amber: "border-slate-800 bg-slate-950/60 text-slate-300",
-    gray: "border-slate-800 bg-slate-950/60 text-slate-300",
-    sky: "border-slate-800 bg-slate-950/60 text-slate-300",
+    emerald: "bg-emerald-950/25 text-emerald-400",
+    amber: "bg-slate-950/60 text-slate-300",
+    gray: "bg-slate-950/60 text-slate-300",
+    sky: "bg-slate-950/60 text-slate-300",
   };
   return (
-    <div className={`rounded-lg border px-2.5 py-2 min-w-[4.5rem] ${tones[tone]}`}>
-      <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400 mb-0.5">
+    <div className={`rounded-lg px-2.5 py-2 min-w-[4.5rem] ${tones[tone]}`}>
+      <div className="flex items-center gap-1 text-xs font-medium text-slate-400 mb-0.5">
         <Icon className="w-3 h-3 shrink-0 opacity-70" aria-hidden />
         {label}
       </div>
       <div className="text-sm font-semibold text-slate-100 tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -55,7 +55,7 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
 
   return (
     <div
-      className={`rounded-lg border border-slate-800/80 bg-slate-950/50 p-3 space-y-2.5 ${className}`}
+      className={`rounded-lg bg-slate-950/50 p-3 space-y-2.5 ${className}`}
     >
       <div className="flex items-start gap-2">
         <FlaskConical className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" aria-hidden />
@@ -71,7 +71,7 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pl-6">
+      <div className="flex items-center gap-1.5 text-xs text-slate-400 pl-6">
         <Clock className="w-3 h-3 shrink-0" aria-hidden />
         <span>
           Cửa sổ đo lường: <strong className="text-slate-400 font-normal">{futureBars} nến</strong>{" "}

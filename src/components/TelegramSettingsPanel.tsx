@@ -100,7 +100,7 @@ export function TelegramSettingsPanel({
       </div>
 
       {testResult && (
-        <div className={`p-3 rounded-lg text-sm border ${testResult.success ? "bg-emerald-950/30 border-emerald-900 text-emerald-300" : "bg-rose-950/30 border-rose-900 text-rose-300"}`}>
+        <div className={`p-3 rounded-lg text-sm ${testResult.success ? "bg-emerald-950/30 text-emerald-300" : "bg-rose-950/30 text-rose-300"}`}>
           {testResult.message}
         </div>
       )}

@@ -24,11 +24,11 @@ export function SessionAccessPanel({
   };
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+    <div className="rounded-lg bg-slate-800/40 p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
           <div className="text-xs font-semibold text-slate-300">{label}</div>
-          <div className="text-[11px] text-slate-400">
+          <div className="text-xs text-slate-400">
             {unlocked
               ? "Đã mở khóa trong tab hiện tại. Khóa không được ghi vào bundle hoặc localStorage."
               : "Các thao tác ghi dữ liệu đang bị khóa. Nhập khóa phiên để mở."}
@@ -64,7 +64,7 @@ export function SessionAccessPanel({
           <button
             type="button"
             onClick={() => update("")}
-            className="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+            className="rounded px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
           >
             Khóa lại
           </button>

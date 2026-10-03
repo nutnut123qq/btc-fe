@@ -161,19 +161,19 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
       {isOpen && (
         <div className="fixed bottom-16 right-5 z-50 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
+          <div className="px-4 py-3 bg-slate-950/80 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400">
+              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
                   Bitcoin AI Strategy Explainer
-                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-teal-500/20 text-teal-300 rounded border border-teal-500/30">
+                  <span className="px-1.5 py-0.5 text-xs font-semibold bg-teal-500/20 text-teal-300 rounded ">
                     XAI
                   </span>
                 </h3>
-                <p className={`text-[11px] ${llmState === "off" ? "text-amber-300" : "text-slate-400"}`}>
+                <p className={`text-xs ${llmState === "off" ? "text-amber-300" : "text-slate-400"}`}>
                   {llmState === "unknown"
                     ? "Đang kiểm tra khả năng giải thích"
                     : llmState === "off"
@@ -201,7 +201,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                   className={`max-w-[88%] p-3 rounded-2xl ${
                     m.sender === "user"
                       ? "bg-teal-600 text-white rounded-br-none shadow-md shadow-teal-900/20"
-                      : "bg-slate-800/90 border border-slate-700/60 text-slate-100 rounded-bl-none"
+                      : "bg-slate-800/90 text-slate-100 rounded-bl-none"
                   }`}
                 >
                   {/* Evidence Tags Badges for AI replies */}
@@ -210,7 +210,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                       {m.evidenceTags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-1.5 py-0.5 text-[10px] font-semibold bg-slate-950/60 text-teal-300 border border-teal-500/30 rounded"
+                          className="px-1.5 py-0.5 text-xs font-semibold bg-slate-950/60 text-teal-300 rounded"
                         >
                           🏷️ {tag}
                         </span>
@@ -222,7 +222,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                     {m.text}
                   </div>
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 px-1">
+                <span className="text-xs text-slate-400 mt-1 px-1">
                   {new Date(m.timestampMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
@@ -238,13 +238,13 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
           </div>
 
           {/* Quick Chips Bar */}
-          <div className="px-3 py-2 border-t border-slate-800/60 bg-slate-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
+          <div className="px-3 py-2 bg-slate-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
             {QUICK_CHIPS.map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => void handleSend(chip.prompt)}
                 disabled={loading || !canExplain}
-                className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/20 hover:border-teal-500/40 transition-colors flex items-center gap-1 disabled:opacity-50"
+                className="whitespace-nowrap text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 transition-colors flex items-center gap-1 disabled:opacity-50"
               >
                 {chip.label}
               </button>
@@ -257,7 +257,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               e.preventDefault();
               void handleSend();
             }}
-            className="p-3 border-t border-slate-800 bg-slate-950 flex items-center gap-2"
+            className="p-3 bg-slate-950 flex items-center gap-2"
           >
             <input
               type="text"
@@ -265,7 +265,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               onChange={(e) => setInputPrompt(e.target.value)}
               placeholder={llmState === "unknown" ? "Đang kiểm tra dịch vụ giải thích..." : "Hỏi về nến, FVG, POC, dự báo..."}
               disabled={loading || !canExplain}
-              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500"
+              className="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500"
             />
             <button
               type="submit"

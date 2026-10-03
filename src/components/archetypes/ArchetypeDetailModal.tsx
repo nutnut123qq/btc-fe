@@ -24,8 +24,8 @@ export function ArchetypeDetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="sticky top-0 bg-slate-900/90 backdrop-blur border-b border-slate-800 p-4 flex justify-between items-center z-10">
-          <h3 className="text-xl font-bold text-teal-400 font-mono flex items-center gap-2">
+        <div className="sticky top-0 bg-slate-900/90 backdrop-blur p-4 flex justify-between items-center z-10">
+          <h3 className="text-lg font-bold text-teal-400 font-mono flex items-center gap-2">
             <Shapes className="w-5 h-5" />
             {detail.archetypeCode}
           </h3>
@@ -40,7 +40,7 @@ export function ArchetypeDetailModal({
 
         <div className="p-4 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="col-span-1 bg-slate-950 border border-slate-800 rounded-xl p-4">
+            <div className="col-span-1 bg-slate-950 border border-slate-800 rounded-xl p-5">
               <div className="text-sm text-slate-400 mb-2">
                 Đại diện ({detail.windowSize} nến)
               </div>
@@ -75,7 +75,7 @@ export function ArchetypeDetailModal({
             </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
             <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-slate-400" />
               Các lần xuất hiện gần đây
