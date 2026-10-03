@@ -17,12 +17,8 @@ function formatTime(ms: number) {
   return new Date(ms).toLocaleString("vi-VN", { hour12: false });
 }
 
-const SYMBOL_OPTIONS = [
-  { id: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
-];
-
 export function PaperTradeScreen() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
+  const [selectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [selectedTf, setSelectedTf] = useState<string>("all");
   const [summary, setSummary] = useState<PaperTradeSummary | null>(null);
   const [openTrades, setOpenTrades] = useState<PaperTradeItem[]>([]);
@@ -151,34 +147,19 @@ export function PaperTradeScreen() {
           <p className="text-xs text-slate-400">Theo dõi lệnh giao dịch mô phỏng realtime</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-xs font-semibold text-slate-400 px-1">Cặp coin:</span>
-            {SYMBOL_OPTIONS.map((sym) => (
-              <button
-                key={sym.id}
-                onClick={() => setSelectedSymbol(sym.id)}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
-                  selectedSymbol === sym.id
-                    ? "bg-teal-500 text-slate-950 shadow"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {sym.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="text-xs font-bold text-teal-300">{ACTIVE_SYMBOL_LABEL}</span>
 
-          <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400 font-medium px-1">Khung:</span>
-            {[{ id: "all", label: "Tất cả (kể cả lịch sử)" }, ...ACTIVE_TIMEFRAMES.map((timeframe) => ({ id: timeframe, label: timeframe }))].map((tf) => (
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-slate-500">Khung:</span>
+            {[{ id: "all", label: "Tất cả" }, ...ACTIVE_TIMEFRAMES.map((timeframe) => ({ id: timeframe, label: timeframe }))].map((tf) => (
               <button
                 key={tf.id}
                 onClick={() => setSelectedTf(tf.id)}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all ${
+                className={`py-1 font-medium transition-colors border-b-2 ${
  selectedTf === tf.id
- ? "bg-teal-500/20 text-teal-300 font-bold"
- : "text-slate-400 hover:text-slate-200"
+ ? "border-teal-400 text-teal-300"
+ : "border-transparent text-slate-500 hover:text-slate-300"
  }`}
               >
                 {tf.label}
@@ -188,7 +169,7 @@ export function PaperTradeScreen() {
           <button
             onClick={() => void loadAll(selectedSymbol, selectedTf)}
             disabled={loading}
-            className="text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 disabled:opacity-50"
+            className="text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Làm mới

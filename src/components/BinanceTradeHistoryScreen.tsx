@@ -147,17 +147,12 @@ export function BinanceTradeHistoryScreen() {
   return (
     <div className="space-y-6">
       {/* ── 1. SCREEN HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="bg-teal-500/15 text-teal-300 text-xs font-bold px-2 py-0.5 rounded">
-              {SIMULATION_LABEL}
-            </span>
-            <h1 className="text-lg font-bold tracking-tight text-slate-100 flex items-center gap-2">
-              {PAPER_JOURNAL_LABEL}
-            </h1>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight text-slate-100">
+            {PAPER_JOURNAL_LABEL} <span className="text-slate-500">· {SIMULATION_LABEL}</span>
+          </h1>
+          <p className="hidden sm:block truncate text-xs text-slate-400 mt-0.5">
             Giao dịch mô phỏng từ mô hình nghiên cứu; không phải lệnh đã khớp trên Binance.
           </p>
         </div>
@@ -195,7 +190,7 @@ export function BinanceTradeHistoryScreen() {
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Wallet Balance */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <Wallet className="w-4 h-4 text-slate-400" />
@@ -217,7 +212,7 @@ export function BinanceTradeHistoryScreen() {
           </div>
 
           {/* Card 2: Cumulative Realized PnL */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
@@ -253,7 +248,7 @@ export function BinanceTradeHistoryScreen() {
           </div>
 
           {/* Card 3: Win Rate & Trades Breakdown */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-slate-400" />
@@ -279,7 +274,7 @@ export function BinanceTradeHistoryScreen() {
           </div>
 
           {/* Card 4: Multi-Asset Breakdown Badges */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
               <span className="flex items-center gap-1.5">
                 <PieChart className="w-4 h-4 text-slate-400" />
@@ -315,7 +310,7 @@ export function BinanceTradeHistoryScreen() {
       )}
 
       {/* ── 3. FILTER CONTROLS BAR ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
           <Filter className="w-4 h-4 text-teal-400" />
           Bộ Lọc Lịch Sử Giao Dịch
@@ -402,7 +397,7 @@ export function BinanceTradeHistoryScreen() {
       </div>
 
       {/* ── 4. SIMULATED TRADE JOURNAL ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <div className="p-4 bg-slate-950/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-teal-400" />

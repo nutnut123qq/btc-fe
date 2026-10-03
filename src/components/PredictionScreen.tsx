@@ -133,13 +133,18 @@ export function PredictionScreen() {
 
   return (
     <div className="space-y-4">
-      <EnsembleDashboardWidget symbol={symbol} timeframe={timeframe} />
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-teal-400" />
+            Dự đoán hướng giá ML
+          </h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">Model đã qua promotion gate trên {symbol.replace("USDT", "/USDT")}; kết quả và lịch sử audit ở bên dưới.</p>
+        </div>
+        <span className="shrink-0 text-xs font-bold text-teal-300">{symbol.replace("USDT", "/USDT")} {timeframe}</span>
+      </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-teal-400" />
-          Dự đoán hướng giá ML
-        </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
           <div>
@@ -289,7 +294,7 @@ export function PredictionScreen() {
       </div>
 
       {/* Prediction Audit Accuracy Card */}
-      <div className="bg-slate-900 border border-teal-500/30 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 pb-3">
           <div>
             <h3 className="text-md font-bold text-slate-100 flex items-center gap-2">
@@ -334,6 +339,8 @@ export function PredictionScreen() {
           </div>
         </div>
       </div>
+
+      <EnsembleDashboardWidget symbol={symbol} timeframe={timeframe} />
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
