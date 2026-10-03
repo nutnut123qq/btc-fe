@@ -287,7 +287,7 @@ export function BinanceTradingScreen() {
                   type="button"
                   aria-pressed={showIndicators}
                   onClick={() => setShowIndicators(!showIndicators)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showIndicators ? "bg-teal-500/15 text-teal-300 " : "bg-slate-900 text-slate-400 hover:bg-slate-800"}`}
+                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showIndicators ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
                 >
                   <Activity className="w-3 h-3" /> Indicators
                 </button>
@@ -295,7 +295,7 @@ export function BinanceTradingScreen() {
                   type="button"
                   aria-pressed={showPatterns}
                   onClick={() => setShowPatterns(!showPatterns)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showPatterns ? "bg-teal-500/15 text-teal-300 " : "bg-slate-900 text-slate-400 hover:bg-slate-800"}`}
+                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showPatterns ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
                 >
                   <BarChart2 className="w-3 h-3" /> Patterns
                 </button>
@@ -305,8 +305,8 @@ export function BinanceTradingScreen() {
                   onClick={() => setShowSmartMoney(!showSmartMoney)}
                   className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
  showSmartMoney
- ? "bg-teal-500/15 text-teal-300 "
- : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ ? "text-teal-300 "
+ : "text-slate-500 hover:text-slate-200"
  }`}
                 >
                   <BrainCircuit className="w-3 h-3" /> Smart Money
@@ -317,7 +317,7 @@ export function BinanceTradingScreen() {
                   aria-pressed={showVolumeProfile}
                   onClick={() => setShowVolumeProfile(!showVolumeProfile)}
                   disabled={technicalReplay?.layers.volumeProfile.availability === "unavailable"}
-                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${showVolumeProfile ? "bg-teal-500/15 text-teal-300 " : "bg-slate-900 text-slate-400 hover:bg-slate-800"}`}
+                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${showVolumeProfile ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
                   title={technicalReplay?.layers.volumeProfile.availability === "unavailable" ? technicalReplay.layers.volumeProfile.unavailableReason ?? "Volume Profile unavailable" : "Volume Profile point-in-time từ replay"}
                 >
                   <BarChart2 className="w-3 h-3" /> Volume Profile
@@ -329,8 +329,8 @@ export function BinanceTradingScreen() {
                   onClick={() => setShowFibonacci(!showFibonacci)}
                   className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
  showFibonacci
- ? "bg-teal-500/15 text-teal-300 "
- : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+ ? "text-teal-300 "
+ : "text-slate-500 hover:text-slate-200"
  }`}
                 >
                   <Layers className="w-3 h-3" /> Fibonacci
