@@ -204,46 +204,36 @@ export function ArchetypeScreen() {
 
   return (
     <div className="space-y-4">
-      {/* Symbol & Sub-tab bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 px-2">Cặp coin:</span>
-          {SYMBOL_OPTIONS.map((sym) => (
-            <button
-              key={sym}
-              onClick={() => setSelectedSymbol(sym)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                selectedSymbol === sym
-                  ? "bg-teal-500 text-slate-950 shadow"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {sym.replace("USDT", "/USDT")}
-            </button>
-          ))}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-slate-100">Mẫu nến</h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">Archetype, analog lịch sử và chuyển đổi trên cửa sổ nến {selectedSymbol.replace("USDT", "/USDT")}.</p>
         </div>
+        <span className="shrink-0 text-xs font-bold text-teal-300">{selectedSymbol.replace("USDT", "/USDT")}</span>
+      </div>
 
-        <div className="flex space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 flex-1 sm:flex-initial">
-          {[
-            { key: "analog", label: "Analog lịch sử" },
-            { key: "gallery", label: "Thư viện (audit)" },
-            { key: "rankings", label: "Bảng xếp hạng" },
-            { key: "transitions", label: "Chuyển đổi" },
-            { key: "predict", label: "Dự báo" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveSubTab(tab.key as typeof activeSubTab)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                activeSubTab === tab.key
-                  ? "bg-slate-800 text-teal-400 font-bold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-4 overflow-x-auto text-xs" role="tablist" aria-label="Chế độ mẫu nến">
+        {[
+          { key: "analog", label: "Analog lịch sử" },
+          { key: "gallery", label: "Thư viện (audit)" },
+          { key: "rankings", label: "Bảng xếp hạng" },
+          { key: "transitions", label: "Chuyển đổi" },
+          { key: "predict", label: "Dự báo" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            role="tab"
+            aria-selected={activeSubTab === tab.key}
+            onClick={() => setActiveSubTab(tab.key as typeof activeSubTab)}
+            className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
+              activeSubTab === tab.key
+                ? "border-teal-400 text-teal-300"
+                : "border-transparent text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {tabErrors[activeSubTab] && (

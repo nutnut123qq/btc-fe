@@ -141,38 +141,31 @@ export function BacktestScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 px-2">Cặp coin:</span>
-          {SYMBOL_OPTIONS.map((sym) => (
-            <button
-              key={sym}
-              onClick={() => setSelectedSymbol(sym)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                selectedSymbol === sym
-                  ? "bg-teal-500 text-slate-950 shadow"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {sym.replace("USDT", "/USDT")}
-            </button>
-          ))}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-slate-100">Backtest</h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">Kết quả backtest chiến lược trên {selectedSymbol.replace("USDT", "/USDT")}.</p>
         </div>
+        <span className="shrink-0 text-xs font-bold text-teal-300">{selectedSymbol.replace("USDT", "/USDT")}</span>
+      </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab("ml")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ml" ? "bg-teal-500/15 text-teal-300 font-semibold" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"}`}
-          >
-            Single Model Backtests
-          </button>
-          <button
-            onClick={() => setActiveTab("ensemble")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "ensemble" ? "bg-teal-500/15 text-teal-300 font-semibold" : "bg-slate-800/60 text-slate-400 hover:bg-slate-800"}`}
-          >
-            Ensemble (Experimental)
-          </button>
-        </div>
+      <div className="flex gap-4 overflow-x-auto text-xs" role="tablist" aria-label="Chế độ backtest">
+        <button
+          role="tab"
+          aria-selected={activeTab === "ml"}
+          onClick={() => setActiveTab("ml")}
+          className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${activeTab === "ml" ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+        >
+          Single Model Backtests
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === "ensemble"}
+          onClick={() => setActiveTab("ensemble")}
+          className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${activeTab === "ensemble" ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+        >
+          Ensemble (Experimental)
+        </button>
       </div>
 
       {activeTab === "ml" && (
