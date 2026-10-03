@@ -32,17 +32,17 @@ export function ArchetypeGalleryView({
   onSelectArchetype,
 }: ArchetypeGalleryViewProps) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
       <div className="flex flex-wrap gap-4 mb-6">
         <div>
-          <label className="text-xs text-gray-400 block mb-1">Timeframe</label>
-          <div className="flex gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
+          <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
+          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
             {ACTIVE_TIMEFRAMES.map((tf) => (
               <button
                 key={tf}
                 onClick={() => onTimeframeChange(tf)}
                 className={`px-3 py-1 text-xs rounded-md ${
-                  timeframe === tf ? "bg-teal-600 text-white" : "text-gray-400"
+                  timeframe === tf ? "bg-teal-600 text-white" : "text-slate-400"
                 }`}
               >
                 {tf}
@@ -51,14 +51,14 @@ export function ArchetypeGalleryView({
           </div>
         </div>
         <div>
-          <label className="text-xs text-gray-400 block mb-1">Window Size</label>
-          <div className="flex gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
+          <label className="text-xs text-slate-400 block mb-1">Window Size</label>
+          <div className="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
             {windowSizes.map((ws) => (
               <button
                 key={ws}
                 onClick={() => onWindowSizeChange(ws)}
                 className={`px-3 py-1 text-xs rounded-md ${
-                  windowSize === ws ? "bg-teal-600 text-white" : "text-gray-400"
+                  windowSize === ws ? "bg-teal-600 text-white" : "text-slate-400"
                 }`}
               >
                 {ws}
@@ -67,11 +67,11 @@ export function ArchetypeGalleryView({
           </div>
         </div>
         <div>
-          <label className="text-xs text-gray-400 block mb-1">Sắp xếp</label>
+          <label className="text-xs text-slate-400 block mb-1">Sắp xếp</label>
           <select
             value={sortBy}
             onChange={(e) => onSortByChange(e.target.value)}
-            className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-sm"
+            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm"
           >
             <option value="memberCount">Số mẫu</option>
           </select>
@@ -97,7 +97,7 @@ export function ArchetypeGalleryView({
             </div>
           ))}
           {archetypes.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-slate-400">
               Không tìm thấy mẫu nến
             </div>
           )}

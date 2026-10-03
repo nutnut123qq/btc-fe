@@ -82,8 +82,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     if (band === "neutral") {
       return {
         label: "Trung lập",
-        color: "text-blue-400 bg-blue-500/15 border-blue-500/30",
-        barColor: "bg-blue-500",
+        color: "text-slate-300 bg-slate-500/15 border-slate-500/30",
+        barColor: "bg-slate-500",
         icon: Gauge,
       };
     }
@@ -105,8 +105,8 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
   if (!sentiment) {
     return compact
-      ? <div className="rounded-lg border border-gray-800 bg-gray-900 px-2.5 py-1 text-[11px] text-gray-400">Tâm lý: chưa có dữ liệu</div>
-      : <div className="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs text-gray-400">Chưa có snapshot tâm lý.</div>;
+      ? <div className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-400">Tâm lý: chưa có dữ liệu</div>
+      : <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">Chưa có snapshot tâm lý.</div>;
   }
 
   const score = sentiment.aggregatedSentiment;
@@ -116,9 +116,9 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 bg-gray-900 border border-gray-800 rounded-lg px-2.5 py-1 text-xs shadow-sm">
+      <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs shadow-sm">
         <Gauge className="w-3.5 h-3.5 text-teal-400" />
-        <span className="text-gray-400 text-[11px]">Tâm lý:</span>
+        <span className="text-slate-400 text-[11px]">Tâm lý:</span>
         <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] border ${cfg.color}`}>
           {score.toFixed(0)} - {cfg.label}
         </span>
@@ -126,7 +126,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         <button
           onClick={() => void handleRefresh()}
           disabled={refreshing || !adminUnlocked}
-          className="text-gray-400 hover:text-gray-300 ml-1 transition-colors disabled:opacity-50"
+          className="text-slate-400 hover:text-slate-300 ml-1 transition-colors disabled:opacity-50"
           title="Làm mới điểm tâm lý"
         >
           <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin text-teal-400" : ""}`} />
@@ -136,7 +136,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-3.5 shadow-lg space-y-2.5 text-xs">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-2.5 text-xs">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -144,10 +144,10 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
             <Gauge className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-100 uppercase tracking-wide flex items-center gap-1.5">
+            <h3 className="font-bold text-slate-100 flex items-center gap-1.5">
               Chỉ Số Tâm Lý Vĩ Mô (Macro Sentiment)
             </h3>
-            <p className="text-[10px] text-gray-400">
+            <p className="text-[10px] text-slate-400">
               Tổng hợp Fear & Greed, Funding Rate, L/S Ratio & Tin tức NLP
             </p>
           </div>
@@ -156,7 +156,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors"
+            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors"
           >
             {showDetails ? "Thu gọn" : "Chi tiết"}
             {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -165,7 +165,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           <button
             onClick={() => void handleRefresh()}
             disabled={refreshing || !adminUnlocked}
-            className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
             title="Tính toán lại Snapshot Tâm lý"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-teal-400" : ""}`} />
@@ -179,30 +179,30 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
           Snapshot tâm lý đã cũ ({formatDataAge(sentiment.createdAtUtc)}); không dùng như tín hiệu hiện tại.
         </div>
       )}
-      <div className="bg-gray-950 p-3 rounded-lg border border-gray-800/80 space-y-2">
+      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800/80 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon className="w-5 h-5 text-teal-400" />
             <div>
               <span className="text-xl font-extrabold text-white font-mono">{score.toFixed(1)}</span>
-              <span className="text-gray-400 text-[10px] ml-1">/ 100</span>
+              <span className="text-slate-400 text-[10px] ml-1">/ 100</span>
             </div>
           </div>
 
-          <span className={`px-2.5 py-1 rounded-md font-bold text-xs border uppercase tracking-wider ${cfg.color}`}>
+          <span className={`px-2.5 py-1 rounded-md font-bold text-xs border ${cfg.color}`}>
             {cfg.label}
           </span>
         </div>
 
         {/* Gradient Progress Bar */}
         <div className="space-y-1">
-          <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden relative">
+          <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden relative">
             <div
               className={`h-full transition-all duration-500 rounded-full ${cfg.barColor}`}
               style={{ width: `${sentimentMeterPercent(score)}%` }}
             />
           </div>
-          <div className="flex justify-between text-[9px] text-gray-400 font-mono">
+          <div className="flex justify-between text-[9px] text-slate-400 font-mono">
             <span>-100 (Cực sợ)</span>
             <span>-50</span>
             <span>0 (Trung lập)</span>
@@ -216,41 +216,41 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
       {showDetails && sentiment && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 animate-in fade-in duration-200">
           {/* 1. Fear & Greed */}
-          <div className="bg-gray-950 p-2 rounded-lg border border-gray-800">
-            <div className="text-[10px] text-gray-400 uppercase flex items-center gap-1">
-              <Coins className="w-3 h-3 text-amber-400" /> Fear & Greed (30%)
+          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+              <Coins className="w-3 h-3 text-slate-400" /> Fear & Greed (30%)
             </div>
-            <div className="font-bold text-gray-200 text-sm mt-0.5">
+            <div className="font-bold text-slate-200 text-sm mt-0.5">
               {sentiment.fearGreedScore?.toFixed(0) ?? "--"}
             </div>
           </div>
 
           {/* 2. News NLP */}
-          <div className="bg-gray-950 p-2 rounded-lg border border-gray-800">
-            <div className="text-[10px] text-gray-400 uppercase flex items-center gap-1">
-              <Newspaper className="w-3 h-3 text-cyan-400" /> News NLP (40%)
+          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+              <Newspaper className="w-3 h-3 text-slate-400" /> News NLP (40%)
             </div>
-            <div className="font-bold text-gray-200 text-sm mt-0.5">
+            <div className="font-bold text-slate-200 text-sm mt-0.5">
               {sentiment.newsSentimentScore ? `${(sentiment.newsSentimentScore * 100).toFixed(0)}` : "--"}
             </div>
           </div>
 
           {/* 3. Funding Z-Score */}
-          <div className="bg-gray-950 p-2 rounded-lg border border-gray-800">
-            <div className="text-[10px] text-gray-400 uppercase flex items-center gap-1">
-              <Percent className="w-3 h-3 text-purple-400" /> Funding Z-Score
+          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+              <Percent className="w-3 h-3 text-slate-400" /> Funding Z-Score
             </div>
-            <div className="font-bold text-gray-200 text-sm mt-0.5">
+            <div className="font-bold text-slate-200 text-sm mt-0.5">
               {sentiment.fundingRateZScore?.toFixed(2) ?? "--"}
             </div>
           </div>
 
           {/* 4. Long/Short Ratio */}
-          <div className="bg-gray-950 p-2 rounded-lg border border-gray-800">
-            <div className="text-[10px] text-gray-400 uppercase flex items-center gap-1">
+          <div className="bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
               <TrendingUp className="w-3 h-3 text-emerald-400" /> L/S Ratio
             </div>
-            <div className="font-bold text-gray-200 text-sm mt-0.5">
+            <div className="font-bold text-slate-200 text-sm mt-0.5">
               {sentiment.longShortRatio?.toFixed(2) ?? "--"}
             </div>
           </div>

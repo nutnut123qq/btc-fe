@@ -223,16 +223,16 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
-      <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-40">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-cyan-500 bg-clip-text text-transparent flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-teal-600 bg-clip-text text-transparent flex items-center gap-2">
             <Activity className="text-teal-400" />
             Bitcoin AI Analyst
           </h1>
           <div className="flex items-center gap-2">
             {llmState === "unknown" && (
-              <span className="hidden sm:inline-flex rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] font-bold text-gray-400">
+              <span className="hidden sm:inline-flex rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-400">
                 LLM · đang kiểm tra
               </span>
             )}
@@ -243,7 +243,7 @@ export function AppShell() {
             )}
             <button
               onClick={() => setAlertsOpen(true)}
-              className="relative p-2 rounded-lg border border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300"
+              className="relative p-2 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300"
               aria-label="Thông báo"
             >
               <Bell className="w-5 h-5" />
@@ -347,14 +347,14 @@ export function AppShell() {
         )}
       </main>
 
-      <nav aria-label="Điều hướng chính" className="border-t border-gray-800 bg-gray-950 sticky bottom-0 z-40">
+      <nav aria-label="Điều hướng chính" className="border-t border-slate-800 bg-slate-950 sticky bottom-0 z-40">
         {openGroupDef && openGroupDef.children.length > 1 && (
           <div
             id={`nav-sub-${openGroupDef.key}`}
             data-testid="nav-sub-row"
             role="group"
             aria-label={`${openGroupDef.label} — mục con`}
-            className="border-b border-gray-800 bg-gray-900/90"
+            className="border-b border-slate-800 bg-slate-900/90"
           >
             <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center">
               {openGroupDef.children.map((childKey, index) => {
@@ -374,7 +374,7 @@ export function AppShell() {
                     className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors ${
                       childActive
                         ? "border-teal-500/60 bg-teal-500/10 text-teal-300"
-                        : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-500 hover:text-gray-200"
+                        : "border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500 hover:text-slate-200"
                     }`}
                   >
                     <ChildIcon className="w-3.5 h-3.5" />
@@ -404,7 +404,7 @@ export function AppShell() {
                 aria-controls={multi ? `nav-sub-${group.key}` : undefined}
                 aria-current={containsActive ? (multi ? "true" : "page") : undefined}
                 className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors ${
-                  containsActive ? "text-teal-400" : "text-gray-400 hover:text-gray-200"
+                  containsActive ? "text-teal-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 <GroupIcon className="w-5 h-5" />

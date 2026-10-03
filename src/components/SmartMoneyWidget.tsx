@@ -35,25 +35,25 @@ export function SmartMoneyWidget({
 
   const [visibleCount, setVisibleCount] = useState(10);
 
-  if (loading) return <div className="p-4 rounded-lg bg-gray-800 animate-pulse text-gray-400">Đang tải hình học giá SMC...</div>;
-  if (error) return <div className="p-4 rounded-lg bg-red-900/50 text-red-400 border border-red-500/50">{error}</div>;
-  if (!structures.length) return <div className="p-4 rounded-lg bg-gray-800 text-gray-400 border border-gray-700">Không có sự kiện hình học SMC.</div>;
+  if (loading) return <div className="p-4 rounded-lg bg-slate-800 animate-pulse text-slate-400">Đang tải hình học giá SMC...</div>;
+  if (error) return <div className="p-4 rounded-lg bg-rose-900/50 text-rose-400 border border-rose-500/50">{error}</div>;
+  if (!structures.length) return <div className="p-4 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">Không có sự kiện hình học SMC.</div>;
 
   const visibleStructures = structures.slice(0, visibleCount);
 
   return (
-    <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 space-y-4">
+    <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-200 flex items-center gap-2">
-          <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <h3 className="font-semibold text-slate-200 flex items-center gap-2">
+          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           Hình học giá SMC
         </h3>
-        <div className="text-xs text-gray-400">Descriptive events</div>
+        <div className="text-xs text-slate-400">Descriptive events</div>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-gray-400">
+      <p className="text-[11px] leading-relaxed text-slate-400">
         BOS/CHOCH/FVG/swing là quy tắc hình học giá, không chứng minh dòng tiền tổ chức và không phải xác suất thắng.
       </p>
 
@@ -61,7 +61,7 @@ export function SmartMoneyWidget({
         {visibleStructures.map((st) => {
           const isBull = st.eventType.includes("BULL");
           const isBear = st.eventType.includes("BEAR");
-          const colorClass = isBull ? "text-green-400 bg-green-500/10 border-green-500/20" : isBear ? "text-red-400 bg-red-500/10 border-red-500/20" : "text-gray-300 bg-gray-800 border-gray-700";
+          const colorClass = isBull ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : isBear ? "text-rose-400 bg-rose-500/10 border-rose-500/20" : "text-slate-300 bg-slate-800 border-slate-700";
           
           return (
             <div key={st.id} className={`p-3 rounded border text-sm flex flex-col gap-1 ${colorClass}`}>
@@ -83,7 +83,7 @@ export function SmartMoneyWidget({
               {st.eventType.startsWith("FVG") && (
                 <div className="mt-2 text-xs flex justify-between items-center bg-black/20 p-1.5 rounded">
                   <span>Zone: ${st.lowPrice?.toFixed(2)} - ${st.highPrice?.toFixed(2)}</span>
-                  <span className={`px-1.5 py-0.5 rounded ${st.isMitigated ? 'bg-gray-700 text-gray-400' : 'bg-blue-500/20 text-blue-300'}`}>
+                  <span className={`px-1.5 py-0.5 rounded ${st.isMitigated ? 'bg-slate-700 text-slate-400' : 'bg-teal-500/20 text-teal-300'}`}>
                     {st.isMitigated ? "Mitigated" : "Active"}
                   </span>
                 </div>
@@ -94,7 +94,7 @@ export function SmartMoneyWidget({
         {visibleCount < structures.length && (
           <button
             onClick={() => setVisibleCount(c => c + 10)}
-            className="w-full py-2 mt-2 text-xs font-semibold text-gray-400 bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+            className="w-full py-2 mt-2 text-xs font-semibold text-slate-400 bg-slate-800 hover:bg-slate-700 rounded transition-colors"
           >
             Show More ({structures.length - visibleCount} remaining)
           </button>

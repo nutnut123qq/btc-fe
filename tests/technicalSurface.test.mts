@@ -48,6 +48,6 @@ test("canonical replay exposes loading, empty and error states without realtime 
 test("live ticker and market microstructure are explicitly separate from replay cutoff", () => {
   assert.match(tickerSource, /GIÁ REALTIME/);
   assert.match(tickerSource, /không phải giá tại as-of/);
-  assert.match(tradingSource, /REALTIME MARKET DATA/);
+  assert.match(tradingSource, /Realtime market data/i);
   assert.match(tradingSource, /không thuộc cutoff/);
 });

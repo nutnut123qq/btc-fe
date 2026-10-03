@@ -190,12 +190,12 @@ export function ExecutionPanel({
   };
 
   return (
-    <div className="space-y-3 bg-gray-900 border border-gray-800 rounded-xl p-3.5 shadow-lg text-xs">
+    <div className="space-y-3 bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-lg text-xs">
       {/* Header & Stream Status */}
-      <div className="flex items-center justify-between border-b border-gray-800 pb-2.5">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400" />
-          <h3 className="font-bold text-gray-100 uppercase tracking-wide">
+          <Zap className="w-4 h-4 text-slate-400" />
+          <h3 className="font-bold text-slate-100 uppercase tracking-wide">
             Binance Futures Testnet Execution
           </h3>
           <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-1.5 py-0.2 rounded">
@@ -223,16 +223,16 @@ export function ExecutionPanel({
           <button
             onClick={() => void handleReconnectStream()}
             disabled={actionLoading || !executionUnlocked}
-            className="p-1 text-gray-400 hover:text-gray-200 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-200 bg-slate-800 rounded hover:bg-slate-700 transition-colors"
             title="Kết nối lại User Data Stream"
           >
-            <Radio className="w-3.5 h-3.5 text-cyan-400" />
+            <Radio className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
           <button
             onClick={() => void loadData()}
             disabled={loading}
-            className="p-1 text-gray-400 hover:text-gray-200 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-200 bg-slate-800 rounded hover:bg-slate-700 transition-colors"
             title="Làm mới số dư"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-teal-400" : ""}`} />
@@ -263,7 +263,7 @@ export function ExecutionPanel({
             )}
             <span>{message.text}</span>
           </div>
-          <button onClick={() => setMessage(null)} className="text-gray-400 hover:text-gray-200 text-[10px]">
+          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-slate-200 text-[10px]">
             Đóng
           </button>
         </div>
@@ -271,21 +271,21 @@ export function ExecutionPanel({
 
       {/* Account Balances Grid */}
       {account && (
-        <div className="grid grid-cols-3 gap-2 bg-gray-950 p-2.5 rounded-lg border border-gray-800/80">
+        <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
           <div>
-            <div className="text-[10px] text-gray-400 uppercase font-semibold">Số dư Ví (USDT)</div>
-            <div className="font-bold text-gray-100 text-sm">
+            <div className="text-[10px] text-slate-400 font-semibold">Số dư Ví (USDT)</div>
+            <div className="font-bold text-slate-100 text-sm">
               ${account.totalWalletBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-gray-400 uppercase font-semibold">Khả dụng (Available)</div>
+            <div className="text-[10px] text-slate-400 font-semibold">Khả dụng (Available)</div>
             <div className="font-bold text-teal-400 text-sm">
               ${account.availableBalance?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
-            <div className="text-[10px] text-gray-400 uppercase font-semibold">PnL Chưa thực hiện</div>
+            <div className="text-[10px] text-slate-400 font-semibold">PnL Chưa thực hiện</div>
             <div
               className={`font-bold text-sm ${
                 account.totalUnrealizedProfit >= 0 ? "text-emerald-400" : "text-rose-400"
@@ -301,8 +301,8 @@ export function ExecutionPanel({
       {/* Open Positions List */}
       {account && account.positions && account.positions.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-slate-400" />
             Vị thế Testnet đang mở ({account.positions.length}):
           </div>
           <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -311,7 +311,7 @@ export function ExecutionPanel({
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between bg-gray-950/70 p-2 rounded border border-gray-800 font-mono text-[11px]"
+                  className="flex items-center justify-between bg-slate-950/70 p-2 rounded border border-slate-800 font-mono text-[11px]"
                 >
                   <div className="flex items-center gap-2">
                     <span
@@ -321,11 +321,11 @@ export function ExecutionPanel({
                     >
                       {isLong ? "LONG" : "SHORT"} {pos.leverage}x
                     </span>
-                    <span className="font-bold text-gray-200">{pos.symbol}</span>
-                    <span className="text-gray-400">Qty: {Math.abs(pos.positionAmount)}</span>
+                    <span className="font-bold text-slate-200">{pos.symbol}</span>
+                    <span className="text-slate-400">Qty: {Math.abs(pos.positionAmount)}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-gray-300">Vào: ${pos.entryPrice?.toFixed(2)}</span>
+                    <span className="text-slate-300">Vào: ${pos.entryPrice?.toFixed(2)}</span>
                     <span className={pos.unrealizedProfit >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
                       {pos.unrealizedProfit >= 0 ? "+" : ""}${pos.unrealizedProfit?.toFixed(2)}
                     </span>
@@ -338,14 +338,14 @@ export function ExecutionPanel({
       )}
 
       {/* Live Order Placement Form */}
-      <div className="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2.5">
+      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="font-bold text-gray-200">Đặt Lệnh Testnet ({symbol})</span>
-          <div className="inline-flex rounded-lg bg-gray-900 p-0.5 border border-gray-800">
+          <span className="font-bold text-slate-200">Đặt Lệnh Testnet ({symbol})</span>
+          <div className="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-800">
             <button
               onClick={() => setOrderType("market")}
               className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
-                orderType === "market" ? "bg-teal-500 text-gray-950 shadow" : "text-gray-400 hover:text-gray-200"
+                orderType === "market" ? "bg-teal-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
               Market
@@ -353,7 +353,7 @@ export function ExecutionPanel({
             <button
               onClick={() => setOrderType("stop_loss")}
               className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
-                orderType === "stop_loss" ? "bg-rose-500 text-white shadow" : "text-gray-400 hover:text-gray-200"
+                orderType === "stop_loss" ? "bg-rose-500 text-white shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
               Stop Loss
@@ -361,7 +361,7 @@ export function ExecutionPanel({
             <button
               onClick={() => setOrderType("take_profit")}
               className={`px-2 py-0.5 rounded font-bold text-[10px] transition-colors ${
-                orderType === "take_profit" ? "bg-emerald-500 text-gray-950 shadow" : "text-gray-400 hover:text-gray-200"
+                orderType === "take_profit" ? "bg-emerald-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"
               }`}
             >
               Take Profit
@@ -376,7 +376,7 @@ export function ExecutionPanel({
             className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 border transition-all ${
               orderSide === "BUY"
                 ? "bg-emerald-500/25 text-emerald-300 border-emerald-500/50 shadow"
-                : "bg-gray-900 text-gray-400 border-gray-800 hover:bg-gray-850"
+                : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800"
             }`}
           >
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export function ExecutionPanel({
             className={`py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 border transition-all ${
               orderSide === "SELL"
                 ? "bg-rose-500/25 text-rose-300 border-rose-500/50 shadow"
-                : "bg-gray-900 text-gray-400 border-gray-800 hover:bg-gray-850"
+                : "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800"
             }`}
           >
             <ArrowDownRight className="w-3.5 h-3.5" />
@@ -398,7 +398,7 @@ export function ExecutionPanel({
         {/* Quantity & Price Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
-            <label className="block text-[10px] text-gray-400 mb-1">
+            <label className="block text-[10px] text-slate-400 mb-1">
               Khối lượng ({symbol.replace("USDT", "")})
             </label>
             <input
@@ -407,13 +407,13 @@ export function ExecutionPanel({
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="0.005"
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-200 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
             />
           </div>
 
           {orderType !== "market" && (
             <div>
-              <label className="block text-[10px] text-gray-400 mb-1">
+              <label className="block text-[10px] text-slate-400 mb-1">
                 {orderType === "stop_loss" ? "Giá Cắt Lỗ (Stop Price $)" : "Giá Chốt Lời (TP Price $)"}
               </label>
               <input
@@ -422,7 +422,7 @@ export function ExecutionPanel({
                 value={stopPrice}
                 onChange={(e) => setStopPrice(e.target.value)}
                 placeholder={currentPrice ? String(currentPrice) : "95000"}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
           )}
@@ -448,7 +448,7 @@ export function ExecutionPanel({
           <button
             onClick={() => void handleCancelAll()}
             disabled={actionLoading || !executionUnlocked}
-            className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-rose-300 border border-gray-700 rounded-lg font-semibold text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
+            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded-lg font-semibold text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
             title="Hủy toàn bộ lệnh mở của mã này"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -460,20 +460,20 @@ export function ExecutionPanel({
       {/* Balance Snapshots Collapsible */}
       {snapshots.length > 0 && (
         <div className="space-y-1">
-          <div className="text-[10px] text-gray-400 font-semibold uppercase">
+          <div className="text-[10px] text-slate-400 font-semibold">
             Lịch sử cập nhật số dư gần nhất ({snapshots.length})
           </div>
           <div className="space-y-1 max-h-24 overflow-y-auto">
             {snapshots.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between bg-gray-950/40 px-2 py-1 rounded text-[10px] text-gray-400 font-mono"
+                className="flex items-center justify-between bg-slate-950/40 px-2 py-1 rounded text-[10px] text-slate-400 font-mono"
               >
                 <span>
                   {s.eventReasonType || "BALANCE_UPDATE"} ({s.asset})
                 </span>
-                <span className="font-bold text-gray-200">${s.walletBalance?.toFixed(2)}</span>
-                <span className="text-gray-400">
+                <span className="font-bold text-slate-200">${s.walletBalance?.toFixed(2)}</span>
+                <span className="text-slate-400">
                   {new Date(s.timestamp).toLocaleTimeString("vi-VN")}
                 </span>
               </div>

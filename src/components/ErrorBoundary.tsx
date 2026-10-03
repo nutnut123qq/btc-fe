@@ -43,14 +43,14 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="bg-gray-900/80 border border-rose-500/30 rounded-xl p-6 text-center my-4">
+        <div className="bg-slate-900/80 border border-rose-500/30 rounded-xl p-6 text-center my-4">
           <div className="inline-flex p-3 rounded-full bg-rose-500/10 text-rose-400 mb-3">
             <AlertTriangle className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-semibold text-gray-100 mb-1">
+          <h3 className="text-base font-semibold text-slate-100 mb-1">
             {this.props.fallbackTitle || "Đã xảy ra lỗi khi tải thành phần"}
           </h3>
-          <p className="text-xs text-gray-400 max-w-md mx-auto mb-4 font-mono">
+          <p className="text-xs text-slate-400 max-w-md mx-auto mb-4 font-mono">
             {this.state.error?.message || "Lỗi không xác định"}
           </p>
           <button

@@ -92,16 +92,16 @@ export function DiscoveryScreen() {
           <FlaskConical className="text-teal-400" />
           Rule Discovery ({symbol.replace("USDT", "/USDT")})
         </h2>
-        <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800 self-start sm:self-auto">
-          <span className="text-xs font-semibold text-gray-400 px-1">Coin:</span>
+        <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+          <span className="text-xs font-semibold text-slate-400 px-1">Coin:</span>
           {SYMBOL_OPTIONS.map((s) => (
             <button
               key={s.value}
               onClick={() => setSymbol(s.value)}
               className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
                 symbol === s.value
-                  ? "bg-teal-500 text-gray-950 shadow"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "bg-teal-500 text-slate-950 shadow"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {s.label}
@@ -113,7 +113,7 @@ export function DiscoveryScreen() {
         <button
           onClick={() => void handleEvaluate()}
           disabled={evaluating || rules.length === 0 || !adminUnlocked}
-          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 disabled:opacity-50"
+          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-50"
         >
           <Play className="w-3.5 h-3.5" />
           {evaluating ? "Đang chạy…" : "Evaluate"}
@@ -121,7 +121,7 @@ export function DiscoveryScreen() {
         <button
           onClick={() => void loadRules()}
           disabled={loading || !adminUnlocked}
-          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 disabled:opacity-50"
+          className="text-xs inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Làm mới
@@ -148,35 +148,35 @@ export function DiscoveryScreen() {
       {error && <div className="text-rose-400 text-xs break-words whitespace-pre-wrap">{error}</div>}
 
       {result && (
-        <div className="bg-gray-900/60 rounded-xl border border-teal-900/40 p-4 text-xs space-y-1">
+        <div className="bg-slate-900/60 rounded-xl border border-teal-900/40 p-4 text-xs space-y-1">
           <div className="text-teal-400 font-medium">Discovery OOS hoàn tất · chưa phải promotion</div>
-          <div className="text-gray-400">
+          <div className="text-slate-400">
             {result.method || "legacy/unversioned"} · {result.trialCount ?? "—"}/{result.candidateBudget ?? "—"} trials · {result.rejected ?? "—"} bị loại · {result.candidatesFound} survivor experimental
           </div>
-          <div className="text-gray-400">
+          <div className="text-slate-400">
             Selection: {formatInterval(result.selectionInterval)} · Held-out: {formatInterval(result.evaluationInterval)}
           </div>
-          <div className="text-gray-400">
+          <div className="text-slate-400">
             Label dead-zone {result.labelDeadZonePct?.toFixed(2) ?? "—"}% · execution cost {result.roundTripCostBps?.toFixed(0) ?? "—"} bps round-trip · survivor lưu ở trạng thái tắt
           </div>
         </div>
       )}
 
       {evalResult && (
-        <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-4 text-xs space-y-2">
+        <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-4 text-xs space-y-2">
           <div className="text-emerald-400 font-medium">Evaluate hiện tại</div>
-          <div className="text-gray-400">Signals khớp: {evalResult.signals?.length ?? 0}</div>
+          <div className="text-slate-400">Signals khớp: {evalResult.signals?.length ?? 0}</div>
           {(evalResult.signals ?? []).map((s: { ruleName: string; message: string }, i: number) => (
-            <div key={i} className="bg-gray-950 rounded-lg p-2 border border-gray-800">
+            <div key={i} className="bg-slate-950 rounded-lg p-2 border border-slate-800">
               <div className="text-teal-400 font-medium">{s.ruleName}</div>
-              <div className="text-gray-400">{s.message}</div>
+              <div className="text-slate-400">{s.message}</div>
             </div>
           ))}
         </div>
       )}
 
       {rules.length === 0 && !loading && (
-        <div className="text-gray-400 text-sm text-center py-8">
+        <div className="text-slate-400 text-sm text-center py-8">
           Chưa có rule tự động nào. Nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.
         </div>
       )}
@@ -198,11 +198,11 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
   const capability = normalizeCapability(rule.capabilityState);
 
   return (
-    <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-4 text-sm">
+    <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-4 text-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-gray-200">{rule.name}</span>
-          <span className="text-[11px] text-gray-400 bg-gray-950 px-1.5 py-0.5 rounded border border-gray-800">
+          <span className="font-medium text-slate-200">{rule.name}</span>
+          <span className="text-[11px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
             {rule.symbol} {rule.timeframe}
           </span>
           {rule.isAutoDiscovered && (
@@ -211,11 +211,11 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
             </span>
           )}
           <CapabilityStateBadge state={capability} />
-          <span className={`text-[10px] rounded border px-1.5 py-0.5 ${rule.isEnabled ? "border-rose-800 text-rose-300" : "border-gray-700 text-gray-400"}`}>
+          <span className={`text-[10px] rounded border px-1.5 py-0.5 ${rule.isEnabled ? "border-rose-800 text-rose-300" : "border-slate-700 text-slate-400"}`}>
             {rule.isEnabled ? "Đang phát alert" : "Tắt · không phát alert"}
           </span>
         </div>
-        <button onClick={() => setExpanded((v) => !v)} className="p-1 text-gray-400 hover:text-gray-300">
+        <button onClick={() => setExpanded((v) => !v)} className="p-1 text-slate-400 hover:text-slate-300">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
@@ -228,31 +228,31 @@ function DiscoveredRuleCard({ rule }: { rule: SequenceRule }) {
         </div>
       )}
       {expanded && (
-        <div className="mt-3 space-y-3 text-xs text-gray-400">
-          <div className="flex flex-wrap gap-3 text-gray-400">
+        <div className="mt-3 space-y-3 text-xs text-slate-400">
+          <div className="flex flex-wrap gap-3 text-slate-400">
             <span>Cooldown: {rule.cooldownMinutes} phút</span>
             <span>·</span>
             <span>Cần tối thiểu {rule.requiredBars} nến trong buffer</span>
           </div>
-          <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-3 space-y-1">
-            <div>Method: <span className="text-gray-300">{rule.methodVersion || "legacy/unversioned"}</span></div>
-            <div>Selection: <span className="text-gray-300">{formatMsRange(rule.selectionStartTimeMs, rule.selectionEndTimeMs)} · n={rule.selectionSampleCount ?? "—"}</span></div>
-            <div>Held-out: <span className="text-gray-300">{formatMsRange(rule.evaluationStartTimeMs, rule.evaluationEndTimeMs)} · n={rule.oosSampleCount ?? "—"}</span></div>
-            <div>OOS win: <span className="text-gray-300">{evidence.oosWinRate}</span> · Wilson 95% CI <span className="text-gray-300">{evidence.ci95}</span></div>
-            <div>Baseline: <span className="text-gray-300">{evidence.baselineWinRate}</span> · lift <span className="text-gray-300">{evidence.lift}</span></div>
-            <div>Net average sau chi phí: <span className="text-gray-300">{evidence.netAverage}</span> · cost {rule.roundTripCostBps?.toFixed(0) ?? "—"} bps</div>
-            {!evidence.hasOos && <div className="text-amber-300">Record cũ không có held-out evidence; chỉ dùng mô tả lịch sử.</div>}
+          <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 space-y-1">
+            <div>Method: <span className="text-slate-300">{rule.methodVersion || "legacy/unversioned"}</span></div>
+            <div>Selection: <span className="text-slate-300">{formatMsRange(rule.selectionStartTimeMs, rule.selectionEndTimeMs)} · n={rule.selectionSampleCount ?? "—"}</span></div>
+            <div>Held-out: <span className="text-slate-300">{formatMsRange(rule.evaluationStartTimeMs, rule.evaluationEndTimeMs)} · n={rule.oosSampleCount ?? "—"}</span></div>
+            <div>OOS win: <span className="text-slate-300">{evidence.oosWinRate}</span> · Wilson 95% CI <span className="text-slate-300">{evidence.ci95}</span></div>
+            <div>Baseline: <span className="text-slate-300">{evidence.baselineWinRate}</span> · lift <span className="text-slate-300">{evidence.lift}</span></div>
+            <div>Net average sau chi phí: <span className="text-slate-300">{evidence.netAverage}</span> · cost {rule.roundTripCostBps?.toFixed(0) ?? "—"} bps</div>
+            {!evidence.hasOos && <div className="text-slate-300">Record cũ không có held-out evidence; chỉ dùng mô tả lịch sử.</div>}
           </div>
           <RuleConditionsDisplay conditions={conditions} />
           <button
             type="button"
             onClick={() => setShowRawJson((v) => !v)}
-            className="text-[11px] text-gray-400 hover:text-gray-400 underline-offset-2 hover:underline"
+            className="text-[11px] text-slate-400 hover:text-slate-400 underline-offset-2 hover:underline"
           >
             {showRawJson ? "Ẩn JSON kỹ thuật" : "Xem JSON kỹ thuật"}
           </button>
           {showRawJson && (
-            <pre className="bg-gray-950 rounded-lg p-3 border border-gray-800 font-mono text-[10px] text-gray-400 overflow-x-auto">
+            <pre className="bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-[10px] text-slate-400 overflow-x-auto">
               {JSON.stringify(conditions, null, 2)}
             </pre>
           )}

@@ -12,45 +12,45 @@ const KIND_STYLE: Record<
   { border: string; bg: string; icon: string; Icon: typeof Activity }
 > = {
   volume: {
-    border: "border-violet-900/50",
-    bg: "bg-violet-950/30",
-    icon: "text-violet-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: Activity,
   },
   body: {
-    border: "border-amber-900/50",
-    bg: "bg-amber-950/30",
-    icon: "text-amber-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: BarChart3,
   },
   range: {
-    border: "border-cyan-900/50",
-    bg: "bg-cyan-950/30",
-    icon: "text-cyan-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: Layers,
   },
   shadow: {
-    border: "border-rose-900/50",
-    bg: "bg-rose-950/30",
-    icon: "text-rose-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: CandlestickChart,
   },
   close: {
-    border: "border-teal-900/50",
-    bg: "bg-teal-950/30",
-    icon: "text-teal-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: TrendingUp,
   },
   sequence: {
-    border: "border-indigo-900/50",
-    bg: "bg-indigo-950/30",
-    icon: "text-indigo-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: Zap,
   },
   other: {
-    border: "border-gray-800",
-    bg: "bg-gray-950",
-    icon: "text-gray-400",
+    border: "border-slate-800",
+    bg: "bg-slate-950",
+    icon: "text-slate-400",
     Icon: Layers,
   },
 };
@@ -67,7 +67,7 @@ function ConditionCard({ condition, index }: { condition: SequenceRuleCondition;
     >
       <div className="flex items-start gap-2.5">
         <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-950/80 border border-gray-800 text-xs font-semibold text-gray-400`}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-950/80 border border-slate-800 text-xs font-semibold text-slate-400`}
         >
           {index + 1}
         </span>
@@ -76,7 +76,7 @@ function ConditionCard({ condition, index }: { condition: SequenceRuleCondition;
         </div>
         <div className="min-w-0 flex-1 space-y-1">
           <div className={`text-xs font-semibold ${style.icon}`}>{title}</div>
-          <p className="text-sm text-gray-200 leading-snug">{detail}</p>
+          <p className="text-sm text-slate-200 leading-snug">{detail}</p>
         </div>
       </div>
     </div>
@@ -111,7 +111,7 @@ export function RuleConditionsDisplay({
           return (
             <span
               key={i}
-              className={`text-[11px] px-2 py-0.5 rounded-full border ${style.border} ${style.bg} text-gray-300`}
+              className={`text-[11px] px-2 py-0.5 rounded-full border ${style.border} ${style.bg} text-slate-300`}
               title={detail}
             >
               {short}
@@ -124,13 +124,13 @@ export function RuleConditionsDisplay({
 
   return (
     <div className={`space-y-2 ${className}`} role="list" aria-label="Điều kiện rule">
-      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-medium">
+      <p className="text-xs font-medium text-slate-400">
         Điều kiện (tất cả phải đúng cùng lúc)
       </p>
       {conditions.map((c, i) => (
         <ConditionCard key={i} condition={c} index={i} />
       ))}
-      <p className="text-[11px] text-gray-400 pl-1">
+      <p className="text-[11px] text-slate-400 pl-1">
         Khi khớp, hệ thống so giá sau các nến tiếp theo (theo mô tả rule) với lịch sử đã quét.
       </p>
     </div>

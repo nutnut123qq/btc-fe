@@ -2,11 +2,11 @@ import { CAPABILITY_LABELS } from "@/lib/researchUi";
 import type { CapabilityState } from "@/lib/types";
 
 const TONES: Record<CapabilityState, string> = {
-  descriptive: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  descriptive: "border-slate-500/30 bg-slate-500/10 text-slate-300",
   experimental: "border-amber-400/30 bg-amber-400/10 text-amber-300",
   validated: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
   "forward-observed": "border-teal-400/30 bg-teal-400/10 text-teal-300",
-  retired: "border-gray-500/30 bg-gray-500/10 text-gray-400",
+  retired: "border-slate-500/30 bg-slate-500/10 text-slate-400",
 };
 
 export function CapabilityStateBadge({ state }: { state: CapabilityState }) {

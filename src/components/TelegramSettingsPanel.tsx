@@ -49,14 +49,14 @@ export function TelegramSettingsPanel({
   };
 
   if (loading) {
-    return <div className="text-sm text-gray-400 py-4">Đang tải cấu hình Telegram...</div>;
+    return <div className="text-sm text-slate-400 py-4">Đang tải cấu hình Telegram...</div>;
   }
 
   return (
-    <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-5 space-y-4">
+    <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-md font-semibold flex items-center gap-2 text-gray-200">
-          <MessageCircle className="w-5 h-5 text-blue-400" />
+        <h3 className="text-md font-semibold flex items-center gap-2 text-slate-200">
+          <MessageCircle className="w-5 h-5 text-slate-400" />
           Cấu hình Telegram Bot
         </h3>
         <div className="flex items-center gap-2">
@@ -66,25 +66,25 @@ export function TelegramSettingsPanel({
               Đã cấu hình
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-500/20 text-gray-400">
+            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-500/20 text-slate-400">
               <XCircle className="w-3.5 h-3.5" />
               Chưa cấu hình
             </span>
           )}
           {enabled && (
-            <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 font-medium">
+            <span className="text-xs px-2 py-1 rounded-full bg-teal-500/20 text-teal-400 font-medium">
               Đang bật
             </span>
           )}
         </div>
       </div>
 
-      <div className="text-sm text-gray-400 space-y-2">
+      <div className="text-sm text-slate-400 space-y-2">
         <p>
           Bot Telegram dùng để gửi cảnh báo giá, tín hiệu ML và paper trading trực tiếp tới điện thoại của bạn.
         </p>
-        <p className="text-xs text-gray-400">
-          Lưu ý: Token và Chat ID được cấu hình trong <code className="bg-gray-800 px-1 py-0.5 rounded text-gray-300">appsettings.json</code> ở backend để đảm bảo bảo mật. Frontend chỉ dùng để xem trạng thái và gửi tin nhắn test.
+        <p className="text-xs text-slate-400">
+          Lưu ý: Token và Chat ID được cấu hình trong <code className="bg-slate-800 px-1 py-0.5 rounded text-slate-300">appsettings.json</code> ở backend để đảm bảo bảo mật. Frontend chỉ dùng để xem trạng thái và gửi tin nhắn test.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export function TelegramSettingsPanel({
         <button
           onClick={() => void handleTest()}
           disabled={!configured || testing || !adminUnlocked || !contractCompatible}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-400 text-white text-sm font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:bg-slate-700 disabled:text-slate-400 text-white text-sm font-medium transition-colors flex items-center gap-2"
         >
           <Send className="w-4 h-4" />
           {testing ? "Đang gửi..." : "Gửi tin nhắn Test"}

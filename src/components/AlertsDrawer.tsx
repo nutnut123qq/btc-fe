@@ -74,11 +74,11 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-gray-900 border-l border-gray-800 h-full flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+      <div className="relative w-full max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-teal-400" />
-            <span className="font-semibold text-gray-200">Thông báo</span>
+            <span className="font-semibold text-slate-200">Thông báo</span>
             {unread > 0 && (
               <span className="text-xs bg-teal-600 text-white px-1.5 py-0.5 rounded-full">
                 {unread}
@@ -102,7 +102,7 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 Xóa tất cả
               </button>
             )}
-            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-300">
+            <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-300">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -114,14 +114,14 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               <p className="text-rose-400 text-sm text-center px-4">{error}</p>
               <button
                 onClick={() => void fetchAlerts()}
-                className="px-3 py-1.5 rounded bg-gray-800 text-sm hover:bg-gray-700"
+                className="px-3 py-1.5 rounded bg-slate-800 text-sm hover:bg-slate-700"
               >
                 Thử lại
               </button>
             </div>
           )}
           {!error && alerts.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm text-center px-6">
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-sm text-center px-6">
               <Bell className="w-10 h-10 mb-3 opacity-30" />
               <p>Chưa có thông báo. Bật cảnh báo và đặt ngưỡng trong tab Cảnh báo.</p>
             </div>
@@ -133,20 +133,20 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 key={a.id}
                 className={`rounded-lg border px-3 py-2.5 text-sm ${
                   a.isRead
-                    ? "border-gray-800 bg-gray-950/50 text-gray-400"
-                    : "border-teal-900/40 bg-teal-950/15 text-gray-200"
+                    ? "border-slate-800 bg-slate-950/50 text-slate-400"
+                    : "border-teal-900/40 bg-teal-950/15 text-slate-200"
                 }`}
               >
-                <div className="font-semibold text-gray-100 text-sm">{a.title}</div>
-                <p className="mt-1 text-gray-400 text-xs leading-relaxed">{a.message}</p>
-                <div className="mt-2 rounded border border-gray-800 bg-gray-950/60 p-2 text-[10px] leading-relaxed text-gray-400">
-                  <div className={evidence.predictive ? "text-emerald-300" : "text-sky-300"}>{evidence.kindLabel}</div>
+                <div className="font-semibold text-slate-100 text-sm">{a.title}</div>
+                <p className="mt-1 text-slate-400 text-xs leading-relaxed">{a.message}</p>
+                <div className="mt-2 rounded border border-slate-800 bg-slate-950/60 p-2 text-[10px] leading-relaxed text-slate-400">
+                  <div className={evidence.predictive ? "text-emerald-300" : "text-slate-300"}>{evidence.kindLabel}</div>
                   <div>Available: {formatEvidenceTime(a.availableTimeMs)}</div>
                   <div>Provenance: <span className="font-mono">{a.provenance || "legacy/unavailable"}</span></div>
-                  <div className={a.deliveryStatus === "failed-at-most-once" ? "text-amber-300" : ""}>{evidence.deliveryLabel}</div>
+                  <div className={a.deliveryStatus === "failed-at-most-once" ? "text-rose-300" : ""}>{evidence.deliveryLabel}</div>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] text-slate-400">
                     {new Date(a.createdAt).toLocaleString()}
                   </span>
                   <div className="flex items-center gap-2">

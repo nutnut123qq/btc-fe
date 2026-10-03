@@ -30,18 +30,18 @@ function StatCell({
 }) {
   const tones = {
     emerald: "border-emerald-900/40 bg-emerald-950/25 text-emerald-400",
-    amber: "border-amber-900/40 bg-amber-950/25 text-amber-400",
-    gray: "border-gray-800 bg-gray-950/60 text-gray-300",
-    sky: "border-sky-900/40 bg-sky-950/25 text-sky-400",
+    amber: "border-slate-800 bg-slate-950/60 text-slate-300",
+    gray: "border-slate-800 bg-slate-950/60 text-slate-300",
+    sky: "border-slate-800 bg-slate-950/60 text-slate-300",
   };
   return (
     <div className={`rounded-lg border px-2.5 py-2 min-w-[4.5rem] ${tones[tone]}`}>
-      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">
+      <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400 mb-0.5">
         <Icon className="w-3 h-3 shrink-0 opacity-70" aria-hidden />
         {label}
       </div>
-      <div className="text-sm font-semibold text-gray-100 tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
+      <div className="text-sm font-semibold text-slate-100 tabular-nums">{value}</div>
+      {sub && <div className="text-[10px] text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -55,7 +55,7 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
 
   return (
     <div
-      className={`rounded-lg border border-gray-800/80 bg-gray-950/50 p-3 space-y-2.5 ${className}`}
+      className={`rounded-lg border border-slate-800/80 bg-slate-950/50 p-3 space-y-2.5 ${className}`}
     >
       <div className="flex items-start gap-2">
         <FlaskConical className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" aria-hidden />
@@ -63,18 +63,18 @@ export function RuleDiscoverySummary({ rule, className = "" }: RuleDiscoverySumm
           <p className="text-xs font-medium text-teal-400/90">
             {evidence.hasOos ? "Selection lịch sử + held-out evaluation" : "Mô tả lịch sử · thiếu held-out evidence"}
           </p>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Khi setup <span className="text-gray-200 font-medium">{rule.name}</span> khớp trên một
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Khi setup <span className="text-slate-200 font-medium">{rule.name}</span> khớp trên một
             nến, hệ thống đã thống kê giá BTC{" "}
-            <span className="text-gray-300">{horizon}</span> trong quá khứ.
+            <span className="text-slate-300">{horizon}</span> trong quá khứ.
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-gray-400 pl-6">
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pl-6">
         <Clock className="w-3 h-3 shrink-0" aria-hidden />
         <span>
-          Cửa sổ đo lường: <strong className="text-gray-400 font-normal">{futureBars} nến</strong>{" "}
+          Cửa sổ đo lường: <strong className="text-slate-400 font-normal">{futureBars} nến</strong>{" "}
           tiếp theo · dead-zone {rule.labelDeadZonePct?.toFixed(2) ?? "chưa khai báo"}% · cost {rule.roundTripCostBps?.toFixed(0) ?? "chưa khai báo"} bps
         </span>
       </div>

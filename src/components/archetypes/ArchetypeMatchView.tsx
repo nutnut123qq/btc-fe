@@ -22,14 +22,14 @@ export function ArchetypeMatchView({
   onMatch,
 }: ArchetypeMatchViewProps) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
       <div className="flex items-end gap-4 mb-6">
         <div>
-          <label className="text-xs text-gray-400 block mb-1">Timeframe</label>
+          <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
           <select
             value={timeframe}
             onChange={(e) => onTimeframeChange(e.target.value)}
-            className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm"
+            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm"
           >
             {timeframeOptions.map((tf) => (
               <option key={tf} value={tf}>
@@ -41,7 +41,7 @@ export function ArchetypeMatchView({
         <button
           onClick={onMatch}
           disabled={loading}
-          className="bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700 text-white font-medium rounded-lg px-4 py-2 text-sm flex items-center gap-2"
+          className="bg-teal-600 hover:bg-teal-500 disabled:bg-slate-700 text-white font-medium rounded-lg px-4 py-2 text-sm flex items-center gap-2"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Match
@@ -57,9 +57,9 @@ export function ArchetypeMatchView({
           {matchData.map((m, i) => (
             <div
               key={i}
-              className="bg-gray-950 border border-gray-800 rounded-xl p-4"
+              className="bg-slate-950 border border-slate-800 rounded-xl p-4"
             >
-              <div className="text-sm font-medium mb-2 text-gray-300">
+              <div className="text-sm font-medium mb-2 text-slate-300">
                 Window {m.windowSize}
               </div>
               {m.archetype ? (
@@ -67,18 +67,18 @@ export function ArchetypeMatchView({
                   <div className="text-teal-400 font-mono text-lg mb-2">
                     {m.archetype.archetypeCode}
                   </div>
-                  <div className="h-16 bg-gray-900 rounded p-1 mb-3">
+                  <div className="h-16 bg-slate-900 rounded p-1 mb-3">
                     {m.archetype.representativeOhlc && (
                       <ArchetypeGlyph bars={m.archetype.representativeOhlc} />
                     )}
                   </div>
-                  <div className="text-xs text-gray-400 mb-1">Độ tương đồng</div>
+                  <div className="text-xs text-slate-400 mb-1">Độ tương đồng</div>
                   <div
                     className={`text-sm font-bold mb-3 ${
                       m.similarity > 0.8
                         ? "text-emerald-400"
                         : m.similarity > 0.6
-                        ? "text-amber-400"
+                        ? "text-slate-400"
                         : "text-rose-400"
                     }`}
                   >
@@ -86,12 +86,12 @@ export function ArchetypeMatchView({
                   </div>
                 </>
               ) : (
-                <div className="py-8 text-center text-gray-400">— Không khớp —</div>
+                <div className="py-8 text-center text-slate-400">— Không khớp —</div>
               )}
             </div>
           ))}
           {matchData.length === 0 && (
-            <div className="md:col-span-2 lg:col-span-4 py-8 text-center text-gray-400">
+            <div className="md:col-span-2 lg:col-span-4 py-8 text-center text-slate-400">
               Không có kết quả khớp cho cấu hình này
             </div>
           )}

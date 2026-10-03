@@ -281,7 +281,7 @@ export function ChartPanel({
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               timeframe === tf
                 ? "bg-teal-600 border-teal-500 text-white"
-                : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
+                : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
             }`}
           >
             {tf}
@@ -300,18 +300,18 @@ export function ChartPanel({
         <button
           onClick={() => void runIndexPatterns()}
           disabled={indexing || !adminUnlocked}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-50"
         >
           <Database className="w-3 h-3" />
           {indexing ? "Indexing…" : "Index patterns"}
         </button>
 
         {/* Overlay Layer Toggles */}
-        <div className="flex items-center gap-1.5 ml-auto border-l border-gray-800 pl-3">
+        <div className="flex items-center gap-1.5 ml-auto border-l border-slate-800 pl-3">
           <button
             onClick={() => setShowHeikinAshi((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showHeikinAshi ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
+              showHeikinAshi ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
             Nến Heikin-Ashi
@@ -319,7 +319,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowFibonacci((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showFibonacci ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
+              showFibonacci ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
             Fibonacci (GP)
@@ -327,7 +327,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowPatterns((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
+              showPatterns ? "bg-teal-500/20 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
             Mẫu nến
@@ -335,7 +335,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowSmc((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showSmc ? "bg-purple-500/20 text-purple-300 border-purple-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
+              showSmc ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
             SMC / FVG
@@ -343,7 +343,7 @@ export function ChartPanel({
           <button
             onClick={() => setShowVpvr((v) => !v)}
             className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-              showVpvr ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-gray-900 text-gray-400 border-gray-800"
+              showVpvr ? "bg-teal-500/15 text-teal-300 border-teal-500/40" : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
             VPVR
@@ -352,7 +352,7 @@ export function ChartPanel({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-gray-400">Kiểu đặc trưng</p>
+        <p className="text-xs text-slate-400">Kiểu đặc trưng</p>
         <div className="flex flex-wrap gap-2">
           {FEATURE_TYPES.map((ft) => (
             <button
@@ -360,8 +360,8 @@ export function ChartPanel({
               onClick={() => setSelectedFeature(ft.value)}
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 selectedFeature === ft.value
-                  ? "bg-gray-700 border-gray-600 text-gray-200"
-                  : "bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600"
+                  ? "bg-slate-700 border-slate-600 text-slate-200"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
               }`}
             >
               {ft.label}
@@ -371,7 +371,7 @@ export function ChartPanel({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-gray-400">Cửa sổ nến</p>
+        <p className="text-xs text-slate-400">Cửa sổ nến</p>
         <div className="flex flex-wrap gap-2">
           {WINDOW_SIZES.map((ws) => (
             <button
@@ -379,8 +379,8 @@ export function ChartPanel({
               onClick={() => setSelectedWindowSize(ws)}
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 selectedWindowSize === ws
-                  ? "bg-gray-700 border-gray-600 text-gray-200"
-                  : "bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600"
+                  ? "bg-slate-700 border-slate-600 text-slate-200"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
               }`}
             >
               {ws}
@@ -390,7 +390,7 @@ export function ChartPanel({
       </div>
 
       {/* Status bar */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 bg-gray-900/60 border border-gray-800 rounded-lg px-3 py-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
         <span>TF: {timeframe}</span>
         <span>Candles: {candles.length}</span>
         {candles.length > 0 && (
@@ -405,12 +405,12 @@ export function ChartPanel({
           </span>
         )}
         {indexing && (
-          <span className="inline-flex items-center gap-1 text-indigo-400">
+          <span className="inline-flex items-center gap-1 text-teal-400">
             <RefreshCw className="w-3 h-3 animate-spin" /> Indexing patterns…
           </span>
         )}
         {indexResult && (
-          <span className="text-indigo-300">
+          <span className="text-teal-300">
             Indexed {indexResult.indexed} patterns ({indexResult.durationMs}ms)
           </span>
         )}
@@ -420,7 +420,7 @@ export function ChartPanel({
       {/* Chart */}
       <div className="w-full">
         {status === "loading" && (
-          <div className="h-[440px] flex items-center justify-center text-gray-400">
+          <div className="h-[440px] flex items-center justify-center text-slate-400">
             <RefreshCw className="animate-spin w-8 h-8 mr-2" /> Đang tải biểu đồ…
           </div>
         )}
@@ -442,7 +442,7 @@ export function ChartPanel({
           />
         )}
         {status !== "loading" && status !== "error" && candles.length === 0 && (
-          <div className="h-[440px] flex items-center justify-center text-gray-400">Không có dữ liệu nến.</div>
+          <div className="h-[440px] flex items-center justify-center text-slate-400">Không có dữ liệu nến.</div>
         )}
       </div>
 
@@ -451,15 +451,15 @@ export function ChartPanel({
         {searchLoading && (
           <div className="space-y-2">
             <p className="text-sm text-teal-400">Đang tìm cửa sổ tương tự…</p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-slate-400">
               feature={selectedFeature} · {timeframe} · {symbol}
             </p>
-            <div className="h-2 bg-gray-800 rounded overflow-hidden">
+            <div className="h-2 bg-slate-800 rounded overflow-hidden">
               <div className="h-full bg-teal-600 animate-pulse w-2/3" />
             </div>
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-12 bg-gray-900 rounded border border-gray-800 animate-pulse" />
+                <div key={i} className="h-12 bg-slate-900 rounded border border-slate-800 animate-pulse" />
               ))}
             </div>
           </div>
@@ -481,13 +481,13 @@ export function ChartPanel({
         {!searchLoading && !searchError && searchResults.length > 0 && (
           <div className="space-y-2">
             {searchMeta && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 feature={searchMeta.featureType} | scanned={searchMeta.scannedWindows} | latency={searchMeta.latencyMs}ms | store=
                 {searchMeta.fromVectorStore ? "db" : "fallback"}
               </p>
             )}
-            <p className="text-sm font-medium text-gray-200">Cửa sổ tương tự (top {searchResults.length})</p>
-            <p className="text-xs text-gray-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
+            <p className="text-sm font-medium text-slate-200">Cửa sổ tương tự (top {searchResults.length})</p>
+            <p className="text-xs text-slate-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {searchResults.map((r) => (
                 <button
@@ -496,13 +496,13 @@ export function ChartPanel({
                   className={`text-left rounded-lg border px-3 py-2 text-xs transition-colors ${
                     highlightWindow?.startTimeMs === r.startTimeMs
                       ? "border-teal-500 bg-teal-950/20"
-                      : "border-gray-800 bg-gray-900 hover:border-gray-600"
+                      : "border-slate-800 bg-slate-900 hover:border-slate-600"
                   }`}
                 >
-                  <div className="font-medium text-gray-200">
+                  <div className="font-medium text-slate-200">
                     {r.windowId} — score={r.similarity.toFixed(3)}
                   </div>
-                  <div className="text-gray-400 mt-0.5">
+                  <div className="text-slate-400 mt-0.5">
                     {new Date(r.startTimeMs).toLocaleString()} →{" "}
                     {new Date(r.endTimeMs).toLocaleTimeString()}
                   </div>
@@ -513,25 +513,25 @@ export function ChartPanel({
         )}
 
         {!searchLoading && !searchError && searchResults.length === 0 && !searchMeta && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-400">
             Chưa có kết quả. Chọn kiểu đặc trưng, rồi bấm Search pattern.
           </p>
         )}
         {!searchLoading && !searchError && searchResults.length === 0 && searchMeta && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-400">
             Không tìm thấy cửa sổ tương tự (scanned={searchMeta.scannedWindows}, store={searchMeta.fromVectorStore ? "db" : "fallback"}).
           </p>
         )}
       </div>
 
       {/* Pattern type search */}
-      <div className="space-y-2 border-t border-gray-800 pt-3">
-        <p className="text-xs text-gray-400">Tìm window theo loại nến</p>
+      <div className="space-y-2 border-t border-slate-800 pt-3">
+        <p className="text-xs text-slate-400">Tìm window theo loại nến</p>
         <div className="flex flex-wrap gap-2 items-center">
           <select
             value={selectedPatternType}
             onChange={(e) => setSelectedPatternType(e.target.value)}
-            className="bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
+            className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
           >
             {PATTERN_TYPES.map((pt) => (
               <option key={pt.value} value={pt.value}>
@@ -542,7 +542,7 @@ export function ChartPanel({
           <button
             onClick={() => void runPatternTypeSearch()}
             disabled={patternSearchLoading}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-600 text-white hover:bg-amber-500 disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-50"
           >
             <CandlestickChart className="w-3 h-3" />
             {patternSearchLoading ? "Searching…" : "Tìm window"}
@@ -551,10 +551,10 @@ export function ChartPanel({
 
         {patternSearchLoading && (
           <div className="space-y-2">
-            <p className="text-sm text-amber-400">Đang tìm các vùng {selectedPatternType}…</p>
+            <p className="text-sm text-teal-400">Đang tìm các vùng {selectedPatternType}…</p>
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-12 bg-gray-900 rounded border border-gray-800 animate-pulse" />
+                <div key={i} className="h-12 bg-slate-900 rounded border border-slate-800 animate-pulse" />
               ))}
             </div>
           </div>
@@ -576,14 +576,14 @@ export function ChartPanel({
         {!patternSearchLoading && !patternSearchError && patternSearchResults.length > 0 && (
           <div className="space-y-2">
             {patternSearchMeta && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 pattern={patternSearchMeta.patternType} | total={patternSearchMeta.total} | page={patternSearchMeta.page}
               </p>
             )}
-            <p className="text-sm font-medium text-gray-200">
+            <p className="text-sm font-medium text-slate-200">
               Các vùng {PATTERN_TYPES.find((p) => p.value === selectedPatternType)?.label ?? selectedPatternType}
             </p>
-            <p className="text-xs text-gray-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
+            <p className="text-xs text-slate-400">Chạm một dòng để đưa biểu đồ tới vùng nến đó.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
               {patternSearchResults.map((r) => {
                 const window = patternWindowFor(r);
@@ -593,14 +593,14 @@ export function ChartPanel({
                     onClick={() => void focusPatternWindow(r)}
                     className={`text-left rounded-lg border px-3 py-2 text-xs transition-colors ${
                       highlightWindow?.startTimeMs === window.startTimeMs
-                        ? "border-amber-500 bg-amber-950/20"
-                        : "border-gray-800 bg-gray-900 hover:border-gray-600"
+                        ? "border-teal-500 bg-teal-950/20"
+                        : "border-slate-800 bg-slate-900 hover:border-slate-600"
                     }`}
                   >
-                    <div className="font-medium text-gray-200">
+                    <div className="font-medium text-slate-200">
                       {r.patternType} — {r.trendDirection}
                     </div>
-                    <div className="text-gray-400 mt-0.5">
+                    <div className="text-slate-400 mt-0.5">
                       {new Date(window.startTimeMs).toLocaleString()} →{" "}
                       {new Date(window.endTimeMs).toLocaleTimeString()}
                     </div>
@@ -612,7 +612,7 @@ export function ChartPanel({
         )}
 
         {!patternSearchLoading && !patternSearchError && patternSearchResults.length === 0 && patternSearchMeta && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-400">
             Không tìm thấy vùng nến {selectedPatternType} nào.
           </p>
         )}

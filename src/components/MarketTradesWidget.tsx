@@ -85,36 +85,36 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
   }, []);
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
       {/* Widget Header */}
-      <div className="p-3 border-b border-gray-800 flex items-center justify-between bg-gray-900/90">
+      <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
         <div className="flex items-center gap-2">
-          <ArrowDownUp className="w-4 h-4 text-cyan-400" />
-          <h3 className="font-bold text-xs text-gray-100 uppercase tracking-wider">
+          <ArrowDownUp className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-semibold text-slate-200">
             Lịch sử khớp lệnh (Market Trades)
           </h3>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+        <div className="flex items-center gap-1.5 text-xs text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
           <Radio className="w-2.5 h-2.5 animate-pulse" />
           <span>Realtime 60FPS</span>
         </div>
       </div>
 
       {/* Table Column Headers */}
-      <div className="grid grid-cols-12 px-3 py-1.5 text-[10px] font-semibold text-gray-400 border-b border-gray-800/60 bg-gray-950/60">
+      <div className="grid grid-cols-12 px-3 py-1.5 text-[10px] font-semibold text-slate-400 border-b border-slate-800/60 bg-slate-950/60">
         <div className="col-span-4">Giá (USDT)</div>
         <div className="col-span-4 text-right">Số lượng</div>
         <div className="col-span-4 text-right">Thời gian</div>
       </div>
 
       {/* Trades List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-gray-800/20 max-h-[380px] min-h-[220px]">
+      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/20 max-h-[380px] min-h-[220px]">
         {loading && trades.length === 0 ? (
-          <div className="p-6 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+          <div className="p-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" /> Đang cập nhật khớp lệnh...
           </div>
         ) : trades.length === 0 ? (
-          <div className="p-6 text-center text-xs text-gray-400">
+          <div className="p-6 text-center text-xs text-slate-400">
             Chưa có dữ liệu khớp lệnh
           </div>
         ) : (
@@ -123,7 +123,7 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
             return (
               <div
                 key={trade.id}
-                className="grid grid-cols-12 px-3 py-1 text-xs items-center hover:bg-gray-800/40 transition-colors font-mono"
+                className="grid grid-cols-12 px-3 py-1 text-xs items-center hover:bg-slate-800/40 transition-colors font-mono"
               >
                 {/* Price */}
                 <div className={`col-span-4 font-semibold ${isBuy ? "text-emerald-400" : "text-rose-400"}`}>
@@ -131,12 +131,12 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
                 </div>
 
                 {/* Amount / Qty */}
-                <div className="col-span-4 text-right text-gray-200">
+                <div className="col-span-4 text-right text-slate-200">
                   {formatQty(trade.qty)}
                 </div>
 
                 {/* Time */}
-                <div className="col-span-4 text-right text-gray-400 text-[11px]">
+                <div className="col-span-4 text-right text-slate-400 text-[11px]">
                   {formatTime(trade.timeMs)}
                 </div>
               </div>

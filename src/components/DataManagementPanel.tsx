@@ -40,8 +40,8 @@ function ageLabel(seconds: number | null): string {
 
 function gapStatusClass(status: KlineGapAuditItem["status"]): string {
   if (status === "Unavailable") return "text-rose-300 bg-rose-950/40 border-rose-900";
-  if (status === "Pending") return "text-amber-300 bg-amber-950/40 border-amber-900";
-  return "text-gray-400 bg-gray-900 border-gray-800";
+  if (status === "Pending") return "text-slate-300 bg-slate-900/40 border-slate-800";
+  return "text-slate-400 bg-slate-900 border-slate-800";
 }
 
 export function DataManagementPanel({
@@ -187,18 +187,18 @@ export function DataManagementPanel({
   ) ?? [];
 
   return (
-    <div className="space-y-4 bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg text-xs">
+    <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
             <Database className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-100 uppercase tracking-wide">
+            <h3 className="font-bold text-slate-100">
               Lab · Quản Trị Dữ Liệu & Kiểm Toán Indexer
             </h3>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-slate-400">
               Kiểm tra độ đầy đủ nến, phát hiện gaps, chạy backfill và rebuild các pipeline đặc trưng AI
             </p>
           </div>
@@ -212,7 +212,7 @@ export function DataManagementPanel({
               setAuditData(null);
               setAuditError(null);
             }}
-            className="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1 text-gray-200 font-bold"
+            className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 font-bold"
           >
             <option value="BTCUSDT">BTC/USDT</option>
           </select>
@@ -220,7 +220,7 @@ export function DataManagementPanel({
           <select
             value={selectedTf}
             onChange={(e) => setSelectedTf(e.target.value as ActiveTimeframe)}
-            className="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1 text-gray-200"
+            className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200"
           >
             {ACTIVE_TIMEFRAMES.map((timeframe) => (
               <option key={timeframe} value={timeframe}>{timeframe}</option>
@@ -230,7 +230,7 @@ export function DataManagementPanel({
           <button
             onClick={() => void loadAudit()}
             disabled={loading}
-            className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
             title="Làm mới báo cáo audit"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-teal-400" : ""}`} />
@@ -248,7 +248,7 @@ export function DataManagementPanel({
           }`}
         >
           <span>{message.text}</span>
-          <button onClick={() => setMessage(null)} className="text-gray-400 hover:text-gray-200 text-[10px]">
+          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-slate-200 text-[10px]">
             Đóng
           </button>
         </div>
@@ -256,15 +256,15 @@ export function DataManagementPanel({
 
       {/* Section 1: Data Audit Table */}
       <div className="space-y-2">
-        <h4 className="font-bold text-gray-200 flex items-center gap-1.5 text-xs">
+        <h4 className="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
           <FileSearch className="w-3.5 h-3.5 text-teal-400" />
           Báo Cáo Kiểm Toán Nến & Độ Phủ Dữ Liệu ({selectedSymbol})
         </h4>
 
         {loading ? (
-          <div className="space-y-2 border border-gray-800 rounded-lg p-3" role="status" aria-label="Đang tải Data Audit">
+          <div className="space-y-2 border border-slate-800 rounded-lg p-3" role="status" aria-label="Đang tải Data Audit">
             {[0, 1, 2].map((row) => (
-              <div key={row} className="h-8 rounded bg-gray-800/60 animate-pulse" />
+              <div key={row} className="h-8 rounded bg-slate-800/60 animate-pulse" />
             ))}
           </div>
         ) : auditError ? (
@@ -272,9 +272,9 @@ export function DataManagementPanel({
             {auditError}
           </div>
         ) : auditData ? (
-          <div className="overflow-x-auto border border-gray-800 rounded-lg">
+          <div className="overflow-x-auto border border-slate-800 rounded-lg">
             <table className="w-full text-left font-mono text-[11px]">
-              <thead className="bg-gray-950 text-gray-400 border-b border-gray-800">
+              <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
                 <tr>
                   <th className="p-2">Khung (TF)</th>
                   <th className="p-2 text-right">Tổng số nến</th>
@@ -289,23 +289,23 @@ export function DataManagementPanel({
                   <th className="p-2 text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/50">
+              <tbody className="divide-y divide-slate-800/50">
                 {auditData.timeframes?.map((tf) => {
                   const active = isActiveTimeframe(tf.timeframe);
                   return (
-                  <tr key={tf.timeframe} className={active ? "hover:bg-gray-800/30" : "bg-gray-950/40 text-gray-400"}>
-                    <td className="p-2 font-bold text-gray-200">
+                  <tr key={tf.timeframe} className={active ? "hover:bg-slate-800/30" : "bg-slate-950/40 text-slate-400"}>
+                    <td className="p-2 font-bold text-slate-200">
                       {tf.timeframe}
-                      {!active && <span className="ml-1 text-[9px] font-normal text-gray-400">lịch sử</span>}
+                      {!active && <span className="ml-1 text-[9px] font-normal text-slate-400">lịch sử</span>}
                     </td>
-                    <td className="p-2 text-right text-gray-300">{tf.totalKlines?.toLocaleString()}</td>
+                    <td className="p-2 text-right text-slate-300">{tf.totalKlines?.toLocaleString()}</td>
                     <td className={`p-2 text-right ${tf.missingBars > 0 ? "text-amber-400" : "text-emerald-400"}`}>
                       {tf.missingBars.toLocaleString()}
                     </td>
-                    <td className="p-2 text-right text-gray-300">{tf.gapRangeCount.toLocaleString()}</td>
-                    <td className="p-2 text-right text-amber-300">{tf.pendingGapCount}</td>
+                    <td className="p-2 text-right text-slate-300">{tf.gapRangeCount.toLocaleString()}</td>
+                    <td className="p-2 text-right text-slate-300">{tf.pendingGapCount}</td>
                     <td className="p-2 text-right text-rose-300">{tf.unavailableGapCount}</td>
-                    <td className={`p-2 text-right font-semibold ${tf.gapLedgerStatus === "Reconciled" ? "text-emerald-400" : "text-amber-300"}`}>
+                    <td className={`p-2 text-right font-semibold ${tf.gapLedgerStatus === "Reconciled" ? "text-emerald-400" : "text-slate-300"}`}>
                       {tf.gapLedgerStatus === "Reconciled" ? "Đã đối soát" : "Tính trực tiếp · suy giảm"}
                     </td>
                     <td className="p-2 text-right">
@@ -314,15 +314,15 @@ export function DataManagementPanel({
                           tf.dataCoveragePct >= 99
                             ? "text-emerald-400 font-bold"
                             : tf.dataCoveragePct >= 95
-                            ? "text-amber-400"
+                            ? "text-slate-400"
                             : "text-rose-400"
                         }
                       >
                         {tf.dataCoveragePct?.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="p-2 text-right text-gray-400">{ageLabel(tf.latestCandleAgeSeconds)}</td>
-                    <td className="p-2 text-right text-gray-400">
+                    <td className="p-2 text-right text-slate-400">{ageLabel(tf.latestCandleAgeSeconds)}</td>
+                    <td className="p-2 text-right text-slate-400">
                       {tf.candlePatterns == null
                         ? "Chưa tải (fast audit)"
                         : `${tf.candlePatterns.toLocaleString()} patterns · ${tf.technicalIndicators?.toLocaleString() ?? "--"} indicators`}
@@ -345,8 +345,8 @@ export function DataManagementPanel({
                 })}
               </tbody>
             </table>
-            <div className="border-t border-gray-800 bg-gray-950/50 p-2">
-              <div className="mb-2 text-[10px] text-gray-400">
+            <div className="border-t border-slate-800 bg-slate-950/50 p-2">
+              <div className="mb-2 text-[10px] text-slate-400">
                 Top gaps đã phân loại. Unavailable vẫn là dữ liệu thiếu; retry chỉ đặt lại lịch thử, không đánh dấu đã lấp.
               </div>
               <div className="space-y-1.5">
@@ -372,22 +372,22 @@ export function DataManagementPanel({
                 ))}
               </div>
             </div>
-            <div className="border-t border-gray-800 bg-gray-950/70 p-3 space-y-2">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Chất lượng nến & lineage derived</div>
+            <div className="border-t border-slate-800 bg-slate-950/70 p-3 space-y-2">
+              <div className="text-[10px] font-semibold text-slate-400">Chất lượng nến & lineage derived</div>
               <div className="grid gap-2 md:grid-cols-3">
                 {auditData.timeframes.map((tf) => (
-                  <div key={`quality-${tf.timeframe}`} className="rounded border border-gray-800 bg-gray-900/50 p-2 text-[10px] text-gray-400">
-                    <div className="font-bold text-gray-300">{tf.timeframe}</div>
+                  <div key={`quality-${tf.timeframe}`} className="rounded border border-slate-800 bg-slate-900/50 p-2 text-[10px] text-slate-400">
+                    <div className="font-bold text-slate-300">{tf.timeframe}</div>
                     {tf.quality ? (
                       <>
                         <div>Finalized {tf.quality.finalizedRows.toLocaleString()} · forming {tf.quality.formingRows.toLocaleString()}</div>
                         <div className={tf.quality.invalidOhlcvRows || tf.quality.invalidDurationRows || tf.quality.duplicateOpenTimeRows ? "text-rose-300" : "text-emerald-400"}>
                           OHLCV lỗi {tf.quality.invalidOhlcvRows.toLocaleString()} · duration lỗi {tf.quality.invalidDurationRows.toLocaleString()} · duplicate {tf.quality.duplicateOpenTimeRows.toLocaleString()}
                         </div>
-                        <div className={tf.quality.isStale ? "text-amber-300" : "text-gray-400"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
+                        <div className={tf.quality.isStale ? "text-amber-300" : "text-slate-400"}>Finalized age {ageLabel(tf.quality.latestFinalizedAgeSeconds)}{tf.quality.isStale ? " · stale" : ""}</div>
                       </>
                     ) : <div className="text-amber-300">Backend cũ: chưa có quality audit</div>}
-                    <div className="mt-1 border-t border-gray-800 pt-1">
+                    <div className="mt-1 border-t border-slate-800 pt-1">
                       {(tf.derivedTables ?? []).length > 0
                         ? (tf.derivedTables ?? []).map((table) => (
                           <div key={table.table}>{table.table}: {table.rows.toLocaleString()} rows · missing {table.missingRows ?? "n/a"} · age {ageLabel(table.latestAgeSeconds)}</div>
@@ -398,8 +398,8 @@ export function DataManagementPanel({
                 ))}
               </div>
             </div>
-            <div className="border-t border-gray-800 bg-sky-950/10 p-3 text-[10px] text-gray-400">
-              <div className="font-bold uppercase tracking-wide text-sky-300">Derivatives audit</div>
+            <div className="border-t border-slate-800 bg-slate-900 p-3 text-[10px] text-slate-400">
+              <div className="font-semibold text-slate-300">Derivatives audit</div>
               {auditData.derivatives ? (
                 <div className="mt-1 space-y-1">
                   <div>Futures raw: {auditData.derivatives.futuresMetrics.rows.toLocaleString()} rows · duplicate {auditData.derivatives.futuresMetrics.duplicateOpenTimeRows.toLocaleString()} · age {ageLabel(auditData.derivatives.futuresMetrics.latestAgeSeconds)}</div>
@@ -410,16 +410,16 @@ export function DataManagementPanel({
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-gray-950/40 rounded-lg text-center text-gray-400">
+          <div className="p-4 bg-slate-950/40 rounded-lg text-center text-slate-400">
             Chưa có báo cáo audit. Bấm làm mới để tải.
           </div>
         )}
       </div>
 
       {/* Section 2: Indexers & Rebuild Pipeline Controls */}
-      <div className="space-y-2 bg-gray-950 p-3 rounded-lg border border-gray-800">
-        <h4 className="font-bold text-gray-200 flex items-center gap-1.5 text-xs">
-          <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+      <div className="space-y-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
+        <h4 className="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
+          <Cpu className="w-3.5 h-3.5 text-slate-400" />
           Điều Phối Pipeline Indexing & AI Features
         </h4>
 
@@ -428,56 +428,56 @@ export function DataManagementPanel({
           <button
             onClick={() => void handleBackfill(false)}
             disabled={actionLoading || !adminUnlocked || !contractCompatible}
-            className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-left transition-colors space-y-1"
           >
             <div className="font-bold text-teal-300 flex items-center gap-1">
               <Play className="w-3 h-3" /> Backfill Nến Mới
             </div>
-            <div className="text-[10px] text-gray-400">Resume từ nến cuối lên sàn Binance</div>
+            <div className="text-[10px] text-slate-400">Resume từ nến cuối lên sàn Binance</div>
           </button>
 
           {/* Technical Indicators */}
           <button
             onClick={() => void handleReindexTech()}
             disabled={actionLoading || !adminUnlocked || !contractCompatible}
-            className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-left transition-colors space-y-1"
           >
-            <div className="font-bold text-indigo-300 flex items-center gap-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1">
               <BarChart3 className="w-3 h-3" /> Re-index Indicators
             </div>
-            <div className="text-[10px] text-gray-400">RSI, MACD, EMA, SMA, ATR, BB</div>
+            <div className="text-[10px] text-slate-400">RSI, MACD, EMA, SMA, ATR, BB</div>
           </button>
 
           {/* ML Features */}
           <button
             onClick={() => void handleReindexMl()}
             disabled={actionLoading || !adminUnlocked || !contractCompatible}
-            className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-left transition-colors space-y-1"
           >
-            <div className="font-bold text-purple-300 flex items-center gap-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1">
               <Layers className="w-3 h-3" /> Rebuild ML Dataset
             </div>
-            <div className="text-[10px] text-gray-400">MlFeatureStore & PriceTargets</div>
+            <div className="text-[10px] text-slate-400">MlFeatureStore & PriceTargets</div>
           </button>
 
           {/* Warmup Pattern Index */}
           <button
             onClick={() => void handleWarmupPatternIndex()}
             disabled={actionLoading || !adminUnlocked || !contractCompatible}
-            className="p-2.5 bg-gray-900 hover:bg-gray-850 border border-gray-800 rounded-lg text-left transition-colors space-y-1"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-left transition-colors space-y-1"
           >
-            <div className="font-bold text-amber-300 flex items-center gap-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1">
               <Flame className="w-3 h-3" /> Warmup Pattern Index
             </div>
-            <div className="text-[10px] text-gray-400">Pre-index window vectors</div>
+            <div className="text-[10px] text-slate-400">Pre-index window vectors</div>
           </button>
         </div>
       </div>
 
       {/* Section 3: Diagnostic RAG & Tech Context Tester */}
-      <div className="space-y-2 bg-gray-950 p-3 rounded-lg border border-gray-800">
-        <h4 className="font-bold text-gray-200 flex items-center gap-1.5 text-xs">
-          <Search className="w-3.5 h-3.5 text-cyan-400" />
+      <div className="space-y-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
+        <h4 className="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
+          <Search className="w-3.5 h-3.5 text-slate-400" />
           Kiểm Thử RAG News Embedding & Technical Context (Diagnostic Tools)
         </h4>
 
@@ -488,32 +488,32 @@ export function DataManagementPanel({
               value={ragQuery}
               onChange={(e) => setRagQuery(e.target.value)}
               placeholder="Nhập từ khóa tìm kiếm tin tức pgvector..."
-              className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-gray-200 focus:outline-none focus:border-teal-500"
+              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-teal-500"
             />
             <button
               onClick={() => void handleTestRag()}
-              className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition-colors"
+              className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors"
             >
               Test RAG
             </button>
             <button
               onClick={() => void handleTestTechSummary()}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg transition-colors"
             >
               Test Tech Summary
             </button>
           </div>
 
           {ragResult && (
-            <div className="p-2.5 bg-gray-900 rounded border border-gray-800 max-h-36 overflow-y-auto font-mono text-[10px] text-gray-300 whitespace-pre-wrap">
-              <span className="text-cyan-400 font-bold block mb-1">Kết quả RAG News Context:</span>
+            <div className="p-2.5 bg-slate-900 rounded border border-slate-800 max-h-36 overflow-y-auto font-mono text-[10px] text-slate-300 whitespace-pre-wrap">
+              <span className="text-teal-400 font-bold block mb-1">Kết quả RAG News Context:</span>
               {ragResult}
             </div>
           )}
 
           {techResult && (
-            <div className="p-2.5 bg-gray-900 rounded border border-gray-800 max-h-36 overflow-y-auto font-mono text-[10px] text-gray-300 whitespace-pre-wrap">
-              <span className="text-indigo-400 font-bold block mb-1">Kết quả Technical Summary ({selectedSymbol}):</span>
+            <div className="p-2.5 bg-slate-900 rounded border border-slate-800 max-h-36 overflow-y-auto font-mono text-[10px] text-slate-300 whitespace-pre-wrap">
+              <span className="text-teal-400 font-bold block mb-1">Kết quả Technical Summary ({selectedSymbol}):</span>
               {techResult}
             </div>
           )}

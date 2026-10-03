@@ -145,35 +145,35 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-16 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold shadow-lg shadow-teal-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-200"
+          className="fixed bottom-16 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-200"
           aria-label="Trợ lý AI Chat"
         >
           <div className="relative">
             <Bot className="w-6 h-6 animate-pulse" />
-            <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-gray-950 ${llmState === "on" ? "bg-emerald-400" : llmState === "off" ? "bg-amber-400" : "bg-gray-500"}`} />
+            <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${llmState === "on" ? "bg-emerald-400" : llmState === "off" ? "bg-slate-400" : "bg-slate-500"}`} />
           </div>
           <span className="text-sm tracking-wide">Trợ lý AI (XAI)</span>
-          <Sparkles className="w-4 h-4 text-cyan-200" />
+          <Sparkles className="w-4 h-4 text-teal-100" />
         </button>
       )}
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-16 right-5 z-50 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-gray-900/95 backdrop-blur-xl border border-gray-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-16 right-5 z-50 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-800 bg-gray-950/80 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-100 flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
                   Bitcoin AI Strategy Explainer
                   <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-teal-500/20 text-teal-300 rounded border border-teal-500/30">
                     XAI
                   </span>
                 </h3>
-                <p className={`text-[11px] ${llmState === "off" ? "text-amber-300" : "text-gray-400"}`}>
+                <p className={`text-[11px] ${llmState === "off" ? "text-amber-300" : "text-slate-400"}`}>
                   {llmState === "unknown"
                     ? "Đang kiểm tra khả năng giải thích"
                     : llmState === "off"
@@ -184,7 +184,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -201,7 +201,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                   className={`max-w-[88%] p-3 rounded-2xl ${
                     m.sender === "user"
                       ? "bg-teal-600 text-white rounded-br-none shadow-md shadow-teal-900/20"
-                      : "bg-gray-800/90 border border-gray-700/60 text-gray-100 rounded-bl-none"
+                      : "bg-slate-800/90 border border-slate-700/60 text-slate-100 rounded-bl-none"
                   }`}
                 >
                   {/* Evidence Tags Badges for AI replies */}
@@ -210,7 +210,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                       {m.evidenceTags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-1.5 py-0.5 text-[10px] font-semibold bg-gray-950/60 text-cyan-300 border border-cyan-500/30 rounded"
+                          className="px-1.5 py-0.5 text-[10px] font-semibold bg-slate-950/60 text-teal-300 border border-teal-500/30 rounded"
                         >
                           🏷️ {tag}
                         </span>
@@ -222,14 +222,14 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
                     {m.text}
                   </div>
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1 px-1">
+                <span className="text-[10px] text-slate-400 mt-1 px-1">
                   {new Date(m.timestampMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 p-3 rounded-2xl bg-gray-800/50 border border-gray-700/40 text-gray-400 max-w-[70%]">
+              <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/40 text-slate-400 max-w-[70%]">
                 <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
                 <span className="text-xs">Đang tổng hợp dữ liệu nghiên cứu...</span>
               </div>
@@ -238,13 +238,13 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
           </div>
 
           {/* Quick Chips Bar */}
-          <div className="px-3 py-2 border-t border-gray-800/60 bg-gray-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
+          <div className="px-3 py-2 border-t border-slate-800/60 bg-slate-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
             {QUICK_CHIPS.map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => void handleSend(chip.prompt)}
                 disabled={loading || !canExplain}
-                className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-gray-800 hover:bg-gray-700 text-teal-300 border border-teal-500/20 hover:border-teal-500/40 transition-colors flex items-center gap-1 disabled:opacity-50"
+                className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/20 hover:border-teal-500/40 transition-colors flex items-center gap-1 disabled:opacity-50"
               >
                 {chip.label}
               </button>
@@ -257,7 +257,7 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               e.preventDefault();
               void handleSend();
             }}
-            className="p-3 border-t border-gray-800 bg-gray-950 flex items-center gap-2"
+            className="p-3 border-t border-slate-800 bg-slate-950 flex items-center gap-2"
           >
             <input
               type="text"
@@ -265,12 +265,12 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               onChange={(e) => setInputPrompt(e.target.value)}
               placeholder={llmState === "unknown" ? "Đang kiểm tra dịch vụ giải thích..." : "Hỏi về nến, FVG, POC, dự báo..."}
               disabled={loading || !canExplain}
-              className="flex-1 bg-gray-900 border border-gray-700/80 rounded-xl px-3 py-2 text-xs text-gray-100 placeholder-gray-400 focus:outline-none focus:border-teal-500"
+              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500"
             />
             <button
               type="submit"
               disabled={loading || !canExplain || !inputPrompt.trim()}
-              className="p-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-gray-950 font-bold disabled:opacity-40 disabled:hover:bg-teal-500 transition-colors"
+              className="p-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold disabled:opacity-40 disabled:hover:bg-teal-500 transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>

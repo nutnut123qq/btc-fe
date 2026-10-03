@@ -46,6 +46,6 @@ export function formatSignedPercent(value: number): string {
 export function getDirectionTone(direction: AnalogDirection): string {
   if (direction === 1) return "text-emerald-400";
   if (direction === -1) return "text-rose-400";
-  if (direction === 0) return "text-amber-300";
-  return "text-gray-400";
+  if (direction === 0) return "text-slate-300";
+  return "text-slate-400";
 }

@@ -43,33 +43,33 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
   };
 
   return (
-    <section className="min-w-0 max-w-full bg-gray-900/90 border border-gray-800 rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-4" aria-label="Giá thị trường realtime, độc lập với cutoff Technical Replay">
+    <section className="min-w-0 max-w-full bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-wrap items-center justify-between gap-4" aria-label="Giá thị trường realtime, độc lập với cutoff Technical Replay">
       {/* Active research symbol */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700/60 shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-cyan-400 flex items-center justify-center font-bold text-xs text-gray-950 shadow-inner">
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-teal-600 flex items-center justify-center font-bold text-xs text-slate-950 shadow-inner">
             {baseAsset.slice(0, 3)}
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm text-gray-100">
+              <span className="font-bold text-sm text-slate-100">
                 {baseAsset}
               </span>
-              <span className="text-xs text-gray-400">/USDT</span>
+              <span className="text-xs text-slate-400">/USDT</span>
             </div>
             <span className="text-[10px] text-teal-400">Binance Spot · Tài sản nghiên cứu</span>
           </div>
         </div>
 
         {/* Current Price */}
-        <div className="border-l border-gray-800 pl-3">
-          <div className={`text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-1.5 ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
+        <div className="border-l border-slate-800 pl-3">
+          <div className={`text-3xl font-semibold text-slate-50 tabular-nums tracking-tight flex items-center gap-1.5`}>
             {ticker ? `$${formatPrice(ticker.lastPrice)}` : loading ? "Đang tải..." : "--"}
             {ticker && (
-              isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />
+              isPositive ? <TrendingUp className="w-4 h-4 text-emerald-400" /> : <TrendingDown className="w-4 h-4 text-rose-400" />
             )}
           </div>
-          <div className={`max-w-[18rem] text-[11px] leading-relaxed ${stale ? "text-amber-400" : "text-gray-400"}`}>
+          <div className={`max-w-[18rem] text-[11px] leading-relaxed ${stale ? "text-amber-400" : "text-slate-400"}`}>
             <strong>GIÁ REALTIME</strong> · {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`} · không phải giá tại as-of
           </div>
         </div>
@@ -78,9 +78,9 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
       {/* 24h Stats */}
       <div className="flex flex-wrap items-center gap-4 text-xs">
         {/* 24h Change */}
-        <div className="bg-gray-950/60 px-3 py-1.5 rounded-lg border border-gray-800/80">
-          <div className="text-[10px] text-gray-400 uppercase font-medium">Thay đổi 24h</div>
-          <div className={`font-bold flex items-center gap-1 ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
+        <div className="bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+          <div className="text-xs text-slate-400">Thay đổi 24h</div>
+          <div className={`font-semibold flex items-center gap-1 tabular-nums ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
             {ticker ? (
               <>
                 <span>{isPositive ? "+" : ""}{ticker.priceChangePercent.toFixed(2)}%</span>
@@ -91,33 +91,33 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
         </div>
 
         {/* 24h High */}
-        <div className="bg-gray-950/60 px-3 py-1.5 rounded-lg border border-gray-800/80">
-          <div className="text-[10px] text-gray-400 uppercase font-medium">Cao nhất 24h</div>
-          <div className="font-semibold text-gray-200">
+        <div className="bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+          <div className="text-xs text-slate-400">Cao nhất 24h</div>
+          <div className="font-medium text-slate-100 tabular-nums">
             {ticker ? `$${formatPrice(ticker.highPrice)}` : "--"}
           </div>
         </div>
 
         {/* 24h Low */}
-        <div className="bg-gray-950/60 px-3 py-1.5 rounded-lg border border-gray-800/80">
-          <div className="text-[10px] text-gray-400 uppercase font-medium">Thấp nhất 24h</div>
-          <div className="font-semibold text-gray-200">
+        <div className="bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+          <div className="text-xs text-slate-400">Thấp nhất 24h</div>
+          <div className="font-medium text-slate-100 tabular-nums">
             {ticker ? `$${formatPrice(ticker.lowPrice)}` : "--"}
           </div>
         </div>
 
         {/* 24h Volume USDT */}
-        <div className="bg-gray-950/60 px-3 py-1.5 rounded-lg border border-gray-800/80">
-          <div className="text-[10px] text-gray-400 uppercase font-medium">Khối lượng 24h (USDT)</div>
-          <div className="font-semibold text-teal-300">
+        <div className="bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+          <div className="text-xs text-slate-400">Khối lượng 24h (USDT)</div>
+          <div className="font-medium text-slate-100 tabular-nums">
             {ticker ? `$${formatVol(ticker.quoteVolume)}` : "--"}
           </div>
         </div>
 
         {/* 24h Volume Base */}
-        <div className="hidden lg:block bg-gray-950/60 px-3 py-1.5 rounded-lg border border-gray-800/80">
-          <div className="text-[10px] text-gray-400 uppercase font-medium">Khối lượng ({baseAsset})</div>
-          <div className="font-semibold text-gray-300">
+        <div className="hidden lg:block bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+          <div className="text-xs text-slate-400">Khối lượng ({baseAsset})</div>
+          <div className="font-medium text-slate-100 tabular-nums">
             {ticker ? `${formatVol(ticker.volume)} ${baseAsset}` : "--"}
           </div>
         </div>

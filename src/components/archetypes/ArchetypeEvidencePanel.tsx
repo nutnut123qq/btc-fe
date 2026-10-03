@@ -32,8 +32,8 @@ function formatTime(ms: number): string {
 function directionColor(direction: number | null): string {
   if (direction === 1) return "text-emerald-400";
   if (direction === -1) return "text-rose-400";
-  if (direction === 0) return "text-amber-400";
-  return "text-gray-400";
+  if (direction === 0) return "text-slate-400";
+  return "text-slate-400";
 }
 
 function EvidenceCard({
@@ -56,11 +56,11 @@ function EvidenceCard({
   const primaryMatch = isDirectionMatch(primary?.direction ?? null, primarySummary?.dominantDirection ?? null);
 
   return (
-    <article className="rounded-lg border border-gray-800 bg-gray-900 p-2.5" data-testid="archetype-evidence-card">
+    <article className="rounded-lg border border-slate-800 bg-slate-900 p-2.5" data-testid="archetype-evidence-card">
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <div className="text-[11px] font-semibold text-gray-300">Mẫu #{index}</div>
-          <time className="text-[10px] text-gray-400" dateTime={new Date(occurrence.windowEndMs).toISOString()}>
+          <div className="text-[11px] font-semibold text-slate-300">Mẫu #{index}</div>
+          <time className="text-[10px] text-slate-400" dateTime={new Date(occurrence.windowEndMs).toISOString()}>
             {formatTime(occurrence.windowEndMs)}
           </time>
         </div>
@@ -70,7 +70,7 @@ function EvidenceCard({
               ? "bg-emerald-500/15 text-emerald-400"
               : primaryMatch === false
                 ? "bg-rose-500/15 text-rose-400"
-                : "bg-gray-700 text-gray-300"
+                : "bg-slate-700 text-slate-300"
           }`}
         >
           {primaryMatch === true ? "ĐÚNG HƯỚNG" : primaryMatch === false ? "SAI HƯỚNG" : "CHƯA XẾP"}
@@ -79,38 +79,38 @@ function EvidenceCard({
 
       <div className="grid grid-cols-2 gap-1.5">
         <div>
-          <div className="mb-1 text-[9px] text-gray-400">{windowSize} nến của mẫu</div>
-          <div className="h-20 rounded bg-gray-950 p-1.5">
+          <div className="mb-1 text-[9px] text-slate-400">{windowSize} nến của mẫu</div>
+          <div className="h-20 rounded bg-slate-950 p-1.5">
             {bars.length > 0 ? <ArchetypeGlyph bars={bars} /> : <div className="flex h-full items-center justify-center text-[10px] text-rose-300">Thiếu <GlossaryTerm term="ohlc">OHLC</GlossaryTerm></div>}
           </div>
         </div>
         <div>
-          <div className="mb-1 text-[9px] text-gray-400">6 nến ngay sau mẫu</div>
-          <div className="h-20 rounded bg-gray-950 p-1.5">
-            {futureBars.length > 0 ? <ArchetypeGlyph bars={futureBars} /> : <div className="flex h-full items-center justify-center text-[10px] text-gray-400">Chưa có nến sau</div>}
+          <div className="mb-1 text-[9px] text-slate-400">6 nến ngay sau mẫu</div>
+          <div className="h-20 rounded bg-slate-950 p-1.5">
+            {futureBars.length > 0 ? <ArchetypeGlyph bars={futureBars} /> : <div className="flex h-full items-center justify-center text-[10px] text-slate-400">Chưa có nến sau</div>}
           </div>
         </div>
       </div>
 
-      <div className="mt-2 space-y-1 border-t border-gray-800 pt-2 text-[10px]">
+      <div className="mt-2 space-y-1 border-t border-slate-800 pt-2 text-[10px]">
         {fixedHorizonOutcomes.map((outcome) => {
           const summary = summaries.find((item) => item.barsAhead === outcome.barsAhead);
           const matched = isDirectionMatch(outcome.direction, summary?.dominantDirection ?? null);
           return (
             <div key={outcome.barsAhead} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-1">
-              <span className="text-gray-400">Sau {outcome.barsAhead} nến</span>
+              <span className="text-slate-400">Sau {outcome.barsAhead} nến</span>
               <span className={`font-bold ${directionColor(outcome.direction)}`}>
                 {outcome.available ? `${getDirectionText(outcome.direction)} ${outcome.returnPct!.toFixed(2)}%` : "CHƯA CÓ"}
               </span>
-              <span className={matched === true ? "text-emerald-400" : matched === false ? "text-rose-400" : "text-gray-400"}>
+              <span className={matched === true ? "text-emerald-400" : matched === false ? "text-rose-400" : "text-slate-400"}>
                 {matched === true ? "ĐÚNG" : matched === false ? "SAI" : "—"}
               </span>
             </div>
           );
         })}
-        <div className="grid grid-cols-2 gap-x-2 pt-1 text-gray-400">
+        <div className="grid grid-cols-2 gap-x-2 pt-1 text-slate-400">
           <span><GlossaryTerm term="centroid-distance">Khoảng cách</GlossaryTerm></span>
-          <span className="text-right text-gray-300">{occurrence.distanceToCentroid.toFixed(3)}</span>
+          <span className="text-right text-slate-300">{occurrence.distanceToCentroid.toFixed(3)}</span>
         </div>
       </div>
 
@@ -190,23 +190,23 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
   const lastIndex = Math.min(page * PAGE_SIZE, total);
 
   return (
-    <section ref={rootRef} className="rounded-xl border border-gray-800 bg-gray-950 p-4 lg:col-span-2" aria-label={`Mẫu gốc của ${archetype.archetypeCode}`}>
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-2 border-b border-gray-800 pb-3">
+    <section ref={rootRef} className="rounded-xl border border-slate-800 bg-slate-950 p-4 lg:col-span-2" aria-label={`Mẫu gốc của ${archetype.archetypeCode}`}>
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
-          <h3 className="flex items-center gap-2 text-sm font-bold text-gray-200">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-slate-200">
             <Database className="h-4 w-4 text-teal-400" />
             Các mẫu nến gốc tạo thành {archetype.archetypeCode}
           </h3>
-          <p className="mt-1 text-[11px] text-gray-400">
+          <p className="mt-1 text-[11px] text-slate-400">
             <GlossaryTerm term="close-to-close">Close-to-close</GlossaryTerm> sau 1, 3 và 6 nến · mốc chính: sau 1 nến · ĐÚNG/SAI so với hướng chủ đạo lịch sử cùng mốc.
           </p>
-          <p className="mt-1 text-[10px] text-gray-400">
+          <p className="mt-1 text-[10px] text-slate-400">
             Biến động = (giá đóng sau N nến / giá đóng cuối mẫu − 1) × 100%.
           </p>
           {summaries.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5" data-testid="fixed-horizon-summaries">
               {summaries.map((summary) => (
-                <span key={summary.barsAhead} className="rounded bg-gray-900 px-2 py-1 text-[10px] text-gray-400">
+                <span key={summary.barsAhead} className="rounded bg-slate-900 px-2 py-1 text-[10px] text-slate-400">
                   +{summary.barsAhead} nến: <strong className={directionColor(summary.dominantDirection)}>{getDirectionText(summary.dominantDirection)}</strong>
                   {" · "}{summary.totalSamples} mẫu · TB {summary.avgReturnPct.toFixed(2)}%
                 </span>
@@ -215,15 +215,15 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
           )}
         </div>
         {total > 0 && (
-          <div className="text-right text-[11px] text-gray-400">
+          <div className="text-right text-[11px] text-slate-400">
             <div>{firstIndex}–{lastIndex} / {total} mẫu</div>
-            <div className="text-gray-400">Nguồn: giá đóng cửa <GlossaryTerm term="klines">Klines</GlossaryTerm></div>
+            <div className="text-slate-400">Nguồn: giá đóng cửa <GlossaryTerm term="klines">Klines</GlossaryTerm></div>
           </div>
         )}
       </div>
 
       {!visible || loading ? (
-        <div className="flex min-h-48 items-center justify-center text-sm text-gray-400">
+        <div className="flex min-h-48 items-center justify-center text-sm text-slate-400">
           <RefreshCw className="mr-2 h-5 w-5 animate-spin text-teal-500" /> Đang tải bằng chứng gốc…
         </div>
       ) : error ? (
@@ -232,7 +232,7 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
           <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="rounded border border-rose-400/30 px-3 py-1.5 text-xs">Thử lại</button>
         </div>
       ) : items.length === 0 ? (
-        <div className="flex min-h-48 items-center justify-center text-sm text-gray-400">Không có mẫu gốc</div>
+        <div className="flex min-h-48 items-center justify-center text-sm text-slate-400">Không có mẫu gốc</div>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -248,12 +248,12 @@ export function ArchetypeEvidencePanel({ archetype }: ArchetypeEvidencePanelProp
           </div>
 
           {totalPages > 1 && (
-            <nav className="mt-3 flex items-center justify-center gap-3 border-t border-gray-800 pt-3" aria-label="Phân trang mẫu nến gốc">
-              <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1 || loading} className="rounded-lg border border-gray-700 p-1.5 text-gray-300 hover:border-teal-500 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Trang trước">
+            <nav className="mt-3 flex items-center justify-center gap-3 border-t border-slate-800 pt-3" aria-label="Phân trang mẫu nến gốc">
+              <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1 || loading} className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:border-teal-500 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Trang trước">
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-xs text-gray-400">Trang {page} / {totalPages}</span>
-              <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page === totalPages || loading} className="rounded-lg border border-gray-700 p-1.5 text-gray-300 hover:border-teal-500 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Trang sau">
+              <span className="text-xs text-slate-400">Trang {page} / {totalPages}</span>
+              <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page === totalPages || loading} className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:border-teal-500 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Trang sau">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </nav>

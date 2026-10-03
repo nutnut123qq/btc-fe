@@ -11,13 +11,13 @@ import { ErrorBoundary } from "./ErrorBoundary";
 function Accordion({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900/60 overflow-hidden">
+    <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-200 hover:bg-gray-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800/50 transition-colors"
       >
         <span>{title}</span>
-        {open ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+        {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
@@ -53,7 +53,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           Phân tích AI Đa Tác Tử (LangGraph Multi-Agent)
         </h2>
 
-        <span className="self-start rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
+        <span className="self-start rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300 sm:self-auto">
           BTC/USDT · tài sản nghiên cứu hiện tại
         </span>
       </div>
@@ -62,12 +62,12 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
         <SentimentBadge symbol={AI_ANALYSIS_SYMBOL} />
       </ErrorBoundary>
 
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-slate-400">
         Phân tích đa góc nhìn cho BTC/USDT trong phạm vi nghiên cứu hiện tại.
       </p>
 
       {llmState === "unknown" && (
-        <div className="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm text-gray-300">
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-slate-300">
           Đang kiểm tra khả năng giải thích LLM…
         </div>
       )}
@@ -80,7 +80,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
       <button
         onClick={() => void analyze()}
         disabled={loading || llmUnavailable}
-        className="w-full py-3 px-4 rounded-xl font-bold tracking-wide flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white shadow-lg shadow-teal-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+        className="w-full py-3 px-4 rounded-xl font-bold tracking-wide flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white shadow-lg shadow-teal-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
       >
         {loading ? (
           <>
@@ -103,8 +103,8 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
 
       {data && (
         <div className="space-y-3">
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-4">
-            <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-2">Dự báo</div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <div className="text-xs font-semibold text-slate-400 mb-2">Dự báo</div>
             <div className="flex items-center gap-3">
               {String(data.forecast).includes("UP") ? (
                 <TrendingUp className="text-emerald-400 w-8 h-8" />
@@ -121,14 +121,14 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           </div>
 
           <Accordion title="Lập luận" defaultOpen>
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{data.reasoning || "—"}</p>
+            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{data.reasoning || "—"}</p>
           </Accordion>
 
           <Accordion title="Debate">
             <div className="space-y-3 text-sm">
               <DebateBlock title="News Agent" body={data.debate_summary?.news_agent} accent="border-emerald-500" textAccent="text-emerald-400" />
-              <DebateBlock title="Tech Agent" body={data.debate_summary?.tech_agent} accent="border-purple-500" textAccent="text-purple-400" />
-              <DebateBlock title="Quyết định cuối" body={data.debate_summary?.final_decision} accent="border-amber-500" textAccent="text-amber-400" />
+              <DebateBlock title="Tech Agent" body={data.debate_summary?.tech_agent} accent="border-teal-500" textAccent="text-teal-400" />
+              <DebateBlock title="Quyết định cuối" body={data.debate_summary?.final_decision} accent="border-slate-500" textAccent="text-slate-400" />
             </div>
           </Accordion>
 
@@ -136,7 +136,7 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
             {Array.isArray(data.news_evidence) && data.news_evidence.length > 0 ? (
               <div className="space-y-3">
                 {data.news_evidence.slice(0, 5).map((e, idx) => (
-                  <div key={idx} className="border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                  <div key={idx} className="border-b border-slate-800 pb-3 last:border-0 last:pb-0">
                     <div className="text-xs text-white font-semibold">{e.title ?? "(no title)"}</div>
                     <div className="text-[11px] text-teal-300">{e.sentiment ?? ""}</div>
                     {e.link && (
@@ -144,28 +144,28 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
                         {e.link}
                       </a>
                     )}
-                    <p className="text-gray-400 text-xs whitespace-pre-wrap mt-1">{e.snippet ?? ""}</p>
-                    <p className="text-gray-400 text-xs whitespace-pre-wrap mt-1">{e.why_it_matters ?? ""}</p>
+                    <p className="text-slate-400 text-xs whitespace-pre-wrap mt-1">{e.snippet ?? ""}</p>
+                    <p className="text-slate-400 text-xs whitespace-pre-wrap mt-1">{e.why_it_matters ?? ""}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-xs">Không có bằng chứng tin.</p>
+              <p className="text-slate-400 text-xs">Không có bằng chứng tin.</p>
             )}
           </Accordion>
 
           <Accordion title="Bằng chứng kỹ thuật">
             {data.tech_evidence ? (
-              <div className="text-xs text-gray-300 space-y-1.5">
-                <div><span className="text-gray-400">first_close:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
-                <div><span className="text-gray-400">last_close:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
-                <div><span className="text-gray-400">change_pct:</span> {data.tech_evidence.change_pct ?? "n/a"}</div>
-                <div><span className="text-gray-400">period_high:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
-                <div><span className="text-gray-400">period_low:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
-                <div><span className="text-gray-400">rsi:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
+              <div className="text-xs text-slate-300 space-y-1.5">
+                <div><span className="text-slate-400">first_close:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
+                <div><span className="text-slate-400">last_close:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
+                <div><span className="text-slate-400">change_pct:</span> {data.tech_evidence.change_pct ?? "n/a"}</div>
+                <div><span className="text-slate-400">period_high:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
+                <div><span className="text-slate-400">period_low:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
+                <div><span className="text-slate-400">rsi:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
               </div>
             ) : (
-              <p className="text-gray-400 text-xs">Không có dữ liệu kỹ thuật.</p>
+              <p className="text-slate-400 text-xs">Không có dữ liệu kỹ thuật.</p>
             )}
           </Accordion>
 
@@ -173,24 +173,24 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
             {Array.isArray(data.risk_conditions) && data.risk_conditions.length > 0 ? (
               <div className="space-y-3">
                 {data.risk_conditions.slice(0, 5).map((r, idx) => (
-                  <div key={idx} className="bg-gray-950 p-3 rounded border border-gray-800">
+                  <div key={idx} className="bg-slate-950 p-3 rounded border border-slate-800">
                     <div className="flex items-start justify-between gap-3">
                       <div className="text-xs text-white font-semibold break-words">{r.trigger ?? "(no trigger)"}</div>
-                      <div className="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 whitespace-nowrap">
+                      <div className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 whitespace-nowrap">
                         {r.severity ?? "N/A"}
                       </div>
                     </div>
-                    <div className="text-gray-400 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-gray-400">What to watch:</span> {r.what_to_watch ?? ""}
+                    <div className="text-slate-400 text-xs whitespace-pre-wrap mt-1">
+                      <span className="text-slate-400">What to watch:</span> {r.what_to_watch ?? ""}
                     </div>
-                    <div className="text-gray-400 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-gray-400">Mitigation hint:</span> {r.mitigation_hint ?? ""}
+                    <div className="text-slate-400 text-xs whitespace-pre-wrap mt-1">
+                      <span className="text-slate-400">Mitigation hint:</span> {r.mitigation_hint ?? ""}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-xs">Không có điều kiện rủi ro.</p>
+              <p className="text-slate-400 text-xs">Không có điều kiện rủi ro.</p>
             )}
           </Accordion>
         </div>
@@ -201,9 +201,9 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
 
 function DebateBlock({ title, body, accent, textAccent }: { title: string; body?: string; accent: string; textAccent: string }) {
   return (
-    <div className={`border-l-4 ${accent} bg-gray-950 p-3 rounded`}>
+    <div className={`border-l-4 ${accent} bg-slate-950 p-3 rounded`}>
       <span className={`${textAccent} font-semibold text-xs mb-1 block`}>{title}</span>
-      <p className="text-gray-400 text-xs whitespace-pre-wrap">{body?.trim() ? body : "—"}</p>
+      <p className="text-slate-400 text-xs whitespace-pre-wrap">{body?.trim() ? body : "—"}</p>
     </div>
   );
 }

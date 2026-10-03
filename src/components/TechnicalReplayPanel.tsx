@@ -33,13 +33,13 @@ function formatTime(timeMs: number | null): string {
 
 function stateStyle(state: TechnicalReplayEvent["stateAtAsOf"]): string {
   if (state === "active" || state === "confirmed") return "border-teal-700/60 bg-teal-950/30 text-teal-300";
-  if (state === "mitigated") return "border-amber-700/60 bg-amber-950/30 text-amber-300";
+  if (state === "mitigated") return "border-slate-600/60 bg-slate-900/30 text-slate-300";
   return "border-rose-700/60 bg-rose-950/30 text-rose-300";
 }
 
 function availabilityStyle(value: TechnicalLayerEnvelope<unknown>["availability"]): string {
   if (value === "available") return "border-emerald-800 bg-emerald-950/30 text-emerald-300";
-  if (value === "partial") return "border-amber-800 bg-amber-950/30 text-amber-300";
+  if (value === "partial") return "border-slate-700 bg-slate-900/30 text-slate-300";
   return "border-rose-900 bg-rose-950/30 text-rose-300";
 }
 
@@ -52,7 +52,7 @@ function LayerCard({ label, layer, summary, nonProbability = false }: {
   return <article className="min-w-0 rounded-lg border border-slate-800 bg-slate-900/70 p-3">
     <div className="flex items-start justify-between gap-2"><div><h3 className="text-xs font-bold text-slate-200">{label}</h3><p className="mt-1 font-mono text-[9px] text-slate-400">{layer.layerKey}</p></div><span className={`rounded border px-2 py-0.5 text-[9px] font-bold uppercase ${availabilityStyle(layer.availability)}`}>{layer.availability}</span></div>
     <div className="mt-2 text-[11px] leading-5 text-slate-300">{layer.payload ? summary : <span className="text-rose-300">{layer.unavailableReason ?? "Không có payload point-in-time."}</span>}</div>
-    {nonProbability && <p className="mt-2 rounded border border-amber-800/70 bg-amber-950/20 px-2 py-1 text-[10px] text-amber-200">Chỉ số mô tả đồng thuận, không phải xác suất hay tín hiệu giao dịch.</p>}
+    {nonProbability && <p className="mt-2 rounded border border-slate-700/70 bg-slate-900/20 px-2 py-1 text-[10px] text-slate-300">Chỉ số mô tả đồng thuận, không phải xác suất hay tín hiệu giao dịch.</p>}
     <details className="mt-2 text-[10px] text-slate-400">
       <summary className="cursor-pointer text-slate-400">Nguồn, phiên bản & giới hạn</summary>
       <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-2 gap-y-1">
@@ -82,7 +82,7 @@ function ReplayDateInput({ initialTimeMs, onCommit }: { initialTimeMs: number | 
       onChange={(event) => setDraft(event.target.value)}
       onBlur={commit}
       onKeyDown={(event) => { if (event.key === "Enter") commit(); }}
-      className="mt-1 block min-w-0 max-w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-slate-200 outline-none focus:border-cyan-500"
+      className="mt-1 block min-w-0 max-w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-slate-200 outline-none focus:border-teal-500"
       aria-label="Thời điểm xem lại phân tích kỹ thuật"
     />
   );
@@ -103,11 +103,11 @@ export function TechnicalReplayPanel({
   onSelectEvent,
 }: Props) {
   return (
-    <section className="min-w-0 space-y-3 border-b border-gray-800 bg-slate-950/80 p-3" aria-label="Xem lại phân tích kỹ thuật">
+    <section className="min-w-0 space-y-3 border-b border-slate-800 bg-slate-950/80 p-3" aria-label="Xem lại phân tích kỹ thuật">
       <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-end xl:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-            <Clock3 className="h-4 w-4 text-cyan-400" aria-hidden="true" />
+            <Clock3 className="h-4 w-4 text-teal-400" aria-hidden="true" />
             Technical replay · {symbol} · {timeframe}
           </div>
           <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
@@ -116,15 +116,15 @@ export function TechnicalReplayPanel({
         </div>
 
         <div className="flex min-w-0 flex-wrap items-end gap-2">
-          <label className="min-w-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <label className="min-w-0 text-xs font-semibold text-slate-400">
             Thời điểm xem
             <ReplayDateInput key={asOfTimeMs ?? "live"} initialTimeMs={asOfTimeMs} onCommit={onSetAsOf} />
           </label>
           <div className="flex items-center gap-1" role="group" aria-label="Điều khiển từng nến">
-            <button type="button" onClick={() => onStep(-1)} className="rounded border border-slate-700 bg-slate-900 p-2 text-slate-300 hover:border-cyan-700 hover:text-cyan-300" title="Lùi một nến" aria-label="Lùi một nến">
+            <button type="button" onClick={() => onStep(-1)} className="rounded border border-slate-700 bg-slate-900 p-2 text-slate-300 hover:border-teal-700 hover:text-teal-300" title="Lùi một nến" aria-label="Lùi một nến">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button type="button" onClick={() => onStep(1)} className="rounded border border-slate-700 bg-slate-900 p-2 text-slate-300 hover:border-cyan-700 hover:text-cyan-300" title="Tiến một nến" aria-label="Tiến một nến">
+            <button type="button" onClick={() => onStep(1)} className="rounded border border-slate-700 bg-slate-900 p-2 text-slate-300 hover:border-teal-700 hover:text-teal-300" title="Tiến một nến" aria-label="Tiến một nến">
               <ChevronRight className="h-4 w-4" />
             </button>
             <button type="button" onClick={onReturnLive} disabled={asOfTimeMs == null} className="flex items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-300 hover:border-teal-700 hover:text-teal-300 disabled:cursor-not-allowed disabled:opacity-40">
@@ -135,7 +135,7 @@ export function TechnicalReplayPanel({
       </div>
 
       <div className="flex flex-wrap gap-2 text-[11px]">
-        <span className={`rounded border px-2 py-1 ${asOfTimeMs == null ? "border-emerald-800 bg-emerald-950/30 text-emerald-300" : "border-cyan-800 bg-cyan-950/30 text-cyan-300"}`}>
+        <span className={`rounded border px-2 py-1 ${asOfTimeMs == null ? "border-emerald-800 bg-emerald-950/30 text-emerald-300" : "border-teal-800 bg-teal-950/30 text-teal-300"}`}>
           {asOfTimeMs == null ? `Latest finalized: ${formatTime(replay?.effectiveAsOfTimeMs ?? null)}` : `Replay: ${formatTime(replay?.effectiveAsOfTimeMs ?? asOfTimeMs)}`}
         </span>
         {replay && <span className="rounded border border-slate-700 px-2 py-1 text-slate-400">Phiên bản: {replay.calculationVersion}</span>}
@@ -144,10 +144,10 @@ export function TechnicalReplayPanel({
         ))}
       </div>
 
-      {loading && !replay && <div role="status" className="rounded border border-cyan-900/70 bg-cyan-950/20 p-3 text-xs text-cyan-200">Đang tải snapshot {symbol} {timeframe} tại cutoff đã chọn…</div>}
+      {loading && !replay && <div role="status" className="rounded border border-teal-900/70 bg-teal-950/20 p-3 text-xs text-teal-200">Đang tải snapshot {symbol} {timeframe} tại cutoff đã chọn…</div>}
       {error && <div role="alert" className="break-words rounded border border-rose-900/70 bg-rose-950/30 p-3 text-xs text-rose-200">Technical Replay không khả dụng: {error}</div>}
       {!loading && !error && !replay && <div className="rounded border border-amber-900/70 bg-amber-950/20 p-3 text-xs text-amber-200">Chưa có snapshot point-in-time cho {symbol} {timeframe}; UI không thay bằng widget legacy hoặc dữ liệu realtime.</div>}
-      {replay && replay.candles.length === 0 && <div className="rounded border border-amber-900/70 bg-amber-950/20 p-3 text-xs text-amber-200">Snapshot hợp lệ nhưng không có nến đã đóng tại cutoff này. Các layer vẫn giữ trạng thái unavailable theo contract.</div>}
+      {replay && replay.candles.length === 0 && <div className="rounded border border-slate-800/70 bg-slate-900/20 p-3 text-xs text-slate-300">Snapshot hợp lệ nhưng không có nến đã đóng tại cutoff này. Các layer vẫn giữ trạng thái unavailable theo contract.</div>}
 
       {replay && (
         <div className="min-w-0 space-y-2">
@@ -192,7 +192,7 @@ export function TechnicalReplayPanel({
                 type="button"
                 key={event.eventId}
                 onClick={() => onSelectEvent(event)}
-                className={`shrink-0 rounded border px-2 py-1.5 text-left text-[11px] ${selectedEvent?.eventId === event.eventId ? "border-cyan-500 bg-cyan-950/40 text-cyan-200" : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"}`}
+                className={`shrink-0 rounded border px-2 py-1.5 text-left text-[11px] ${selectedEvent?.eventId === event.eventId ? "border-teal-500 bg-teal-950/40 text-teal-200" : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"}`}
                 aria-pressed={selectedEvent?.eventId === event.eventId}
               >
                 <span className="block font-bold">{event.eventType.replace("_", " ")}</span>
@@ -204,11 +204,11 @@ export function TechnicalReplayPanel({
       )}
 
       {selectedEvent && (
-        <article className="min-w-0 rounded-lg border border-cyan-900/70 bg-slate-900/90 p-3" aria-label={`Hồ sơ ${selectedEvent.eventType}`}>
+        <article className="min-w-0 rounded-lg border border-teal-900/70 bg-slate-900/90 p-3" aria-label={`Hồ sơ ${selectedEvent.eventType}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-bold text-cyan-200">{selectedEvent.eventType.replace("_", " ")}</h3>
+                <h3 className="text-sm font-semibold text-slate-200">{selectedEvent.eventType.replace("_", " ")}</h3>
                 <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase ${stateStyle(selectedEvent.stateAtAsOf)}`}>{selectedEvent.stateAtAsOf}</span>
               </div>
               <p className="mt-1 text-xs text-slate-300">{selectedEvent.description}</p>
@@ -229,18 +229,18 @@ export function TechnicalReplayPanel({
 
           <div className="mt-3 grid min-w-0 gap-3 lg:grid-cols-2">
             <div className="min-w-0">
-              <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Điều kiện phát hiện</h4>
+              <h4 className="text-xs font-semibold text-slate-400">Điều kiện phát hiện</h4>
               <ul className="mt-1 space-y-1 text-[11px] text-slate-300">{selectedEvent.detectionConditions.map((item) => <li key={item}>• {item}</li>)}</ul>
             </div>
             <div className="min-w-0">
-              <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Giới hạn</h4>
+              <h4 className="text-xs font-semibold text-slate-400">Giới hạn</h4>
               <ul className="mt-1 space-y-1 text-[11px] text-amber-200/90">{selectedEvent.limitations.map((item) => <li key={item}>• {item}</li>)}</ul>
             </div>
           </div>
 
           <div className="mt-3 min-w-0 overflow-x-auto">
             <table className="min-w-[680px] w-full text-left text-[10px]">
-              <caption className="pb-1 text-left font-bold uppercase tracking-wide text-slate-400">Nến nguồn</caption>
+              <caption className="pb-1 text-left font-semibold text-slate-400">Nến nguồn</caption>
               <thead className="text-slate-400"><tr><th className="pr-3">Vai trò</th><th className="pr-3">Open time</th><th className="pr-3">O</th><th className="pr-3">H</th><th className="pr-3">L</th><th>C</th></tr></thead>
               <tbody className="text-slate-300">{selectedEvent.sourceCandles.map((candle) => <tr key={`${candle.role}-${candle.openTimeMs}`} className="border-t border-slate-800"><td className="py-1 pr-3">{candle.role}</td><td className="pr-3">{formatTime(candle.openTimeMs)}</td><td className="pr-3">{candle.open.toFixed(2)}</td><td className="pr-3">{candle.high.toFixed(2)}</td><td className="pr-3">{candle.low.toFixed(2)}</td><td>{candle.close.toFixed(2)}</td></tr>)}</tbody>
             </table>

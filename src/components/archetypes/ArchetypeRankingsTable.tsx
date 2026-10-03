@@ -10,7 +10,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="text-gray-400 border-b border-gray-800">
+        <thead className="text-slate-400 border-b border-slate-800">
           <tr>
             <th className="text-left py-2 px-2">Hạng</th>
             <th className="text-left py-2 px-2">Mã</th>
@@ -26,7 +26,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
           {rankings.map((r) => (
             <tr
               key={r.archetypeId}
-              className="border-b border-gray-800/50 hover:bg-gray-800/30"
+              className="border-b border-slate-800/50 hover:bg-slate-800/30"
             >
               <td className="py-2 px-2">#{r.rank}</td>
               <td className="py-2 px-2 font-mono text-teal-400">{r.archetypeCode}</td>
@@ -44,7 +44,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
                     GIẢM
                   </span>
                 ) : (
-                  <span className="text-amber-400 bg-amber-950/50 px-2 py-0.5 rounded text-xs">
+                  <span className="text-slate-300 bg-slate-800 px-2 py-0.5 rounded text-xs">
                     NGANG
                   </span>
                 )}
@@ -60,7 +60,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
           ))}
           {rankings.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-4 text-center text-gray-400">
+              <td colSpan={8} className="py-4 text-center text-slate-400">
                 Không có dữ liệu
               </td>
             </tr>

@@ -13,16 +13,16 @@ export function MarketScreen({ onOpenEvidence }: Props) {
   return (
     <div className="space-y-3">
       <section
-        className="flex flex-col gap-3 rounded-xl border border-cyan-900/70 bg-cyan-950/20 p-3 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between"
         aria-labelledby="canonical-technical-title"
       >
         <div className="flex items-start gap-2">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" aria-hidden="true" />
           <div>
-            <h2 id="canonical-technical-title" className="text-sm font-bold text-cyan-100">
+            <h2 id="canonical-technical-title" className="text-sm font-semibold text-slate-200">
               Technical Replay là bề mặt kỹ thuật chuẩn
             </h2>
-            <p className="mt-1 max-w-3xl text-xs leading-relaxed text-cyan-200/80">
+            <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-400">
               Chỉ hiển thị BTCUSDT 1h/4h/1d từ nến đã đóng, cùng một nguồn và cùng mốc as-of.
               Các widget snapshot legacy chưa được kiểm chứng point-in-time đã bị cách ly khỏi điều hướng chính.
             </p>
@@ -31,7 +31,7 @@ export function MarketScreen({ onOpenEvidence }: Props) {
         <button
           type="button"
           onClick={onOpenEvidence}
-          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-cyan-700 bg-cyan-950/60 px-3 py-2 text-xs font-bold text-cyan-100 transition-colors hover:bg-cyan-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-teal-700 bg-teal-950/60 px-3 py-2 text-xs font-semibold text-teal-200 transition-colors hover:bg-teal-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
         >
           <FileCheck2 className="h-4 w-4" aria-hidden="true" />
           Mở Evidence Center

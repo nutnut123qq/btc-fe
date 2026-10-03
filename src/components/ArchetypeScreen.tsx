@@ -206,16 +206,16 @@ export function ArchetypeScreen() {
     <div className="space-y-4">
       {/* Symbol & Sub-tab bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 bg-gray-900 p-1 rounded-xl border border-gray-800">
-          <span className="text-xs font-semibold text-gray-400 px-2">Cặp coin:</span>
+        <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <span className="text-xs font-semibold text-slate-400 px-2">Cặp coin:</span>
           {SYMBOL_OPTIONS.map((sym) => (
             <button
               key={sym}
               onClick={() => setSelectedSymbol(sym)}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                 selectedSymbol === sym
-                  ? "bg-teal-500 text-gray-950 shadow"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "bg-teal-500 text-slate-950 shadow"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {sym.replace("USDT", "/USDT")}
@@ -223,7 +223,7 @@ export function ArchetypeScreen() {
           ))}
         </div>
 
-        <div className="flex space-x-1 bg-gray-900 p-1 rounded-xl border border-gray-800 flex-1 sm:flex-initial">
+        <div className="flex space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 flex-1 sm:flex-initial">
           {[
             { key: "analog", label: "Analog lịch sử" },
             { key: "gallery", label: "Thư viện (audit)" },
@@ -236,8 +236,8 @@ export function ArchetypeScreen() {
               onClick={() => setActiveSubTab(tab.key as typeof activeSubTab)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 activeSubTab === tab.key
-                  ? "bg-gray-800 text-teal-400 font-bold"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "bg-slate-800 text-teal-400 font-bold"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {tab.label}

@@ -38,12 +38,12 @@ function getRelativeTime(dateStr: string | null): string {
 
 function getSourceColorClass(source: string): string {
   const s = source.toLowerCase();
-  if (s.includes("coindesk")) return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
-  if (s.includes("cointelegraph")) return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
+  if (s.includes("coindesk")) return "bg-slate-800 text-slate-300 border border-slate-700";
+  if (s.includes("cointelegraph")) return "bg-slate-800 text-slate-300 border border-slate-700";
   if (s.includes("decrypt")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-  if (s.includes("theblock") || s.includes("the block")) return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
-  if (s.includes("bitcoinmagazine") || s.includes("bitcoin magazine")) return "bg-orange-500/20 text-orange-400 border border-orange-500/30";
-  return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
+  if (s.includes("theblock") || s.includes("the block")) return "bg-slate-500/20 text-slate-400 border border-slate-500/30";
+  if (s.includes("bitcoinmagazine") || s.includes("bitcoin magazine")) return "bg-slate-800 text-slate-300 border border-slate-700";
+  return "bg-slate-500/20 text-slate-400 border border-slate-500/30";
 }
 
 export function NewsScreen() {
@@ -97,7 +97,7 @@ export function NewsScreen() {
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="text-xs text-gray-400 hover:text-gray-200 inline-flex items-center gap-1 disabled:opacity-50 transition-colors"
+          className="text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 disabled:opacity-50 transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Làm mới
@@ -106,13 +106,13 @@ export function NewsScreen() {
 
       {sources.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
           <button
             onClick={() => setSelectedSource(null)}
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               selectedSource === null 
                 ? "bg-teal-600 text-white" 
-                : "bg-gray-900 border border-gray-800 text-gray-400 hover:bg-gray-800"
+                : "bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800"
             }`}
           >
             Tất cả
@@ -124,7 +124,7 @@ export function NewsScreen() {
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 selectedSource === s 
                   ? "bg-teal-600 text-white" 
-                  : "bg-gray-900 border border-gray-800 text-gray-400 hover:bg-gray-800"
+                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800"
               }`}
             >
               {s}
@@ -134,7 +134,7 @@ export function NewsScreen() {
       )}
 
       {loading && items.length === 0 && (
-        <div className="flex items-center justify-center py-20 text-gray-400">
+        <div className="flex items-center justify-center py-20 text-slate-400">
           <RefreshCw className="animate-spin w-6 h-6 mr-2" /> Đang tải tin…
         </div>
       )}
@@ -157,12 +157,12 @@ export function NewsScreen() {
       )}
       
       {!loading && !error && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 bg-gray-900/40 rounded-xl border border-gray-800 border-dashed">
-          <Newspaper className="w-10 h-10 text-gray-400 mb-3" />
-          <p className="text-gray-400 text-sm">
+        <div className="flex flex-col items-center justify-center py-16 bg-slate-900/40 rounded-xl border border-slate-800 border-dashed">
+          <Newspaper className="w-10 h-10 text-slate-400 mb-3" />
+          <p className="text-slate-400 text-sm">
             Chưa có bài viết nào.
           </p>
-          <p className="text-gray-400 text-xs mt-1">
+          <p className="text-slate-400 text-xs mt-1">
             Vui lòng kiểm tra RSS worker và PostgreSQL.
           </p>
         </div>
@@ -177,23 +177,23 @@ export function NewsScreen() {
               href={n.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-xl border border-gray-800/60 bg-gray-900/40 hover:border-teal-500/30 hover:bg-gray-900/80 transition-all duration-200 p-4 group"
+              className="block rounded-xl border border-slate-800/60 bg-slate-900/40 hover:border-teal-500/30 hover:bg-slate-900/80 transition-all duration-200 p-4 group"
             >
               <div className="flex justify-between items-start mb-2 gap-3">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${getSourceColorClass(n.source)}`}>
                   {n.source}
                 </span>
-                <span className="text-[11px] text-gray-400 whitespace-nowrap shrink-0 group-hover:text-gray-400 transition-colors">
+                <span className="text-[11px] text-slate-400 whitespace-nowrap shrink-0 group-hover:text-slate-400 transition-colors">
                   {getRelativeTime(n.publishedAt)}
                 </span>
               </div>
               
-              <h3 className="text-[15px] font-semibold text-gray-100 group-hover:text-teal-400 transition-colors leading-snug">
+              <h3 className="text-[15px] font-semibold text-slate-100 group-hover:text-teal-400 transition-colors leading-snug">
                 {n.title}
               </h3>
               
               {summary && (
-                <p className="text-[13px] text-gray-400 mt-2.5 line-clamp-2 leading-relaxed">
+                <p className="text-[13px] text-slate-400 mt-2.5 line-clamp-2 leading-relaxed">
                   {summary}
                 </p>
               )}
@@ -203,7 +203,7 @@ export function NewsScreen() {
       </div>
       
       {!loading && filteredItems.length > 0 && selectedSource !== null && filteredItems.length < items.filter(i => i.source === selectedSource).length && (
-        <p className="text-center text-xs text-gray-400 pt-2">
+        <p className="text-center text-xs text-slate-400 pt-2">
           Hiển thị {filteredItems.length} bài mới nhất từ {selectedSource}.
         </p>
       )}
