@@ -350,9 +350,9 @@ export function HistoricalAnalogView({ symbol, timeframeOptions, windowSizes }: 
                 <span>{data.validation.reason}</span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="rounded-lg bg-slate-900 p-2"><div className="text-lg font-black text-slate-200">{data.rawCandidateCount}</div><div className="text-slate-400">Ứng viên thô</div></div>
-                <div className="rounded-lg bg-slate-900 p-2"><div className="text-lg font-black text-slate-200">{data.independentCandidateCount}</div><div className="text-slate-400"><GlossaryTerm term="non-overlapping">Sau loại chồng lấn</GlossaryTerm></div></div>
-                <div className="rounded-lg bg-slate-900 p-2"><div className="text-lg font-black text-teal-300">{data.effectiveSampleCount}</div><div className="text-slate-400"><GlossaryTerm term="effective-sample">Mẫu hiệu lực</GlossaryTerm></div></div>
+                <div className="rounded-lg bg-slate-900 p-2"><div className="text-xl font-semibold text-slate-200 tabular-nums">{data.rawCandidateCount}</div><div className="text-slate-400">Ứng viên thô</div></div>
+                <div className="rounded-lg bg-slate-900 p-2"><div className="text-xl font-semibold text-slate-200 tabular-nums">{data.independentCandidateCount}</div><div className="text-slate-400"><GlossaryTerm term="non-overlapping">Sau loại chồng lấn</GlossaryTerm></div></div>
+                <div className="rounded-lg bg-slate-900 p-2"><div className="text-xl font-semibold text-teal-300 tabular-nums">{data.effectiveSampleCount}</div><div className="text-slate-400"><GlossaryTerm term="effective-sample">Mẫu hiệu lực</GlossaryTerm></div></div>
               </div>
               <p className="text-xs leading-4 text-slate-400">
                 <GlossaryTerm term="exclusion-zone">Vùng loại trừ</GlossaryTerm>: {data.exclusionBars} nến. TRUNG TÍNH khi |return| không vượt ngưỡng lớn hơn giữa <GlossaryTerm term="round-trip-cost">tham chiếu chi phí</GlossaryTerm> {data.roundTripCostPct.toFixed(2)}% và {data.atrMultiplier.toFixed(2)} × <GlossaryTerm term="atr">ATR</GlossaryTerm>. Đây là ngưỡng phân loại, không phải chi phí đã trừ khỏi <GlossaryTerm term="pnl">PnL</GlossaryTerm>.

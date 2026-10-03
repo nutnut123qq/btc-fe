@@ -38,20 +38,27 @@ function stateStyle(state: TechnicalReplayEvent["stateAtAsOf"]): string {
 }
 
 function availabilityStyle(value: TechnicalLayerEnvelope<unknown>["availability"]): string {
-  if (value === "available") return "bg-emerald-950/40 text-emerald-300";
-  if (value === "partial") return "bg-slate-800/40 text-slate-300";
+  if (value === "partial") return "bg-amber-950/40 text-amber-300";
   return "bg-rose-950/40 text-rose-300";
 }
 
-function LayerCard({ label, layer, summary, nonProbability = false }: {
+function LayerCard({ label, layer, anchor, summary, nonProbability = false }: {
   label: string;
   layer: TechnicalLayerEnvelope<unknown>;
+  anchor: ReactNode;
   summary: ReactNode;
   nonProbability?: boolean;
 }) {
   return <article className="min-w-0 rounded-lg bg-slate-800/40 p-3">
-    <div className="flex items-start justify-between gap-2"><div><h3 className="text-xs font-bold text-slate-200">{label}</h3><p className="mt-1 font-mono text-[9px] text-slate-400">{layer.layerKey}</p></div><span className={`rounded px-2 py-0.5 text-xs font-bold uppercase ${availabilityStyle(layer.availability)}`}>{layer.availability}</span></div>
-    <div className="mt-2 text-xs leading-5 text-slate-300">{layer.payload ? summary : <span className="text-rose-300">{layer.unavailableReason ?? "Không có payload point-in-time."}</span>}</div>
+    <div className="flex items-start justify-between gap-2"><div><h3 className="text-xs font-semibold text-slate-200">{label}</h3><p className="mt-0.5 font-mono text-[9px] text-slate-500">{layer.layerKey}</p></div>{layer.availability !== "available" && <span className={`rounded px-2 py-0.5 text-xs font-bold uppercase ${availabilityStyle(layer.availability)}`}>{layer.availability}</span>}</div>
+    {layer.payload ? (
+      <>
+        <div className="mt-1.5 text-xl font-semibold tabular-nums text-slate-50">{anchor}</div>
+        <div className="mt-1 text-xs leading-5 text-slate-400">{summary}</div>
+      </>
+    ) : (
+      <div className="mt-2 text-xs leading-5"><span className="text-rose-300">{layer.unavailableReason ?? "Không có payload point-in-time."}</span></div>
+    )}
     {nonProbability && <p className="mt-2 rounded bg-slate-800/40 px-2 py-1 text-xs text-slate-300">Chỉ số mô tả đồng thuận, không phải xác suất hay tín hiệu giao dịch.</p>}
     <details className="mt-2 text-xs text-slate-400">
       <summary className="cursor-pointer text-slate-400">Nguồn, phiên bản & giới hạn</summary>
@@ -158,26 +165,40 @@ export function TechnicalReplayPanel({
             <p className="truncate text-xs text-slate-400" title={replay.provenance.availabilityRule}>{replay.provenance.evaluationMode}</p>
           </div>
           <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Bảy lớp phân tích kỹ thuật point-in-time">
-            <LayerCard label="Technical indicators" layer={replay.layers.indicators} summary={<>
-              RSI14 <b>{replay.layers.indicators.payload?.rsi14?.toFixed(2) ?? "—"}</b> · EMA12/26 <b>{replay.layers.indicators.payload?.ema12?.toFixed(2) ?? "—"} / {replay.layers.indicators.payload?.ema26?.toFixed(2) ?? "—"}</b> · SMA50 <b>{replay.layers.indicators.payload?.sma50?.toFixed(2) ?? "—"}</b><br/>{replay.layers.indicators.payload?.events.length ?? 0} event tại nến quyết định.
+            <LayerCard label="Chỉ báo kỹ thuật" layer={replay.layers.indicators} anchor={<>
+              RSI14 {replay.layers.indicators.payload?.rsi14?.toFixed(2) ?? "—"}
+            </>} summary={<>
+              EMA12/26 {replay.layers.indicators.payload?.ema12?.toFixed(2) ?? "—"} / {replay.layers.indicators.payload?.ema26?.toFixed(2) ?? "—"} · SMA50 {replay.layers.indicators.payload?.sma50?.toFixed(2) ?? "—"}<br/>{replay.layers.indicators.payload?.events.length ?? 0} event tại nến quyết định.
             </>}/>
-            <LayerCard label="Candle patterns" layer={replay.layers.candlePatterns} summary={<>
-              <b>{replay.layers.candlePatterns.payload?.events.length ?? 0}</b> shape event trong cửa sổ replay. Marker dùng thời điểm pattern bắt đầu có thể biết.
+            <LayerCard label="Mẫu nến" layer={replay.layers.candlePatterns} anchor={<>
+              {replay.layers.candlePatterns.payload?.events.length ?? 0} <span className="text-xs font-normal text-slate-400">shape event</span>
+            </>} summary={<>
+              Trong cửa sổ replay. Marker dùng thời điểm pattern bắt đầu có thể biết.
             </>}/>
-            <LayerCard label="Volume anomaly" layer={replay.layers.volumeAnomaly} summary={<>
-              Ratio / SMA20 <b>{replay.layers.volumeAnomaly.payload?.volumeAnomalyRatio.toFixed(2) ?? "—"}×</b> · xu hướng <b>{replay.layers.volumeAnomaly.payload?.volumeTrend ?? "—"}</b><br/>{replay.layers.volumeAnomaly.payload?.triggeredEvents.join(", ") || "Không có threshold event."}
+            <LayerCard label="Bất thường khối lượng" layer={replay.layers.volumeAnomaly} anchor={<>
+              {replay.layers.volumeAnomaly.payload?.volumeAnomalyRatio.toFixed(2) ?? "—"}× <span className="text-xs font-normal text-slate-400">/ SMA20</span>
+            </>} summary={<>
+              Xu hướng {replay.layers.volumeAnomaly.payload?.volumeTrend ?? "—"}<br/>{replay.layers.volumeAnomaly.payload?.triggeredEvents.join(", ") || "Không có threshold event."}
             </>}/>
-            <LayerCard label="Market regime" layer={replay.layers.marketRegime} summary={<>
-              <b>{replay.layers.marketRegime.payload?.regimeType ?? "—"}</b> · trend {replay.layers.marketRegime.payload?.trend ?? "—"} · volatility {replay.layers.marketRegime.payload?.volatility ?? "—"}<br/>Range ratio {replay.layers.marketRegime.payload?.rangeRatio.toFixed(3) ?? "—"}.
+            <LayerCard label="Chế độ thị trường" layer={replay.layers.marketRegime} anchor={<>
+              {replay.layers.marketRegime.payload?.regimeType ?? "—"}
+            </>} summary={<>
+              Trend {replay.layers.marketRegime.payload?.trend ?? "—"} · volatility {replay.layers.marketRegime.payload?.volatility ?? "—"} · range ratio {replay.layers.marketRegime.payload?.rangeRatio.toFixed(3) ?? "—"}
             </>}/>
-            <LayerCard label="Fibonacci leg" layer={replay.layers.fibonacci} summary={<>
-              Leg <b>{replay.layers.fibonacci.payload?.direction ?? "—"}</b> · {replay.layers.fibonacci.payload?.levels.length ?? 0} mức · anchor {formatTime(replay.layers.fibonacci.payload?.anchorStartTimeMs ?? null)} → {formatTime(replay.layers.fibonacci.payload?.anchorEndTimeMs ?? null)}.
+            <LayerCard label="Fibonacci leg" layer={replay.layers.fibonacci} anchor={<>
+              {replay.layers.fibonacci.payload?.direction ?? "—"} <span className="text-xs font-normal text-slate-400">· {replay.layers.fibonacci.payload?.levels.length ?? 0} mức</span>
+            </>} summary={<>
+              Anchor {formatTime(replay.layers.fibonacci.payload?.anchorStartTimeMs ?? null)} → {formatTime(replay.layers.fibonacci.payload?.anchorEndTimeMs ?? null)}.
             </>}/>
-            <LayerCard label="Volume profile estimate" layer={replay.layers.volumeProfile} summary={<>
-              POC <b>{replay.layers.volumeProfile.payload?.pocPrice.toFixed(2) ?? "—"}</b> · VAH/VAL {replay.layers.volumeProfile.payload?.vahPrice.toFixed(2) ?? "—"} / {replay.layers.volumeProfile.payload?.valPrice.toFixed(2) ?? "—"}<br/><span className="text-amber-200/80">OHLCV estimate, không phải phân bổ volume theo giá quan sát trực tiếp.</span>
+            <LayerCard label="Ước lượng Volume Profile" layer={replay.layers.volumeProfile} anchor={<>
+              ${replay.layers.volumeProfile.payload?.pocPrice.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"} <span className="text-xs font-normal text-slate-400">POC</span>
+            </>} summary={<>
+              VAH/VAL {replay.layers.volumeProfile.payload?.vahPrice.toFixed(2) ?? "—"} / {replay.layers.volumeProfile.payload?.valPrice.toFixed(2) ?? "—"}<br/><span className="text-amber-200/80">OHLCV estimate, không phải phân bổ volume theo giá quan sát trực tiếp.</span>
             </>}/>
-            <LayerCard label="Confluence" layer={replay.layers.confluence} nonProbability summary={<>
-              Hướng <b>{replay.layers.confluence.payload?.overallDirection ?? "—"}</b> · score <b>{replay.layers.confluence.payload?.score.toFixed(3) ?? "—"}</b> · aligned modules {replay.layers.confluence.payload?.alignedDirectionalModules ?? 0}{replay.layers.confluence.payload?.hasConflict ? " · conflict" : ""}.<br/>{replay.layers.confluence.payload?.triggeredEvents.join(" → ") || "Không có confluence event."}
+            <LayerCard label="Điểm hội tụ" layer={replay.layers.confluence} nonProbability anchor={<>
+              {replay.layers.confluence.payload?.overallDirection ?? "—"} <span className="text-xs font-normal text-slate-400">score {replay.layers.confluence.payload?.score.toFixed(3) ?? "—"}</span>
+            </>} summary={<>
+              Aligned modules {replay.layers.confluence.payload?.alignedDirectionalModules ?? 0}{replay.layers.confluence.payload?.hasConflict ? " · conflict" : ""}<br/>{replay.layers.confluence.payload?.triggeredEvents.join(" → ") || "Không có confluence event."}
             </>}/>
           </div>
           <details className="rounded-lg bg-slate-800/40 p-3 text-xs text-slate-400">
