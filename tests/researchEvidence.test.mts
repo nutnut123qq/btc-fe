@@ -140,7 +140,7 @@ test("detail preserves dataset, protocol, uncertainty and provenance", () => {
 });
 
 test("descriptive technical bundle preserves coverage, exclusions and artifact roles without predictive promotion", () => {
-  const statisticalEvidence = JSON.parse(readFileSync(new URL("../../ai/contracts/technical-evidence-statistics.example.json", import.meta.url), "utf8"));
+  const statisticalEvidence = JSON.parse(readFileSync(new URL("../contracts/technical-evidence-statistics.example.json", import.meta.url), "utf8"));
   const parsed = parseResearchEvidenceDetail({
     ...item,
     kind: "event",

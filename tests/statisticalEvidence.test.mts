@@ -203,7 +203,7 @@ test("fails closed when required inference or quantitative reconciliation is inv
 });
 
 test("parses the producer's formal v1 example and preserves nullable unavailable fields", () => {
-  const formal = JSON.parse(readFileSync(new URL("../../ai/contracts/technical-evidence-statistics.example.json", import.meta.url), "utf8"));
+  const formal = JSON.parse(readFileSync(new URL("../contracts/technical-evidence-statistics.example.json", import.meta.url), "utf8"));
   const parsed = parseTechnicalStatisticalEvidence(formal);
   assert.equal(parsed.sensitivityGrid.declaredGridSha256, null);
   assert.equal(parsed.hypotheses[0].adjustedQValue, null);
