@@ -192,7 +192,7 @@ test.describe("production dashboard", () => {
       (r) => new URL(r.url()).pathname === "/api/archetypes",
       { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: "Thư viện (audit)", exact: true }).click();
+    await page.getByRole("tab", { name: "Thư viện (audit)", exact: true }).click();
     const archetypesResponse = await archetypesResponsePromise;
     expect(archetypesResponse.status()).toBe(200);
     const archetypeList = await archetypesResponse.json() as { total: number; items: unknown[] };

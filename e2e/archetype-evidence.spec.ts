@@ -112,7 +112,7 @@ test("gallery shows close-to-close evidence, six future candles and pagination",
 
   await page.goto("/");
   await openMainTab(page, "Mẫu nến");
-  await page.getByRole("button", { name: "Thư viện (audit)", exact: true }).click();
+  await page.getByRole("tab", { name: "Thư viện (audit)", exact: true }).click();
 
   await expect(page.getByText("BTC-4H-W15-A007").first()).toBeVisible();
   const evidence = page.getByRole("region", { name: "Mẫu gốc của BTC-4H-W15-A007" });
