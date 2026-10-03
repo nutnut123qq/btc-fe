@@ -14,13 +14,11 @@ function ageLabel(seconds: number | null): string {
 }
 
 function statusClass(status: string): string {
-  return status === "healthy" || status === "ready" || status === "fresh"
-    ? "text-emerald-300 bg-emerald-950/50"
-    : status === "inactive"
-      ? "text-slate-400 bg-slate-950/50"
-    : status === "degraded" || status === "stale"
-      ? "text-amber-300 bg-amber-950/50"
-      : "text-rose-300 bg-rose-950/50";
+  return status === "degraded" || status === "stale"
+    ? "text-amber-300 bg-amber-950/50"
+    : status === "down" || status === "unavailable" || status === "missing" || status === "error"
+      ? "text-rose-300 bg-rose-950/50"
+      : "text-slate-300 bg-slate-800/40";
 }
 
 function freshnessStatusLabel(status: FreshnessHealthDto["klines"][number]["status"]): string {

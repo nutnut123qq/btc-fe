@@ -107,24 +107,25 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Settings className="text-slate-400" />
-          Cài đặt cảnh báo giá (BTC)
-        </h2>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Settings className="text-slate-400" />
+            Cài đặt cảnh báo giá (BTC)
+          </h2>
+          <p className="hidden sm:block truncate text-xs text-slate-400">
+            Điều kiện lưu trong PostgreSQL; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
+          </p>
+        </div>
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 disabled:opacity-50"
+          className="shrink-0 text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Làm mới
         </button>
       </div>
-
-      <p className="text-xs text-slate-400">
-        Điều kiện lưu trong PostgreSQL; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
-      </p>
 
       <SessionAccessPanel
         kind="admin"

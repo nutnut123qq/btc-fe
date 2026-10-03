@@ -23,7 +23,7 @@ const EVIDENCE_TARGET_LABELS: Record<EvidenceTarget, string> = {
 };
 
 function operationalClass(status: OperationalStatus): string {
-  if (status === "operational") return "bg-emerald-950/40 text-emerald-300";
+  if (status === "operational") return "bg-slate-800/40 text-slate-300";
   if (status === "degraded") return "bg-amber-950/40 text-amber-300";
   return "bg-rose-950/40 text-rose-300";
 }
@@ -84,7 +84,7 @@ export function TechnicalCapabilitiesPanel() {
         <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <div className="rounded-lg bg-slate-950/50 p-2"><b>{data.items.length}</b><div className="text-slate-400">module đã đăng ký</div></div>
-            <div className="rounded-lg bg-emerald-950/20 p-2 text-emerald-300"><b>{counts.operational}</b><div className="opacity-70">đã triển khai</div></div>
+            <div className="rounded-lg bg-slate-800/40 p-2 text-slate-300"><b>{counts.operational}</b><div className="opacity-70">đã triển khai</div></div>
             <div className="rounded-lg bg-slate-800/40 p-2 text-slate-300"><b>{counts.validated}</b><div className="opacity-70">validated theo mục đích ghi rõ</div></div>
             <div className="rounded-lg bg-teal-950/20 p-2 text-teal-300"><b>{counts.forwardObserved}</b><div className="opacity-70">forward-observed</div></div>
           </div>
