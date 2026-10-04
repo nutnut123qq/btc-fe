@@ -9,48 +9,42 @@ interface ArchetypeRankingsTableProps {
 export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="text-slate-400 border-b border-slate-800">
-          <tr>
-            <th className="text-left py-2 px-2">Hạng</th>
-            <th className="text-left py-2 px-2">Mã</th>
-            <th className="text-center py-2 px-2">WS</th>
-            <th className="text-center py-2 px-2">TF</th>
-            <th className="text-right py-2 px-2">Số mẫu</th>
-            <th className="text-right py-2 px-2">Tỷ lệ thắng</th>
-            <th className="text-center py-2 px-2">Hướng</th>
-            <th className="text-right py-2 px-2">Lợi nhuận TB</th>
+      <table className="w-full border-collapse text-left text-xs">
+        <thead>
+          <tr className="border-b border-slate-800 text-[11px] text-slate-400">
+            <th className="px-3 py-1.5 text-center font-semibold">Hạng</th>
+            <th className="px-3 py-1.5 font-semibold">Mã</th>
+            <th className="px-3 py-1.5 text-center font-semibold">WS</th>
+            <th className="px-3 py-1.5 text-center font-semibold">TF</th>
+            <th className="px-3 py-1.5 text-right font-semibold">Số mẫu</th>
+            <th className="px-3 py-1.5 text-right font-semibold">Tỷ lệ thắng</th>
+            <th className="px-3 py-1.5 text-center font-semibold">Hướng</th>
+            <th className="px-3 py-1.5 text-right font-semibold">Lợi nhuận TB</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-800">
           {rankings.map((r) => (
             <tr
               key={r.archetypeId}
-              className=" hover:bg-slate-800/30"
+              className="hover:bg-slate-800/30"
             >
-              <td className="py-2 px-2">#{r.rank}</td>
-              <td className="py-2 px-2 font-mono text-teal-400">{r.archetypeCode}</td>
-              <td className="py-2 px-2 text-center">{r.windowSize}</td>
-              <td className="py-2 px-2 text-center">{r.timeframe}</td>
-              <td className="py-2 px-2 text-right">{r.memberCount}</td>
-              <td className="py-2 px-2 text-right">{(r.winRate * 100).toFixed(1)}%</td>
-              <td className="py-2 px-2 text-center">
+              <td className="px-3 py-2 text-center font-mono tabular-nums text-slate-300">#{r.rank}</td>
+              <td className="px-3 py-2 font-mono font-medium text-teal-400">{r.archetypeCode}</td>
+              <td className="px-3 py-2 text-center font-mono tabular-nums text-slate-300">{r.windowSize}</td>
+              <td className="px-3 py-2 text-center font-mono tabular-nums text-slate-300">{r.timeframe}</td>
+              <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-300">{r.memberCount}</td>
+              <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-200">{(r.winRate * 100).toFixed(1)}%</td>
+              <td className="px-3 py-2 text-center">
                 {r.dominantDirection === "UP" ? (
-                  <span className="text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded text-xs">
-                    TĂNG
-                  </span>
+                  <span className="text-[11px] font-semibold text-emerald-400">TĂNG</span>
                 ) : r.dominantDirection === "DOWN" ? (
-                  <span className="text-rose-400 bg-rose-950/50 px-2 py-0.5 rounded text-xs">
-                    GIẢM
-                  </span>
+                  <span className="text-[11px] font-semibold text-rose-400">GIẢM</span>
                 ) : (
-                  <span className="text-slate-300 bg-slate-800 px-2 py-0.5 rounded text-xs">
-                    NGANG
-                  </span>
+                  <span className="text-[11px] font-semibold text-slate-300">NGANG</span>
                 )}
               </td>
               <td
-                className={`py-2 px-2 text-right ${
+                className={`px-3 py-2 text-right font-mono font-medium tabular-nums ${
                   r.avgReturnPct > 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
@@ -60,7 +54,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
           ))}
           {rankings.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-4 text-center text-slate-400">
+              <td colSpan={8} className="py-6 text-center text-sm text-slate-400">
                 Không có dữ liệu
               </td>
             </tr>

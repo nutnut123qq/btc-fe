@@ -30,14 +30,17 @@ export function ArchetypePredictContainer({
   onPredict,
 }: ArchetypePredictContainerProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-      <div className="flex items-end gap-4 mb-6">
+    <div className="rounded border border-slate-800 bg-slate-900">
+      <div className="flex h-9 items-center border-b border-slate-800 bg-slate-850/60 px-3">
+        <span className="truncate text-[13px] font-semibold text-slate-200">Dự báo mẫu nến (thử nghiệm)</span>
+      </div>
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-2 border-b border-slate-800 px-3 py-2.5">
         <div>
-          <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
+          <label className="block text-[11px] text-slate-400">Timeframe</label>
           <select
             value={timeframe}
             onChange={(e) => onTimeframeChange(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm"
+            className="mt-1 h-8 rounded-sm border border-slate-800 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500/60 focus:outline-none"
           >
             {timeframeOptions.map((tf) => (
               <option key={tf} value={tf}>
@@ -47,11 +50,11 @@ export function ArchetypePredictContainer({
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-400 block mb-1">Window Size</label>
+          <label className="block text-[11px] text-slate-400">Window Size</label>
           <select
             value={windowSize}
             onChange={(e) => onWindowSizeChange(Number(e.target.value))}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm"
+            className="mt-1 h-8 rounded-sm border border-slate-800 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500/60 focus:outline-none"
           >
             {windowSizes.map((ws) => (
               <option key={ws} value={ws}>
@@ -63,20 +66,22 @@ export function ArchetypePredictContainer({
         <button
           onClick={onPredict}
           disabled={loading}
-          className="bg-teal-600 hover:bg-teal-500 disabled:bg-slate-700 text-white font-medium rounded-lg px-4 py-2 text-sm flex items-center gap-2"
+          className="flex h-8 items-center gap-1.5 rounded-sm border border-slate-800 px-3 text-xs font-semibold text-teal-300 hover:bg-teal-500/10 disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Dự báo
         </button>
       </div>
 
-      {loading ? (
-        <div className="py-12 flex justify-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-teal-500" />
-        </div>
-      ) : (
-        <ArchetypePredictView nextPred={nextPred} seqPred={seqPred} />
-      )}
+      <div className="p-3">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <RefreshCw className="h-6 w-6 animate-spin text-teal-500" />
+          </div>
+        ) : (
+          <ArchetypePredictView nextPred={nextPred} seqPred={seqPred} />
+        )}
+      </div>
     </div>
   );
 }

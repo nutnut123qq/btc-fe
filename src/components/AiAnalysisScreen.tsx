@@ -1,27 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, RefreshCw, TrendingUp, TrendingDown, ChevronDown, ChevronRight } from "lucide-react";
+import { Bot, RefreshCw, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import type { AiCapabilitiesDto, AnalysisResult } from "@/lib/types";
 import { getBitcoinAnalysis } from "@/lib/api";
 import { AI_ANALYSIS_SYMBOL, getLlmUiState } from "@/lib/researchUi";
 import { SentimentBadge } from "./SentimentBadge";
 import { ErrorBoundary } from "./ErrorBoundary";
 
-function Accordion({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function Section({
+  title,
+  meta,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  meta?: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+    <div className="border-b border-slate-800 last:border-b-0">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800/50 transition-colors"
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-1 py-3 text-left transition-colors hover:bg-slate-800/30"
       >
-        <span>{title}</span>
-        {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+        <span className="min-w-0 flex items-baseline gap-2">
+          <span className="text-sm font-medium text-slate-200">{title}</span>
+          {meta && <span className="text-[11px] text-slate-500">{meta}</span>}
+        </span>
+        {open ? (
+          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+        )}
       </button>
-      {open && <div className="px-4 pb-4">{children}</div>}
+      {open && <div className="px-1 pb-4">{children}</div>}
     </div>
   );
+}
+
+function forecastTone(forecast: string) {
+  const f = forecast.toUpperCase();
+  if (f.includes("UP")) return "text-teal-300";
+  if (f.includes("DOWN")) return "text-rose-300";
+  return "text-amber-300";
 }
 
 export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitiesDto | null }) {
@@ -46,162 +72,223 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="max-w-4xl mx-auto">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b border-slate-800 pb-3">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Bot className="text-teal-400" />
-            Phân tích AI Đa Tác Tử
+          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-100">
+            <Bot className="h-4 w-4 text-teal-400" />
+            Phân tích AI
           </h2>
-          <p className="hidden sm:block truncate text-xs text-slate-400">LangGraph multi-agent cho BTC/USDT trong phạm vi nghiên cứu hiện tại.</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            LangGraph nhiều tác tử phân tích BTC; kết quả là giải thích, không phải khuyến nghị giao dịch.
+          </p>
         </div>
-        <span className="shrink-0 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-teal-300">
-          BTC/USDT
-        </span>
+        <button
+          type="button"
+          onClick={() => void analyze()}
+          disabled={loading || llmUnavailable}
+          className="flex w-full items-center justify-center gap-2 border border-teal-500/50 bg-teal-500/10 px-4 py-2.5 text-sm font-medium text-teal-200 transition-colors hover:bg-teal-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/40 disabled:text-slate-500 lg:w-auto lg:py-2"
+        >
+          {loading ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <Bot className="h-4 w-4" />
+          )}
+          {loading
+            ? "Đang phân tích…"
+            : llmState === "unknown"
+              ? "Đang kiểm tra LLM"
+              : llmUnavailable
+                ? "Giải thích LLM chưa khả dụng"
+                : "Phân tích BTC"}
+        </button>
       </div>
 
-      <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
-        <SentimentBadge symbol={AI_ANALYSIS_SYMBOL} />
-      </ErrorBoundary>
+      <div className="mt-3">
+        <ErrorBoundary fallbackTitle="Lỗi tải Sentiment">
+          <SentimentBadge symbol={AI_ANALYSIS_SYMBOL} />
+        </ErrorBoundary>
+      </div>
 
       {llmState === "unknown" && (
-        <div className="rounded bg-slate-800/40 px-4 py-2.5 text-xs text-slate-300">
+        <div className="mt-3 border-b border-slate-800 pb-3 text-xs text-slate-400">
           Đang kiểm tra khả năng giải thích LLM…
         </div>
       )}
       {llmState === "off" && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-200">
+        <div className="mt-3 border border-amber-900/60 bg-amber-950/30 px-3 py-2.5 text-xs text-amber-200" role="status">
           LLM OFF — phân tích đa tác tử chưa khả dụng; dữ liệu và mô hình định lượng vẫn hoạt động bình thường.
         </div>
       )}
 
-      <button
-        onClick={() => void analyze()}
-        disabled={loading || llmUnavailable}
-        className="w-full py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors bg-teal-700 hover:bg-teal-600 text-white disabled:opacity-50"
-      >
-        {loading ? (
-          <>
-            <RefreshCw className="w-5 h-5 animate-spin" />
-            Đang phân tích…
-          </>
-        ) : (
-          <>
-            <Bot className="w-5 h-5" />
-            {llmState === "unknown" ? "Đang kiểm tra LLM" : llmUnavailable ? "Giải thích LLM chưa khả dụng" : "Phân tích bằng AI"}
-          </>
-        )}
-      </button>
-
       {error && (
-        <div className="p-5 rounded-xl bg-rose-950/40 border border-rose-900 text-rose-200 text-sm">
+        <div className="mt-3 border border-rose-900/60 bg-rose-950/30 px-3 py-2.5 text-xs text-rose-200" role="alert">
           {error}
         </div>
       )}
 
       {data && (
-        <div className="space-y-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-            <div className="text-xs font-semibold text-slate-400 mb-2">Dự báo</div>
-            <div className="flex items-center gap-3">
-              {String(data.forecast).includes("UP") ? (
-                <TrendingUp className="text-emerald-400 w-8 h-8" />
-              ) : (
-                <TrendingDown className="text-rose-400 w-8 h-8" />
-              )}
-              <div>
-                <div className="text-xl font-semibold text-slate-50">{String(data.forecast).split("_").join(" ")}</div>
-                <div className="mt-0.5 text-xs text-slate-400">
-                  Độ tin cậy: {data.confidence}%
-                </div>
-              </div>
-            </div>
+        <div className="mt-3">
+          <div
+            data-testid="ai-verdict"
+            className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border border-slate-800 bg-slate-900/40 px-3 py-2.5"
+          >
+            <span className={`font-mono text-sm font-semibold ${forecastTone(String(data.forecast))}`}>
+              {String(data.forecast).split("_").join(" ")}
+            </span>
+            <span className="text-xs text-slate-400">
+              Độ tin cậy: <span className="font-mono text-slate-200">{data.confidence}%</span>
+            </span>
+            <span className="ml-auto text-[11px] text-amber-300/90">
+              LLM explanation — không phải bằng chứng đã kiểm định
+            </span>
           </div>
 
-          <Accordion title="Lập luận" defaultOpen>
-            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{data.reasoning || "—"}</p>
-          </Accordion>
+          <div className="mt-3 border-t border-slate-800">
+            <Section title="Lập luận" defaultOpen>
+              <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-300">
+                {data.reasoning?.trim() ? data.reasoning : "—"}
+              </p>
+            </Section>
 
-          <Accordion title="Debate">
-            <div className="space-y-4 text-sm">
-              <DebateBlock title="News Agent" body={data.debate_summary?.news_agent} accent="border-emerald-500" textAccent="text-emerald-400" />
-              <DebateBlock title="Tech Agent" body={data.debate_summary?.tech_agent} accent="border-teal-500" textAccent="text-teal-400" />
-              <DebateBlock title="Quyết định cuối" body={data.debate_summary?.final_decision} accent="border-slate-500" textAccent="text-slate-400" />
-            </div>
-          </Accordion>
-
-          <Accordion title="Bằng chứng tin">
-            {Array.isArray(data.news_evidence) && data.news_evidence.length > 0 ? (
-              <div className="space-y-4">
-                {data.news_evidence.slice(0, 5).map((e, idx) => (
-                  <div key={idx} className=" pb-3 last:border-0 last:pb-0">
-                    <div className="text-xs text-white font-semibold">{e.title ?? "(no title)"}</div>
-                    <div className="text-xs text-teal-300">{e.sentiment ?? ""}</div>
-                    {e.link && (
-                      <a href={e.link} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-400 hover:underline break-all mt-1 block">
-                        {e.link}
-                      </a>
-                    )}
-                    <p className="text-slate-400 text-xs whitespace-pre-wrap mt-1">{e.snippet ?? ""}</p>
-                    <p className="text-slate-400 text-xs whitespace-pre-wrap mt-1">{e.why_it_matters ?? ""}</p>
-                  </div>
-                ))}
+            <Section title="Tranh luận tác tử" meta="3 quan điểm">
+              <div className="space-y-3">
+                <DebateBlock title="Tác tử tin tức" body={data.debate_summary?.news_agent} />
+                <DebateBlock title="Tác tử kỹ thuật" body={data.debate_summary?.tech_agent} />
+                <DebateBlock title="Quyết định cuối" body={data.debate_summary?.final_decision} />
               </div>
-            ) : (
-              <p className="text-slate-400 text-xs">Không có bằng chứng tin.</p>
-            )}
-          </Accordion>
+            </Section>
 
-          <Accordion title="Bằng chứng kỹ thuật">
-            {data.tech_evidence ? (
-              <div className="text-xs text-slate-300 space-y-1.5">
-                <div><span className="text-slate-400">Close đầu kỳ:</span> {data.tech_evidence.first_close ?? "n/a"}</div>
-                <div><span className="text-slate-400">Close cuối kỳ:</span> {data.tech_evidence.last_close ?? "n/a"}</div>
-                <div><span className="text-slate-400">Biến động:</span> {data.tech_evidence.change_pct ?? "n/a"}%</div>
-                <div><span className="text-slate-400">Đỉnh kỳ:</span> {data.tech_evidence.period_high ?? "n/a"}</div>
-                <div><span className="text-slate-400">Đáy kỳ:</span> {data.tech_evidence.period_low ?? "n/a"}</div>
-                <div><span className="text-slate-400">RSI:</span> {data.tech_evidence.rsi ?? "n/a"}</div>
-              </div>
-            ) : (
-              <p className="text-slate-400 text-xs">Không có dữ liệu kỹ thuật.</p>
-            )}
-          </Accordion>
-
-          <Accordion title="Rủi ro">
-            {Array.isArray(data.risk_conditions) && data.risk_conditions.length > 0 ? (
-              <div className="space-y-4">
-                {data.risk_conditions.slice(0, 5).map((r, idx) => (
-                  <div key={idx} className="bg-slate-950 p-3 rounded ">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-xs text-white font-semibold break-words">{r.trigger ?? "(no trigger)"}</div>
-                      <div className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 whitespace-nowrap">
-                        {r.severity ?? "N/A"}
+            <Section
+              title="Bằng chứng tin tức"
+              meta={
+                Array.isArray(data.news_evidence) && data.news_evidence.length > 0
+                  ? `${data.news_evidence.length} nguồn`
+                  : undefined
+              }
+            >
+              {Array.isArray(data.news_evidence) && data.news_evidence.length > 0 ? (
+                <div className="divide-y divide-slate-800/60">
+                  {data.news_evidence.map((e, idx) => (
+                    <div key={idx} className="py-2.5 first:pt-0">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0 text-xs font-medium text-slate-200">{e.title ?? "(không tiêu đề)"}</span>
+                        {e.sentiment && (
+                          <span className="shrink-0 text-[11px] text-slate-500">{e.sentiment}</span>
+                        )}
                       </div>
+                      {e.snippet && (
+                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-400">{e.snippet}</p>
+                      )}
+                      {e.why_it_matters && (
+                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-500">
+                          {e.why_it_matters}
+                        </p>
+                      )}
+                      {e.link && (
+                        <a
+                          href={e.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-teal-400 hover:underline"
+                        >
+                          Nguồn <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
                     </div>
-                    <div className="text-slate-400 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-slate-400">What to watch:</span> {r.what_to_watch ?? ""}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">Không có bằng chứng tin tức.</p>
+              )}
+            </Section>
+
+            <Section title="Bằng chứng kỹ thuật">
+              {data.tech_evidence ? (
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-3">
+                  <TechStat label="Close đầu kỳ" value={data.tech_evidence.first_close} />
+                  <TechStat label="Close cuối kỳ" value={data.tech_evidence.last_close} />
+                  <TechStat
+                    label="Biến động"
+                    value={
+                      data.tech_evidence.change_pct == null
+                        ? null
+                        : `${data.tech_evidence.change_pct}%`
+                    }
+                  />
+                  <TechStat label="Đỉnh kỳ" value={data.tech_evidence.period_high} />
+                  <TechStat label="Đáy kỳ" value={data.tech_evidence.period_low} />
+                  <TechStat label="RSI" value={data.tech_evidence.rsi} />
+                </dl>
+              ) : (
+                <p className="text-xs text-slate-500">Không có dữ liệu kỹ thuật.</p>
+              )}
+            </Section>
+
+            <Section
+              title="Điều kiện rủi ro"
+              meta={
+                Array.isArray(data.risk_conditions) && data.risk_conditions.length > 0
+                  ? `${data.risk_conditions.length} điều kiện`
+                  : undefined
+              }
+            >
+              {Array.isArray(data.risk_conditions) && data.risk_conditions.length > 0 ? (
+                <div className="divide-y divide-slate-800/60">
+                  {data.risk_conditions.map((r, idx) => (
+                    <div key={idx} className="py-2.5 first:pt-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="min-w-0 text-xs font-medium text-slate-200">
+                          {r.trigger ?? "(không trigger)"}
+                        </span>
+                        {r.severity && (
+                          <span className="shrink-0 border border-slate-700 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+                            {r.severity}
+                          </span>
+                        )}
+                      </div>
+                      {r.what_to_watch && (
+                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-400">
+                          <span className="text-slate-500">Theo dõi: </span>
+                          {r.what_to_watch}
+                        </p>
+                      )}
+                      {r.mitigation_hint && (
+                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-400">
+                          <span className="text-slate-500">Giảm thiểu: </span>
+                          {r.mitigation_hint}
+                        </p>
+                      )}
                     </div>
-                    <div className="text-slate-400 text-xs whitespace-pre-wrap mt-1">
-                      <span className="text-slate-400">Mitigation hint:</span> {r.mitigation_hint ?? ""}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-400 text-xs">Không có điều kiện rủi ro.</p>
-            )}
-          </Accordion>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">Không có điều kiện rủi ro.</p>
+              )}
+            </Section>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function DebateBlock({ title, body, accent, textAccent }: { title: string; body?: string; accent: string; textAccent: string }) {
+function TechStat({ label, value }: { label: string; value: number | string | null | undefined }) {
   return (
-    <div className={`border-l-4 ${accent} bg-slate-950 p-3 rounded`}>
-      <span className={`${textAccent} font-semibold text-xs mb-1 block`}>{title}</span>
-      <p className="text-slate-400 text-xs whitespace-pre-wrap">{body?.trim() ? body : "—"}</p>
+    <div className="flex items-baseline justify-between gap-2 sm:block">
+      <dt className="text-slate-500">{label}</dt>
+      <dd className="font-mono text-slate-200">{value ?? "n/a"}</dd>
+    </div>
+  );
+}
+
+function DebateBlock({ title, body }: { title: string; body?: string }) {
+  return (
+    <div className="border-l-2 border-slate-700 pl-3">
+      <span className="block text-[11px] font-medium text-slate-400">{title}</span>
+      <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-slate-300">
+        {body?.trim() ? body : "—"}
+      </p>
     </div>
   );
 }

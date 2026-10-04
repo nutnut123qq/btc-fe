@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Settings, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, RefreshCw } from "lucide-react";
 import { AlertSettingsDto } from "@/lib/types";
 import { getAlertSettings, putAlertSettings } from "@/lib/api";
 import { TelegramSettingsPanel } from "./TelegramSettingsPanel";
@@ -105,24 +105,40 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
     }
   };
 
+  // Derived display-only validation hints (save() keeps the real checks).
+  const aboveTrim = priceAbove.trim();
+  const belowTrim = priceBelow.trim();
+  const aboveParsed = aboveTrim === "" ? null : Number.parseFloat(aboveTrim.replace(",", "."));
+  const belowParsed = belowTrim === "" ? null : Number.parseFloat(belowTrim.replace(",", "."));
+  const aboveInvalid = aboveTrim !== "" && (Number.isNaN(aboveParsed!) || aboveParsed! < 0);
+  const belowInvalid = belowTrim !== "" && (Number.isNaN(belowParsed!) || belowParsed! < 0);
+  const rangeInvalid =
+    aboveTrim !== "" &&
+    belowTrim !== "" &&
+    !aboveInvalid &&
+    !belowInvalid &&
+    aboveParsed! <= belowParsed!;
+  const cooldownParsed = Number.parseInt(String(cooldownMinutes), 10) || 30;
+  const cooldownInvalid = cooldownParsed < 1 || cooldownParsed > 1440;
+
+  const inputClass =
+    "h-10 w-full rounded border border-slate-800 bg-slate-950 px-3 font-mono text-sm text-slate-100 placeholder:text-slate-600 transition-colors focus:border-teal-500 focus:outline-none disabled:opacity-50";
+
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="mx-auto max-w-5xl space-y-4">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Settings className="text-slate-400" />
-            Cài đặt cảnh báo giá (BTC)
-          </h2>
-          <p className="hidden sm:block truncate text-xs text-slate-400">
-            Điều kiện lưu trong PostgreSQL; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
+          <h2 className="text-xl font-semibold tracking-tight text-slate-100">Cảnh báo</h2>
+          <p className="mt-0.5 text-[13px] text-slate-400">
+            Ngưỡng giá BTC và tần suất kiểm tra; worker backend so sánh giá đóng nến Binance theo chu kỳ cấu hình.
           </p>
         </div>
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="shrink-0 text-xs text-slate-400 hover:text-slate-200 inline-flex items-center gap-1 disabled:opacity-50"
+          className="inline-flex min-h-10 shrink-0 items-center gap-1.5 px-1 text-xs text-slate-400 transition-colors hover:text-slate-200 disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Làm mới
         </button>
       </div>
@@ -134,116 +150,205 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
       />
 
       {!contractCompatible && (
-        <p className="rounded-lg bg-amber-950/30 p-2 text-xs text-amber-300">
+        <p className="border-l-2 border-amber-500/70 bg-amber-950/20 px-3 py-2 text-xs text-amber-200" role="alert">
           API contract chưa được xác nhận; các thao tác ghi trong Settings và Lab đang bị khóa.
         </p>
       )}
 
-      <ErrorBoundary fallbackTitle="Lỗi tải trạng thái hệ thống">
-        <SystemStatusPanel />
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        <section className="space-y-4 lg:col-span-7">
+          {loading && <p className="text-sm text-slate-500">Đang tải…</p>}
+
+          {!loading && (
+            <>
+              <section className="overflow-hidden rounded border border-slate-800 bg-slate-900">
+                <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 px-3 py-1">
+                  <h3 className="text-[13px] font-semibold text-slate-200">Ngưỡng giá</h3>
+                  <span className="font-mono text-[11px] text-slate-500">BTC/USDT</span>
+                </header>
+                <div className="space-y-4 p-3 sm:p-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <label htmlFor="price-above" className="text-xs text-slate-400">Giá trên</label>
+                      {aboveInvalid ? (
+                        <span className="flex items-center gap-1 text-[11px] text-amber-300">
+                          <AlertTriangle className="h-3 w-3" /> giá trị không hợp lệ
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-500">để trống = tắt</span>
+                      )}
+                    </div>
+                    <div className="relative flex items-center">
+                      <input
+                        id="price-above"
+                        type="text"
+                        inputMode="decimal"
+                        value={priceAbove}
+                        onChange={(e) => setPriceAbove(e.target.value)}
+                        placeholder="vd: 95000"
+                        className={`${inputClass} pr-14`}
+                      />
+                      <span className="pointer-events-none absolute right-3 font-mono text-xs text-slate-500">USDT</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <label htmlFor="price-below" className="text-xs text-slate-400">Giá dưới</label>
+                      {belowInvalid ? (
+                        <span className="flex items-center gap-1 text-[11px] text-amber-300">
+                          <AlertTriangle className="h-3 w-3" /> giá trị không hợp lệ
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-500">để trống = tắt</span>
+                      )}
+                    </div>
+                    <div className="relative flex items-center">
+                      <input
+                        id="price-below"
+                        type="text"
+                        inputMode="decimal"
+                        value={priceBelow}
+                        onChange={(e) => setPriceBelow(e.target.value)}
+                        placeholder="vd: 80000"
+                        className={`${inputClass} pr-14`}
+                      />
+                      <span className="pointer-events-none absolute right-3 font-mono text-xs text-slate-500">USDT</span>
+                    </div>
+                  </div>
+
+                  {rangeInvalid && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-amber-300">
+                      <AlertTriangle className="h-3 w-3 shrink-0" />
+                      Giá trên phải lớn hơn giá dưới khi nhập cả hai.
+                    </p>
+                  )}
+                  {!rangeInvalid && (
+                    <p className="text-[11px] leading-relaxed text-slate-500">
+                      Nếu nhập cả hai: giá trên phải lớn hơn giá dưới (dải giữa hai mức; báo khi vượt trên hoặc rơi dưới).
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section className="overflow-hidden rounded border border-slate-800 bg-slate-900">
+                <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 px-3 py-1">
+                  <h3 className="text-[13px] font-semibold text-slate-200">Kênh thông báo</h3>
+                  <span className="font-mono text-[11px] text-slate-500">phân phối tín hiệu</span>
+                </header>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enabled}
+                  onClick={() => setEnabled((v) => !v)}
+                  className="flex min-h-14 w-full items-center justify-between gap-4 px-3 py-3 text-left transition-colors hover:bg-slate-850/40 sm:px-4"
+                >
+                  <span>
+                    <span className="block text-sm font-medium text-slate-100">Bật cảnh báo theo ngưỡng</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">
+                      Worker đánh giá giá đóng nến và tạo thông báo trong app; Telegram gửi thêm nếu đã cấu hình.
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${enabled ? "bg-teal-500" : "bg-slate-700"}`}
+                  >
+                    <span
+                      className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${enabled ? "translate-x-4" : ""}`}
+                    />
+                  </span>
+                </button>
+              </section>
+
+              <section className="overflow-hidden rounded border border-slate-800 bg-slate-900">
+                <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 px-3 py-1">
+                  <h3 className="text-[13px] font-semibold text-slate-200">Tần suất &amp; giới hạn</h3>
+                  <span className="font-mono text-[11px] text-slate-500">kiểm soát tải dữ liệu</span>
+                </header>
+                <div className="grid grid-cols-1 gap-4 p-3 sm:grid-cols-2 sm:p-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="kline-interval" className="block text-xs text-slate-400">Khung nến (giá đóng)</label>
+                    <div className="relative">
+                      <select
+                        id="kline-interval"
+                        value={klineInterval}
+                        onChange={(e) => setKlineInterval(e.target.value)}
+                        className={`${inputClass} appearance-none pr-9`}
+                      >
+                        {ACTIVE_TIMEFRAMES.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <label htmlFor="cooldown-minutes" className="block text-xs text-slate-400">Cooldown</label>
+                      {cooldownInvalid && (
+                        <span className="flex items-center gap-1 text-[11px] text-amber-300">
+                          <AlertTriangle className="h-3 w-3" /> 1–1440 phút
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative flex items-center">
+                      <input
+                        id="cooldown-minutes"
+                        type="number"
+                        min={1}
+                        max={1440}
+                        value={cooldownMinutes}
+                        onChange={(e) => setCooldownMinutes(Number(e.target.value))}
+                        className={`${inputClass} pr-14`}
+                      />
+                      <span className="pointer-events-none absolute right-3 font-mono text-xs text-slate-500">phút</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 text-xs">
+                  {error && <p className="whitespace-pre-wrap break-words text-rose-300">{error}</p>}
+                  {!error && ok && (
+                    <p className="flex items-center gap-1.5 text-slate-400">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" /> {ok}
+                    </p>
+                  )}
+                  {!error && !ok && (!adminUnlocked || !contractCompatible) && (
+                    <p className="text-slate-500">Thao tác ghi đang khóa; cần khóa quản trị và API contract tương thích.</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={saving || !adminUnlocked || !contractCompatible}
+                  onClick={() => void save()}
+                  className="h-10 w-full shrink-0 rounded bg-teal-500 px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-400 disabled:bg-slate-800 disabled:text-slate-500 sm:w-auto"
+                >
+                  {saving ? "Đang lưu…" : "Lưu cấu hình"}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <aside className="space-y-4 lg:col-span-5">
+          <ErrorBoundary fallbackTitle="Lỗi tải trạng thái hệ thống">
+            <SystemStatusPanel />
+          </ErrorBoundary>
+
+          <TelegramSettingsPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
+        </aside>
+      </div>
+
+      <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
+        <DataManagementPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
       </ErrorBoundary>
 
       <ErrorBoundary fallbackTitle="Lỗi tải bản đồ năng lực kỹ thuật">
         <TechnicalCapabilitiesPanel />
-      </ErrorBoundary>
-
-      {loading && <p className="text-slate-400 text-sm">Đang tải…</p>}
-
-      {!loading && (
-        <div className="space-y-4 text-sm bg-slate-900/60 rounded-xl border border-slate-800 p-5">
-          {error && <div className="text-rose-400 text-xs break-words whitespace-pre-wrap">{error}</div>}
-          {ok && <div className="text-emerald-400 text-xs">{ok}</div>}
-
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div
-              onClick={() => setEnabled((v) => !v)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${enabled ? "bg-teal-600" : "bg-slate-700"}`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                  enabled ? "translate-x-5" : ""
-                }`}
-              />
-            </div>
-            <span>Bật cảnh báo theo ngưỡng</span>
-          </label>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Giá trên (USDT, để trống = tắt)</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={priceAbove}
-                onChange={(e) => setPriceAbove(e.target.value)}
-                placeholder="vd: 95000"
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-600"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Giá dưới (USDT, để trống = tắt)</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={priceBelow}
-                onChange={(e) => setPriceBelow(e.target.value)}
-                placeholder="vd: 80000"
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-600"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-slate-400">
-            Nếu nhập cả hai: <strong className="text-slate-400 font-medium">giá trên &gt; giá dưới</strong> (dải giữa hai mức; báo khi
-            vượt trên hoặc rơi dưới).
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Khung nến (giá đóng)</label>
-              <select
-                value={klineInterval}
-                onChange={(e) => setKlineInterval(e.target.value)}
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-600"
-              >
-                {ACTIVE_TIMEFRAMES.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Cooldown (phút)</label>
-              <input
-                type="number"
-                min={1}
-                max={1440}
-                value={cooldownMinutes}
-                onChange={(e) => setCooldownMinutes(Number(e.target.value))}
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-600"
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={saving || !adminUnlocked || !contractCompatible}
-            onClick={() => void save()}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-medium disabled:opacity-50 transition-colors"
-          >
-            {saving ? "Đang lưu…" : "Lưu cấu hình"}
-          </button>
-        </div>
-      )}
-
-      <hr className="border-slate-800 my-6" />
-
-      <TelegramSettingsPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
-
-      <hr className="border-slate-800 my-6" />
-
-      <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
-        <DataManagementPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
       </ErrorBoundary>
     </div>
   );

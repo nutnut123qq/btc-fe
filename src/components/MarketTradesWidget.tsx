@@ -85,30 +85,30 @@ export function MarketTradesWidget({ symbol, limit = 40 }: Props) {
   }, []);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
+    <div className="flex h-full flex-col overflow-hidden rounded border border-slate-800 bg-slate-900">
       {/* Widget Header */}
-      <div className="p-3 flex items-center justify-between bg-slate-900/90">
-        <div className="flex items-center gap-2">
-          <ArrowDownUp className="w-4 h-4 text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-200">
+      <div className="flex h-9 shrink-0 items-center justify-between border-b border-slate-800 px-3">
+        <div className="flex items-center gap-1.5">
+          <ArrowDownUp className="w-3.5 h-3.5 text-slate-500" />
+          <h3 className="text-[13px] font-semibold text-slate-200">
             Lịch sử khớp lệnh (Market Trades)
           </h3>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full ">
+        <span className="flex items-center gap-1 font-mono text-[10px] text-teal-300">
           <Radio className="w-2.5 h-2.5 animate-pulse" />
-          <span>Realtime 60FPS</span>
-        </div>
+          Realtime
+        </span>
       </div>
 
       {/* Table Column Headers */}
-      <div className="grid grid-cols-12 px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-950/60">
+      <div className="grid grid-cols-12 border-b border-slate-800 bg-slate-950/60 px-3 py-1.5 text-[10px] font-medium text-slate-500">
         <div className="col-span-5 @max-[280px]:col-span-6 min-w-0">Giá (USDT)</div>
         <div className="col-span-3 @max-[280px]:col-span-6 text-right">Số lượng</div>
         <div className="col-span-4 @max-[280px]:hidden text-right">Thời gian</div>
       </div>
 
       {/* Trades List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/20 max-h-[380px] min-h-[220px]">
+      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/40 max-h-[380px] min-h-[220px]">
         {loading && trades.length === 0 ? (
           <div className="p-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" /> Đang cập nhật khớp lệnh...

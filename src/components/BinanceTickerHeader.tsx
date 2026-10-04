@@ -43,43 +43,41 @@ export function BinanceTickerHeader({ selectedSymbol, ticker, loading, connectio
   };
 
   return (
-    <section className="min-w-0 max-w-full border-b border-slate-800 px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-1" aria-label="Giá thị trường realtime, độc lập với cutoff Technical Replay">
-      {/* Active research symbol */}
-      <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-teal-500 to-teal-600 flex items-center justify-center font-bold text-xs text-slate-950">
-          {baseAsset.slice(0, 3)}
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="font-bold text-sm text-slate-100">{baseAsset}</span>
-          <span className="text-xs text-slate-400">/USDT</span>
-          <span className="hidden sm:inline text-xs text-slate-500">· Binance Spot</span>
-        </div>
+    <section className="flex min-h-11 min-w-0 max-w-full flex-wrap items-center gap-x-4 gap-y-1 rounded border border-slate-800 bg-slate-900 px-3 py-1.5" aria-label="Giá thị trường realtime, độc lập với cutoff Technical Replay">
+      {/* Realtime marker + symbol */}
+      <div className="flex items-center gap-2">
+        <span className="rounded border border-slate-800 bg-slate-950 px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-wider text-teal-300">Realtime<span className="sr-only"> — GIÁ REALTIME</span></span>
+        <span className="text-sm font-semibold tracking-tight text-slate-100">
+          {baseAsset}<span className="font-normal text-slate-500">/USDT</span>
+        </span>
+        <span className="hidden text-[11px] text-slate-500 sm:inline">Spot Binance</span>
       </div>
+      <div className="hidden h-4 w-px bg-slate-800 sm:block" aria-hidden="true" />
 
-      {/* Current Price + 24h change */}
+      {/* Current Price + 24h change — mono tabular */}
       <div className="flex items-baseline gap-2">
-        <div className="text-2xl font-semibold text-slate-50 tabular-nums tracking-tight flex items-center gap-1.5">
+        <span className="flex items-center gap-1 font-mono text-lg font-semibold tabular-nums tracking-tight text-slate-50">
           {ticker ? `$${formatPrice(ticker.lastPrice)}` : loading ? "Đang tải..." : "--"}
           {ticker && (
-            isPositive ? <TrendingUp className="w-4 h-4 text-emerald-400" /> : <TrendingDown className="w-4 h-4 text-rose-400" />
+            isPositive ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> : <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
           )}
-        </div>
-        <span className={`text-sm font-semibold tabular-nums ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
+        </span>
+        <span className={`font-mono text-xs font-semibold tabular-nums ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
           {ticker ? `${isPositive ? "+" : ""}${formatPrice(ticker.priceChange)} (${isPositive ? "+" : ""}${ticker.priceChangePercent.toFixed(2)}%)` : "--"}
         </span>
       </div>
 
-      {/* OHLC inline — TradingView-style */}
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-xs text-slate-400 tabular-nums">
-        <span>Cao 24h <b className="font-medium text-slate-200">{ticker ? `$${formatPrice(ticker.highPrice)}` : "--"}</b></span>
-        <span>Thấp 24h <b className="font-medium text-slate-200">{ticker ? `$${formatPrice(ticker.lowPrice)}` : "--"}</b></span>
-        <span>KL <b className="font-medium text-slate-200">{ticker ? `$${formatVol(ticker.quoteVolume)}` : "--"}</b></span>
-        <span className="hidden lg:inline">KL {baseAsset} <b className="font-medium text-slate-200">{ticker ? formatVol(ticker.volume) : "--"}</b></span>
+      {/* 24h stats — quiet, mono */}
+      <div className="hidden flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[11px] text-slate-500 md:flex">
+        <span>Đỉnh 24h <b className="font-mono font-medium tabular-nums text-slate-200">{ticker ? `$${formatPrice(ticker.highPrice)}` : "--"}</b></span>
+        <span>Đáy 24h <b className="font-mono font-medium tabular-nums text-slate-200">{ticker ? `$${formatPrice(ticker.lowPrice)}` : "--"}</b></span>
+        <span>KL 24h <b className="font-mono font-medium tabular-nums text-slate-200">{ticker ? `$${formatVol(ticker.quoteVolume)}` : "--"}</b></span>
+        <span className="hidden xl:inline">KL {baseAsset} <b className="font-mono font-medium tabular-nums text-slate-200">{ticker ? formatVol(ticker.volume) : "--"}</b></span>
       </div>
 
-      {/* Realtime provenance — right-aligned, quiet */}
-      <div className={`ml-auto text-xs ${stale ? "text-amber-400" : "text-slate-500"}`}>
-        <strong>GIÁ REALTIME</strong> · {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`} · không phải giá tại as-of
+      {/* Realtime provenance — right-aligned, quiet, amber when stale */}
+      <div className={`ml-auto font-mono text-[11px] tabular-nums ${stale ? "text-amber-400" : "text-slate-500"}`}>
+        {sourceLabel} · {connection?.state ?? "snapshot"} · {tickerAgeMs == null ? "chưa có timestamp" : `${Math.round(tickerAgeMs / 1000)}s trước`} · không phải giá tại as-of
       </div>
     </section>
   );

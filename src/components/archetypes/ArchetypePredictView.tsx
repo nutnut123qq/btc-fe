@@ -11,157 +11,161 @@ interface ArchetypePredictViewProps {
 
 export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictViewProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
       {/* Next Prediction */}
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
-        <h3 className="text-md font-semibold text-teal-400 mb-4 pb-2 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+      <div className="overflow-hidden rounded border border-slate-800 bg-slate-950">
+        <h3 className="flex h-8 items-center gap-1.5 border-b border-slate-800 bg-slate-850/60 px-3 text-xs font-semibold text-slate-200">
+          <TrendingUp className="h-3.5 w-3.5 text-teal-400" />
           Dự đoán tiếp theo
         </h3>
-        {nextPred?.validated ? (
-          <>
-            <div className="flex items-center justify-between mb-4 bg-slate-900 p-3 rounded-lg ">
-              <div>
-                <div className="text-xs text-slate-400 mb-1">Mẫu hiện tại</div>
-                <div className="font-mono text-lg text-teal-300">
-                  {nextPred.currentArchetypeCode || "N/A"}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-slate-400 mb-1">Độ đo entropy (bits)</div>
-                <div className="font-bold text-slate-300">
-                  {nextPred.entropyBits?.toFixed(2) || "0.00"}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-slate-400 mb-1">Tính dự báo</div>
-                <div
-                  className={`font-bold ${
-                    nextPred.predictability === "High"
-                      ? "text-emerald-400"
-                      : nextPred.predictability === "Medium"
-                      ? "text-slate-400"
-                      : "text-rose-400"
-                  }`}
-                >
-                  {nextPred.predictability || "Low"}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {nextPred.topTransitions?.map((t, i) => (
-                <div key={i} className="text-sm">
-                  <div className="flex justify-between mb-1">
-                    <span className="font-mono text-teal-300">{t.toArchetypeCode}</span>
-                    <span className="font-bold text-teal-400">
-                      {(t.transitionProbability * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="h-2.5 bg-slate-900 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-teal-500"
-                      style={{ width: `${t.transitionProbability * 100}%` }}
-                    />
+        <div className="p-3">
+          {nextPred?.validated ? (
+            <>
+              <div className="mb-3 flex items-center justify-between gap-2 rounded-sm border border-slate-800 bg-slate-900 px-3 py-2">
+                <div>
+                  <div className="mb-0.5 text-[11px] text-slate-400">Mẫu hiện tại</div>
+                  <div className="font-mono text-sm font-semibold text-teal-300">
+                    {nextPred.currentArchetypeCode || "N/A"}
                   </div>
                 </div>
-              ))}
-              {(!nextPred.topTransitions || nextPred.topTransitions.length === 0) && (
-                <div className="text-slate-400 text-sm text-center py-4">
-                  Không có dự báo tiếp theo
+                <div className="text-right">
+                  <div className="mb-0.5 text-[11px] text-slate-400">Độ đo entropy (bits)</div>
+                  <div className="font-mono font-semibold tabular-nums text-slate-300">
+                    {nextPred.entropyBits?.toFixed(2) || "0.00"}
+                  </div>
                 </div>
-              )}
+                <div className="text-right">
+                  <div className="mb-0.5 text-[11px] text-slate-400">Tính dự báo</div>
+                  <div
+                    className={`font-semibold ${
+                      nextPred.predictability === "High"
+                        ? "text-emerald-400"
+                        : nextPred.predictability === "Medium"
+                        ? "text-slate-400"
+                        : "text-rose-400"
+                    }`}
+                  >
+                    {nextPred.predictability || "Low"}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {nextPred.topTransitions?.map((t, i) => (
+                  <div key={i} className="text-xs">
+                    <div className="mb-1 flex justify-between">
+                      <span className="font-mono text-teal-300">{t.toArchetypeCode}</span>
+                      <span className="font-mono font-semibold tabular-nums text-teal-400">
+                        {(t.transitionProbability * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className="h-full bg-teal-500"
+                        style={{ width: `${t.transitionProbability * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {(!nextPred.topTransitions || nextPred.topTransitions.length === 0) && (
+                  <div className="py-4 text-center text-sm text-slate-400">
+                    Không có dự báo tiếp theo
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="py-8 text-center text-sm text-slate-400">
+              <span className="mb-1 block text-[11px] font-semibold text-amber-400">EXPERIMENTAL</span>
+              {getPredictionUnavailableMessage(nextPred)}
             </div>
-          </>
-        ) : (
-          <div className="text-slate-400 text-sm py-8 text-center">
-            <span className="mb-1 block text-slate-400">EXPERIMENTAL</span>
-            {getPredictionUnavailableMessage(nextPred)}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Sequence Prediction */}
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
-        <h3 className="text-md font-semibold text-teal-400 mb-4 pb-2 flex items-center gap-2">
-          <BarChart2 className="w-4 h-4" />
+      <div className="overflow-hidden rounded border border-slate-800 bg-slate-950">
+        <h3 className="flex h-8 items-center gap-1.5 border-b border-slate-800 bg-slate-850/60 px-3 text-xs font-semibold text-slate-200">
+          <BarChart2 className="h-3.5 w-3.5 text-teal-400" />
           Dự đoán chuỗi
         </h3>
-        {seqPred?.validated ? (
-          <>
-            <div className="mb-4 bg-slate-900 p-3 rounded-lg flex items-center gap-3">
-              <span className="font-mono text-slate-400">
-                {seqPred.previousArchetypeCode || "?"}
-              </span>
-              <span className="text-slate-400">→</span>
-              <span className="font-mono text-teal-300">
-                {seqPred.currentArchetypeCode || "?"}
-              </span>
-              <span className="text-slate-400">→</span>
-              <span className="font-mono text-slate-500">?</span>
+        <div className="p-3">
+          {seqPred?.validated ? (
+            <>
+              <div className="mb-3 flex items-center gap-3 rounded-sm border border-slate-800 bg-slate-900 px-3 py-2">
+                <span className="font-mono text-slate-400">
+                  {seqPred.previousArchetypeCode || "?"}
+                </span>
+                <span className="text-slate-500">→</span>
+                <span className="font-mono text-teal-300">
+                  {seqPred.currentArchetypeCode || "?"}
+                </span>
+                <span className="text-slate-500">→</span>
+                <span className="font-mono text-slate-600">?</span>
+              </div>
+              <div className="space-y-3">
+                {seqPred.topSequences?.map((seq, i) => (
+                  <div
+                    key={i}
+                    className="rounded-sm border border-slate-800 bg-slate-900 px-3 py-2"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-mono font-semibold text-teal-300">
+                        {seq.thirdArchetypeCode}
+                      </span>
+                      <span className="font-mono text-[11px] tabular-nums text-slate-400">
+                        {seq.occurrenceCount} lần
+                      </span>
+                    </div>
+                    <div className="mb-2 grid grid-cols-3 gap-1">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-emerald-500/20">
+                        <div
+                          className="h-full bg-emerald-500"
+                          style={{ width: `${seq.outcomeUpRate * 100}%` }}
+                        />
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-rose-500/20">
+                        <div
+                          className="h-full bg-rose-500"
+                          style={{ width: `${seq.outcomeDownRate * 100}%` }}
+                        />
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-500/20">
+                        <div
+                          className="h-full bg-slate-500"
+                          style={{ width: `${seq.outcomeSidewaysRate * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between font-mono text-[11px] tabular-nums">
+                      <span className="text-emerald-400">
+                        {(seq.outcomeUpRate * 100).toFixed(0)}% Tăng
+                      </span>
+                      <span
+                        className={
+                          seq.avgReturnPct > 0
+                            ? "font-medium text-emerald-400"
+                            : "font-medium text-rose-400"
+                        }
+                      >
+                        {(seq.avgReturnPct * 100).toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {(!seqPred.topSequences || seqPred.topSequences.length === 0) && (
+                  <div className="py-4 text-center text-sm text-slate-400">
+                    Không có dự báo chuỗi
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="py-8 text-center text-sm text-slate-400">
+              <span className="mb-1 block text-[11px] font-semibold text-amber-400">EXPERIMENTAL</span>
+              {getPredictionUnavailableMessage(seqPred, "Chưa có dự báo chuỗi đã được xác thực")}
             </div>
-            <div className="space-y-4">
-              {seqPred.topSequences?.map((seq, i) => (
-                <div
-                  key={i}
-                  className="bg-slate-900 p-3 rounded-lg "
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-mono text-teal-300 font-bold">
-                      {seq.thirdArchetypeCode}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {seq.occurrenceCount} lần
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 mb-2">
-                    <div className="h-1.5 bg-emerald-500/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500"
-                        style={{ width: `${seq.outcomeUpRate * 100}%` }}
-                      />
-                    </div>
-                    <div className="h-1.5 bg-rose-500/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-rose-500"
-                        style={{ width: `${seq.outcomeDownRate * 100}%` }}
-                      />
-                    </div>
-                    <div className="h-1.5 bg-slate-500/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-slate-500"
-                        style={{ width: `${seq.outcomeSidewaysRate * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-emerald-400">
-                      {(seq.outcomeUpRate * 100).toFixed(0)}% Tăng
-                    </span>
-                    <span
-                      className={
-                        seq.avgReturnPct > 0
-                          ? "text-emerald-400 font-medium"
-                          : "text-rose-400 font-medium"
-                      }
-                    >
-                      {(seq.avgReturnPct * 100).toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {(!seqPred.topSequences || seqPred.topSequences.length === 0) && (
-                <div className="text-slate-400 text-sm text-center py-4">
-                  Không có dự báo chuỗi
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="text-slate-400 text-sm py-8 text-center">
-            <span className="mb-1 block text-slate-400">EXPERIMENTAL</span>
-            {getPredictionUnavailableMessage(seqPred, "Chưa có dự báo chuỗi đã được xác thực")}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -180,7 +180,7 @@ test("historical analog renders auditable evidence and paginates eight at a time
   await expect(explorer.getByTestId("analog-query-window")).toBeVisible();
   await expect(explorer.getByText("Ứng viên thô")).toBeVisible();
   await expect(explorer.getByText("Sau loại chồng lấn")).toBeVisible();
-  await expect(explorer.getByText("Mẫu hiệu lực")).toBeVisible();
+  await expect(explorer.getByText("Mẫu hiệu lực", { exact: true })).toBeVisible();
   await expect(explorer.getByText(/Close-to-close =/)).toBeVisible();
   await expect(explorer.getByText(/Xếp hạng chỉ theo hình dạng; bối cảnh chỉ để đối chiếu/)).toBeVisible();
   await expect(explorer.getByText(/không phải xác suất dự báo/i)).toBeVisible();
@@ -188,14 +188,61 @@ test("historical analog renders auditable evidence and paginates eight at a time
   await expect(explorer.getByTestId("analog-summary")).toContainText("Sau 3 nến");
   await expect(explorer.getByTestId("analog-summary")).toContainText("Sau 6 nến");
   await expect(explorer.getByTestId("analog-card")).toHaveCount(8);
+  // Direction-labelled outcomes live inside the expandable detail — open the
+  // first row's disclosure before asserting collapsed-by-default content.
+  await explorer.getByTestId("analog-card").first().getByRole("button").first().click();
   await expect(explorer.getByText("TRUNG TÍNH +0.10%", { exact: true }).first()).toBeVisible();
   await expect(explorer.getByText("1–8 / 16 · Trang 1/2", { exact: true })).toBeVisible();
 
   await explorer.getByRole("button", { name: "Trang sau" }).click();
-  await expect(explorer.getByText("#9 · Analog lịch sử", { exact: true })).toBeVisible();
+  await expect(explorer.getByText("#9", { exact: true })).toBeVisible();
   await expect(explorer.getByTestId("analog-card")).toHaveCount(8);
   await expect(explorer.getByText("9–16 / 16 · Trang 2/2", { exact: true })).toBeVisible();
   expect(requestedPages).toEqual([1, 2]);
+  expect(browserErrors).toEqual([]);
+});
+
+test("analog glossary controls do not toggle the row disclosure", async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+
+  await routeAppApis(page, async (route) => {
+    await route.fulfill({ json: analogResponse(1) });
+  });
+
+  await page.goto("/");
+  await openMainTab(page, "Mẫu nến");
+  const explorer = page.getByRole("region", { name: "Historical Analog Explorer" });
+  const firstCard = explorer.getByTestId("analog-card").first();
+  await expect(firstCard).toBeVisible();
+
+  // Glossary is a sibling of the disclosure triggers — interacting with it
+  // must not expand the row, and it must surface its own tooltip. The card is
+  // scrolled into view first because GlossaryTerm intentionally dismisses its
+  // tooltip on any document scroll.
+  const glossary = firstCard.getByRole("button", { name: "Giống hình", exact: true });
+  await firstCard.scrollIntoViewIfNeeded();
+  await glossary.click();
+  await expect(firstCard.locator("[id^='analog-detail-']")).toHaveCount(0);
+  await expect(glossary).toBeFocused();
+  await expect(page.getByRole("tooltip").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // Disclosure opens via mouse on the main trigger and closes via the
+  // right-side toggle.
+  await firstCard.getByRole("button").first().click();
+  const detail = firstCard.locator("[id^='analog-detail-']");
+  await expect(detail).toBeVisible();
+  await firstCard.getByRole("button", { name: "Thu gọn chi tiết analog" }).click();
+  await expect(detail).toHaveCount(0);
+
+  // Disclosure also opens via keyboard (Enter on the focused trigger).
+  await firstCard.getByRole("button").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(firstCard.locator("[id^='analog-detail-']")).toBeVisible();
   expect(browserErrors).toEqual([]);
 });
 

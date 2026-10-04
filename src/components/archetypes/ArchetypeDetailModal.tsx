@@ -23,48 +23,48 @@ export function ArchetypeDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="sticky top-0 bg-slate-900/90 backdrop-blur p-4 flex justify-between items-center z-10">
-          <h3 className="text-lg font-bold text-teal-400 font-mono flex items-center gap-2">
-            <Shapes className="w-5 h-5" />
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded border border-slate-700 bg-slate-900 shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-3 py-2.5 backdrop-blur">
+          <h3 className="flex items-center gap-2 font-mono text-sm font-bold text-teal-400">
+            <Shapes className="h-4 w-4" />
             {detail.archetypeCode}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-lg text-slate-400"
+            className="flex h-10 w-10 items-center justify-center rounded-sm text-slate-400 hover:bg-slate-800"
             aria-label="Đóng"
           >
             <X />
           </button>
         </div>
 
-        <div className="p-4 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="col-span-1 bg-slate-950 border border-slate-800 rounded-xl p-5">
-              <div className="text-sm text-slate-400 mb-2">
-                Đại diện ({detail.windowSize} nến)
+        <div className="space-y-3 p-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="col-span-1 rounded border border-slate-800 bg-slate-950 p-3">
+              <div className="mb-2 text-xs text-slate-400">
+                Đại diện (<span className="font-mono tabular-nums">{detail.windowSize}</span> nến)
               </div>
-              <div className="h-40 bg-slate-900 rounded-lg p-2">
+              <div className="h-40 rounded-sm border border-slate-800/60 bg-slate-900 p-1.5">
                 {detail.representativeOhlc && (
                   <ArchetypeGlyph bars={detail.representativeOhlc} />
                 )}
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div className="bg-slate-900 p-2 rounded">
-                  <div className="text-slate-400 text-xs">Số mẫu</div>
-                  <div className="font-medium">{detail.memberCount}</div>
+              <div className="mt-2 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-slate-800 bg-slate-800/40 text-center text-sm">
+                <div className="bg-slate-950 px-2 py-1.5">
+                  <div className="text-[11px] text-slate-400">Số mẫu</div>
+                  <div className="font-mono font-medium tabular-nums">{detail.memberCount}</div>
                 </div>
-                <div className="bg-slate-900 p-2 rounded">
-                  <div className="text-slate-400 text-xs">Độ phân tán</div>
-                  <div className="font-medium">
+                <div className="bg-slate-950 px-2 py-1.5">
+                  <div className="text-[11px] text-slate-400">Độ phân tán</div>
+                  <div className="font-mono font-medium tabular-nums">
                     {detail.intraClusterDistance.toFixed(3)}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="col-span-2 rounded-xl border border-slate-800 bg-slate-950 p-5">
-              <h4 className="font-semibold text-slate-200">Cách kiểm chứng hiện tại</h4>
+            <div className="col-span-2 rounded border border-slate-800 bg-slate-950 p-3">
+              <h4 className="text-[13px] font-semibold text-slate-200">Cách kiểm chứng hiện tại</h4>
               <p className="mt-2 text-sm leading-6 text-slate-400">
                 Kết quả được tính trực tiếp từ giá đóng cửa cây cuối mẫu đến giá đóng cửa sau 1, 3 và 6 nến.
                 Các thống kê Triple Barrier cũ không được dùng trong phần kiểm chứng này.
@@ -75,35 +75,35 @@ export function ArchetypeDetailModal({
             </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5">
-            <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-slate-400" />
+          <div className="overflow-hidden rounded border border-slate-800 bg-slate-950">
+            <h4 className="flex h-8 items-center gap-1.5 border-b border-slate-800 bg-slate-850/60 px-3 text-xs font-semibold text-slate-200">
+              <Clock className="h-3.5 w-3.5 text-slate-400" />
               Các lần xuất hiện gần đây
             </h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="text-left py-2 px-2">Thời gian kết thúc</th>
-                    <th className="text-center py-2 px-2">Khoảng cách</th>
-                    <th className="text-right py-2 px-2">Sau 1 nến</th>
-                    <th className="text-right py-2 px-2">Sau 3 nến</th>
-                    <th className="text-right py-2 px-2">Sau 6 nến</th>
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[11px] text-slate-400">
+                    <th className="px-3 py-1.5 font-semibold">Thời gian kết thúc</th>
+                    <th className="px-3 py-1.5 text-center font-semibold">Khoảng cách</th>
+                    <th className="px-3 py-1.5 text-right font-semibold">Sau 1 nến</th>
+                    <th className="px-3 py-1.5 text-right font-semibold">Sau 3 nến</th>
+                    <th className="px-3 py-1.5 text-right font-semibold">Sau 6 nến</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-800/60">
                   {occurrences.map((occ, i) => (
-                    <tr key={i} className="border-b border-slate-800/50">
-                      <td className="py-2 px-2 text-slate-300">
+                    <tr key={i}>
+                      <td className="px-3 py-2 font-mono tabular-nums text-slate-300">
                         {formatTime(occ.windowEndMs)}
                       </td>
-                      <td className="py-2 px-2 text-center text-slate-400">
+                      <td className="px-3 py-2 text-center font-mono tabular-nums text-slate-400">
                         {occ.distanceToCentroid.toFixed(3)}
                       </td>
                       {[1, 3, 6].map((barsAhead) => {
                         const result = (occ.fixedHorizonOutcomes ?? []).find((item) => item.barsAhead === barsAhead);
                         return (
-                          <td key={barsAhead} className={`py-2 px-2 text-right ${(result?.returnPct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                          <td key={barsAhead} className={`px-3 py-2 text-right font-mono tabular-nums ${(result?.returnPct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                             {result?.available && result.returnPct != null ? `${result.returnPct.toFixed(2)}%` : "—"}
                           </td>
                         );
@@ -112,7 +112,7 @@ export function ArchetypeDetailModal({
                   ))}
                   {occurrences.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-slate-400">
+                      <td colSpan={5} className="py-6 text-center text-sm text-slate-400">
                         Chưa có lần xuất hiện gần đây
                       </td>
                     </tr>

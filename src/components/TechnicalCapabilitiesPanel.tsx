@@ -63,53 +63,53 @@ export function TechnicalCapabilitiesPanel() {
   }, [data]);
 
   return (
-    <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-5 text-xs">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-slate-100">
-            <FlaskConical className="h-4 w-4 text-slate-400" /> Bản đồ năng lực kỹ thuật BTC
-          </h3>
-          <p className="mt-1 text-xs text-slate-400">
-            Đây là registry tĩnh về mức triển khai, không phải runtime health. Mức triển khai và bằng chứng là hai khái niệm độc lập.
-          </p>
-        </div>
+    <section className="overflow-hidden rounded border border-slate-800 bg-slate-900 text-xs">
+      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 pl-3 pr-1 py-1">
+        <h3 className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-200">
+          <FlaskConical className="h-3.5 w-3.5 text-slate-500" /> Bản đồ năng lực kỹ thuật BTC
+        </h3>
         <button type="button" onClick={() => void load()} disabled={loading}
-          className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200 disabled:opacity-50">
+          className="inline-flex min-h-9 items-center gap-1.5 px-2 text-[11px] text-slate-500 transition-colors hover:text-slate-200 disabled:opacity-50">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Làm mới
         </button>
+      </header>
+      <div className="border-b border-slate-800 bg-slate-950/40 px-3 py-2">
+        <p className="text-[11px] text-slate-500">
+          Registry tĩnh về mức triển khai, không phải runtime health. Mức triển khai và bằng chứng là hai khái niệm độc lập.
+        </p>
       </div>
 
-      {error && <p className="rounded-lg bg-rose-950/30 p-2 text-rose-300">{error}</p>}
+      {error && <p className="border-b border-slate-800 bg-rose-950/20 px-3 py-2 text-rose-300">{error}</p>}
       {data && (
         <>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-lg bg-slate-950/50 p-2"><b>{data.items.length}</b><div className="text-slate-400">module đã đăng ký</div></div>
-            <div className="rounded-lg bg-slate-800/40 p-2 text-slate-300"><b>{counts.operational}</b><div className="opacity-70">đã triển khai</div></div>
-            <div className="rounded-lg bg-slate-800/40 p-2 text-slate-300"><b>{counts.validated}</b><div className="opacity-70">validated theo mục đích ghi rõ</div></div>
-            <div className="rounded-lg bg-teal-950/20 p-2 text-teal-300"><b>{counts.forwardObserved}</b><div className="opacity-70">forward-observed</div></div>
+          <div className="grid grid-cols-2 gap-px border-b border-slate-800 bg-slate-800 sm:grid-cols-4">
+            <div className="bg-slate-900 px-3 py-2.5"><b className="font-mono text-sm text-slate-100">{data.items.length}</b><div className="text-[11px] text-slate-500">module đã đăng ký</div></div>
+            <div className="bg-slate-900 px-3 py-2.5"><b className="font-mono text-sm text-slate-100">{counts.operational}</b><div className="text-[11px] text-slate-500">đã triển khai</div></div>
+            <div className="bg-slate-900 px-3 py-2.5"><b className="font-mono text-sm text-slate-100">{counts.validated}</b><div className="text-[11px] text-slate-500">validated theo mục đích ghi rõ</div></div>
+            <div className="bg-slate-900 px-3 py-2.5"><b className="font-mono text-sm text-teal-300">{counts.forwardObserved}</b><div className="text-[11px] text-slate-500">forward-observed</div></div>
           </div>
-          <div className="space-y-4">
+          <div className="divide-y divide-slate-800">
             {categories.map(([category, items]) => (
-              <div key={category}>
-                <h4 className="mb-1.5 font-semibold uppercase tracking-wide text-slate-400">{category}</h4>
+              <div key={category} className="px-3 py-3">
+                <h4 className="mb-2 font-mono text-[11px] font-semibold tracking-wide text-slate-500">{category}</h4>
                 <div className="space-y-1.5">
                   {items.map((item) => (
-                    <details key={item.id} className="rounded-lg bg-slate-950/40 p-2.5">
-                      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2">
+                    <details key={item.id} className="rounded border border-slate-800 bg-slate-950/40 px-2.5 py-2">
+                      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 py-1">
                         <span className="min-w-40 flex-1 font-semibold text-slate-200">{item.name}</span>
-                        <span className={`rounded-full px-2 py-1 text-xs font-bold ${operationalClass(item.operationalStatus)}`}>
+                        <span className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${operationalClass(item.operationalStatus)}`}>
                           {OPERATIONAL_LABELS[item.operationalStatus]}
                         </span>
                         <CapabilityStateBadge state={item.evidenceStage} />
-                        <span className="rounded-full bg-slate-900 px-2 py-1 text-xs text-slate-400">
+                        <span className="rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-slate-500">
                           mục tiêu: {EVIDENCE_TARGET_LABELS[item.evidenceTarget]}
                         </span>
                       </summary>
-                      <div className="mt-2 grid gap-1 pt-2 text-xs text-slate-400 sm:grid-cols-2">
-                        <p><span className="text-slate-400">Mục đích:</span> {item.intendedUse}</p>
-                        <p><span className="text-slate-400">Giới hạn:</span> {item.limitation}</p>
-                        <p className="font-mono text-slate-400">{item.endpoint}</p>
-                        <p className="font-mono text-slate-400">{item.id} · {item.version}</p>
+                      <div className="mt-1.5 grid gap-1 border-t border-slate-800 pt-2 text-[11px] text-slate-400 sm:grid-cols-2">
+                        <p><span className="text-slate-500">Mục đích:</span> {item.intendedUse}</p>
+                        <p><span className="text-slate-500">Giới hạn:</span> {item.limitation}</p>
+                        <p className="font-mono text-slate-500">{item.endpoint}</p>
+                        <p className="font-mono text-slate-500">{item.id} · {item.version}</p>
                       </div>
                     </details>
                   ))}
@@ -117,7 +117,9 @@ export function TechnicalCapabilitiesPanel() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-slate-400">Contract {data.contractVersion} · cập nhật {new Date(data.generatedAtUtc).toLocaleString("vi-VN")}</p>
+          <p className="border-t border-slate-800 px-3 py-2 font-mono text-[11px] text-slate-500">
+            Contract {data.contractVersion} · cập nhật {new Date(data.generatedAtUtc).toLocaleString("vi-VN")}
+          </p>
         </>
       )}
     </section>

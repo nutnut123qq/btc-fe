@@ -27,7 +27,7 @@ import {
   type TechnicalReplayEnvelope,
   type TechnicalReplayEvent,
 } from "@/lib/technicalReplay";
-import { TechnicalReplayPanel } from "./TechnicalReplayPanel";
+import { TechnicalReplayControls, TechnicalReplayPanel, TechnicalReplayStatus, useMinWidth } from "./TechnicalReplayPanel";
 
 // Code-splitting with dynamic imports to optimize First Contentful Paint & bundle size
 const BtcCandlestickChart = dynamic(
@@ -223,20 +223,29 @@ export function BinanceTradingScreen() {
     return () => chartAbortRef.current?.abort();
   }, [loadChartData]);
 
+  const wideChart = useMinWidth(1024);
+  const chartHeight = wideChart ? 560 : 300;
+  const layerToggleClass = (active: boolean) =>
+    `flex items-center gap-1 rounded border px-2 py-1 text-[11px] transition-colors ${
+      active
+        ? "border-teal-500/40 bg-teal-500/10 text-teal-300"
+        : "border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200"
+    }`;
+
   return (
-    <div className="max-w-[1600px] mx-auto space-y-4 p-1 sm:p-2">
-      {/* Top Header Ticker Bar */}
+    <div className="max-w-[1600px] mx-auto space-y-3 p-1 sm:p-2">
+      {/* Slim realtime price strip — clearly separated from the as-of replay marker */}
       <BinanceTickerHeader
         selectedSymbol={selectedSymbol}
         ticker={activeTicker}
         connection={marketConnection}
       />
 
-      {/* Main Grid: Watchlist (Left) + Chart/Bottom (Center) + Orderbook/Trades (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-[240px_minmax(0,1fr)_48px] gap-4 items-start">
+      {/* Main Grid: Watchlist | Chart | Replay synthesis | Realtime rail */}
+      <div className="grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_300px_48px] gap-3 items-start">
         {/* Left Column: Watchlist / Market Selector (Desktop sidebar) */}
         {showWatchlistSidebar && (
-          <div className="hidden xl:block xl:col-span-1 h-[780px] sticky top-[104px]">
+          <div className="hidden xl:block h-[780px] sticky top-[104px]">
             <SymbolWatchlistPanel
               tickers={tickers}
               selectedSymbol={selectedSymbol}
@@ -249,19 +258,13 @@ export function BinanceTradingScreen() {
           </div>
         )}
 
-        {/* Center Column: Chart & Trading Panel */}
-        <div
-          className={`space-y-4 ${
-            showWatchlistSidebar ? "lg:col-span-8 xl:col-span-1" : "lg:col-span-8 xl:col-span-2"
-          }`}
-        >
-          {/* Chart Container Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-            {/* Chart Toolbar */}
-            <div className="p-2.5 bg-slate-950/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-              {/* Timeframe buttons */}
-              <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg ">
-                <span className="text-xs text-slate-400 font-semibold px-1.5">Khung:</span>
+        {/* Center Column: dominant chart region + secondary tabs */}
+        <div className="min-w-0 space-y-3">
+          {/* Chart region: one tight toolbar strip + as-of status + dominant canvas */}
+          <div className="overflow-hidden rounded border border-slate-800 bg-slate-950">
+            {/* Compact toolbar: timeframe chips · replay as-of · layer toggles */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
+              <div className="flex items-center divide-x divide-slate-800 overflow-hidden rounded border border-slate-800" role="group" aria-label="Khung thời gian">
                 {TIMEFRAMES.map((tf) => (
                   <button
                     type="button"
@@ -273,10 +276,10 @@ export function BinanceTradingScreen() {
                       setSelectedTf(tf.value);
                       setAsOfTimeMs((current) => current == null ? null : normalizeReplayAsOfMs(current, tf.value));
                     }}
-                    className={`px-2 py-1 rounded font-bold text-xs transition-colors ${
+                    className={`px-2.5 py-1 font-mono text-[11px] transition-colors ${
                       selectedTf === tf.value
-                        ? "bg-teal-500 text-slate-950 shadow-sm"
-                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                        ? "bg-teal-500/15 font-semibold text-teal-300"
+                        : "bg-slate-950 text-slate-400 hover:bg-slate-900 hover:text-slate-200"
                     }`}
                   >
                     {tf.label}
@@ -284,13 +287,35 @@ export function BinanceTradingScreen() {
                 ))}
               </div>
 
-              {/* Indicator Overlay Toggles */}
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <TechnicalReplayControls
+                asOfTimeMs={asOfTimeMs}
+                onSetAsOf={(timeMs) => {
+                  const normalized = normalizeReplayAsOfMs(timeMs, selectedTf);
+                  if (normalized === asOfTimeMs) return;
+                  invalidateReplayRequest();
+                  setAsOfTimeMs(normalized);
+                }}
+                onStep={(direction) => {
+                  invalidateReplayRequest();
+                  setAsOfTimeMs((current) => {
+                    const base = current ?? normalizeReplayAsOfMs(Date.now(), selectedTf);
+                    return stepReplayAsOfMs(base, selectedTf, direction);
+                  });
+                }}
+                onReturnLive={() => {
+                  if (asOfTimeMs == null) return;
+                  invalidateReplayRequest();
+                  setAsOfTimeMs(null);
+                }}
+              />
+
+              {/* Layer toggles */}
+              <div className="ml-auto flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   aria-pressed={showIndicators}
                   onClick={() => setShowIndicators(!showIndicators)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showIndicators ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
+                  className={layerToggleClass(showIndicators)}
                 >
                   <Activity className="w-3 h-3" /> Indicators
                 </button>
@@ -298,7 +323,7 @@ export function BinanceTradingScreen() {
                   type="button"
                   aria-pressed={showPatterns}
                   onClick={() => setShowPatterns(!showPatterns)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${showPatterns ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
+                  className={layerToggleClass(showPatterns)}
                 >
                   <BarChart2 className="w-3 h-3" /> Patterns
                 </button>
@@ -306,43 +331,32 @@ export function BinanceTradingScreen() {
                   type="button"
                   aria-pressed={showSmartMoney}
                   onClick={() => setShowSmartMoney(!showSmartMoney)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
- showSmartMoney
- ? "text-teal-300 "
- : "text-slate-500 hover:text-slate-200"
- }`}
+                  className={layerToggleClass(showSmartMoney)}
                 >
                   <BrainCircuit className="w-3 h-3" /> Smart Money
                 </button>
-
                 <button
                   type="button"
                   aria-pressed={showVolumeProfile}
                   onClick={() => setShowVolumeProfile(!showVolumeProfile)}
                   disabled={technicalReplay?.layers.volumeProfile.availability === "unavailable"}
-                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${showVolumeProfile ? "text-teal-300 " : "text-slate-500 hover:text-slate-200"}`}
+                  className={`${layerToggleClass(showVolumeProfile)} disabled:cursor-not-allowed disabled:opacity-40`}
                   title={technicalReplay?.layers.volumeProfile.availability === "unavailable" ? technicalReplay.layers.volumeProfile.unavailableReason ?? "Volume Profile unavailable" : "Volume Profile point-in-time từ replay"}
                 >
                   <BarChart2 className="w-3 h-3" /> Volume Profile
                 </button>
-
                 <button
                   type="button"
                   aria-pressed={showFibonacci}
                   onClick={() => setShowFibonacci(!showFibonacci)}
-                  className={`px-2 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
- showFibonacci
- ? "text-teal-300 "
- : "text-slate-500 hover:text-slate-200"
- }`}
+                  className={layerToggleClass(showFibonacci)}
                 >
                   <Layers className="w-3 h-3" /> Fibonacci
                 </button>
-
                 <button
                   type="button"
                   onClick={() => void loadChartData(selectedSymbol, selectedTf)}
-                  className="p-1.5 rounded bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="rounded border border-slate-800 bg-slate-900 p-1.5 text-slate-400 transition-colors hover:text-slate-200"
                   title="Làm mới nến"
                   aria-label={`Làm mới nến BTCUSDT ${selectedTf}`}
                 >
@@ -351,61 +365,42 @@ export function BinanceTradingScreen() {
               </div>
             </div>
 
-            <TechnicalReplayPanel
+            {/* As-of marker + honest replay states */}
+            <TechnicalReplayStatus
               symbol={ACTIVE_SYMBOL}
               timeframe={selectedTf}
               asOfTimeMs={asOfTimeMs}
               replay={technicalReplay}
               loading={loadingKlines}
               error={replayError}
-              selectedEvent={selectedReplayEvent}
               unavailableOverlays={[
                 ...(technicalReplay?.coverage.filter((item) => item.availability === "unavailable").map((item) => item.layerKey) ?? []),
                 ...(replayError ? ["Technical replay"] : []),
               ]}
-              onSetAsOf={(timeMs) => {
-                const normalized = normalizeReplayAsOfMs(timeMs, selectedTf);
-                if (normalized === asOfTimeMs) return;
-                invalidateReplayRequest();
-                setAsOfTimeMs(normalized);
-              }}
-              onStep={(direction) => {
-                invalidateReplayRequest();
-                setAsOfTimeMs((current) => {
-                  const base = current ?? normalizeReplayAsOfMs(Date.now(), selectedTf);
-                  return stepReplayAsOfMs(base, selectedTf, direction);
-                });
-              }}
-              onReturnLive={() => {
-                if (asOfTimeMs == null) return;
-                invalidateReplayRequest();
-                setAsOfTimeMs(null);
-              }}
-              onSelectEvent={setSelectedReplayEvent}
             />
 
-            {/* Candlestick Chart Area */}
-            <div className="p-2 min-h-[580px] relative bg-slate-950">
+            {/* Candlestick Chart Area — dominant region */}
+            <div className="relative bg-slate-950 p-1.5 sm:p-2">
               {klines.length > 0 && (
-                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
                   <span>Stored finalized Binance Spot klines · cùng nguồn với replay layers</span>
-                  <span className={`rounded px-2 py-0.5 ${latestCandleLifecycle(klines, selectedTf) === "forming" ? " bg-slate-900/30 text-slate-300" : " bg-emerald-950/30 text-emerald-300"}`}>
+                  <span className={`rounded border px-1.5 py-0.5 ${latestCandleLifecycle(klines, selectedTf) === "forming" ? "border-slate-800 bg-slate-900/40 text-slate-300" : "border-emerald-500/30 bg-emerald-950/30 text-emerald-300"}`}>
                     Nến cuối: {latestCandleLifecycle(klines, selectedTf) === "forming" ? "đang hình thành — không phải nến chốt" : "đã đóng"}
                   </span>
                 </div>
               )}
               {loadingKlines && klines.length === 0 ? (
-                <div className="h-[540px] flex items-center justify-center text-xs text-slate-400 gap-2">
+                <div className="h-[300px] lg:h-[540px] flex items-center justify-center text-xs text-slate-400 gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin text-teal-400" /> Đang tải biểu đồ nến {selectedSymbol}...
                 </div>
               ) : klines.length === 0 ? (
-                <div className="h-[540px] flex items-center justify-center text-xs text-slate-400">
+                <div className="h-[300px] lg:h-[540px] flex items-center justify-center text-xs text-slate-400">
                   Không có dữ liệu nến cho {selectedSymbol} ({selectedTf})
                 </div>
               ) : (
                 <BtcCandlestickChart
                   data={klines}
-                  height={560}
+                  height={chartHeight}
                   volumeProfile={showVolumeProfile ? technicalReplay?.layers.volumeProfile.payload ?? null : null}
                   smartMoney={showSmartMoney ? smartMoney : null}
                   replayPatterns={showPatterns ? technicalReplay?.layers.candlePatterns.payload ?? null : null}
@@ -423,18 +418,18 @@ export function BinanceTradingScreen() {
           </div>
 
           {/* Bottom Tabs Panel: realtime trades / replay Smart Money evidence */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-            {/* Tabs Header */}
-            <div className="flex items-center justify-between p-2 bg-slate-950/80 overflow-x-auto text-xs">
-              <div className="flex items-center gap-1.5">
+          <div className="overflow-hidden rounded border border-slate-800 bg-slate-900">
+            {/* Tabs Header — flat underline tabs */}
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 px-2 overflow-x-auto">
+              <div className="flex items-center">
                 <button
                   type="button"
                   aria-pressed={bottomTab === "market_trades"}
                   onClick={() => setBottomTab("market_trades")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
+                  className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-xs transition-colors ${
  bottomTab === "market_trades"
- ? "bg-teal-500/20 text-teal-300 shadow-sm"
- : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ ? "border-teal-500 font-medium text-teal-300"
+ : "border-transparent text-slate-400 hover:text-slate-200"
  }`}
                 >
                   <ArrowDownUp className="w-3.5 h-3.5" />
@@ -445,10 +440,10 @@ export function BinanceTradingScreen() {
                   type="button"
                   aria-pressed={bottomTab === "smart_money"}
                   onClick={() => setBottomTab("smart_money")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
+                  className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-xs transition-colors ${
  bottomTab === "smart_money"
- ? "bg-teal-500/20 text-teal-300 shadow-sm"
- : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ ? "border-teal-500 font-medium text-teal-300"
+ : "border-transparent text-slate-400 hover:text-slate-200"
  }`}
                 >
                   <BrainCircuit className="w-3.5 h-3.5" />
@@ -458,19 +453,19 @@ export function BinanceTradingScreen() {
               </div>
 
               {/* Active Symbol Tag */}
-              <div className="hidden sm:flex items-center gap-1 text-xs text-slate-400">
+              <div className="hidden sm:flex items-center gap-1 font-mono text-[11px] text-slate-500">
                 <span>Cặp:</span>
-                <span className="font-bold text-slate-200">{selectedSymbol}</span>
+                <span className="font-semibold text-slate-300">{selectedSymbol}</span>
               </div>
             </div>
 
             {/* Tab Content */}
-            <div className="p-3">
+            <div className="p-2.5">
               {bottomTab === "market_trades" && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
                     <p>Luồng realtime độc lập với cutoff Technical Replay:</p>
-                    <span className="text-xs text-teal-400">Cập nhật tự động 2s</span>
+                    <span className="text-teal-400">Cập nhật tự động 2s</span>
                   </div>
                   <MarketTradesWidget symbol={selectedSymbol} limit={30} />
                 </div>
@@ -478,11 +473,11 @@ export function BinanceTradingScreen() {
 
               {bottomTab === "smart_money" && (
                 <div className="space-y-2 text-xs">
-                  <p className="text-slate-400">
+                  <p className="text-[11px] leading-5 text-slate-500">
                     Hình học giá SMC (BOS/CHOCH/FVG/swing) trên khung {selectedTf}. Đây là nhãn mô tả, không phải bằng chứng về hoạt động tổ chức hay xác suất giao dịch:
                   </p>
                   {smartMoney && smartMoney.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="divide-y divide-slate-800 rounded border border-slate-800">
                       {smartMoney.map((sm) => {
                         const isBull = sm.eventType.includes("BULL");
                         const isBear = sm.eventType.includes("BEAR");
@@ -494,21 +489,21 @@ export function BinanceTradingScreen() {
                               const event = technicalReplay?.events.find((item) => item.eventId === (sm as TechnicalReplayEvent).eventId);
                               if (event) setSelectedReplayEvent(event);
                             }}
-                            className="p-2.5 bg-slate-950 border border-slate-800/80 rounded-lg flex items-center justify-between text-left hover:border-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                            className="flex w-full items-center justify-between gap-3 px-2.5 py-2 text-left transition-colors hover:bg-slate-800/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                           >
-                            <div>
-                              <span className="font-semibold text-slate-200">{sm.eventType.replace("_", " ")}</span>
-                              <span className="text-xs text-slate-400 ml-2">{sm.timeframe}</span>
-                              <div className="text-xs text-slate-300 mt-0.5">
+                            <div className="min-w-0">
+                              <span className="text-xs font-semibold text-slate-200">{sm.eventType.replace("_", " ")}</span>
+                              <span className="ml-2 font-mono text-[10px] text-slate-500">{sm.timeframe}</span>
+                              <div className="mt-0.5 font-mono text-[11px] tabular-nums text-slate-300">
                                 Giá: ${sm.price.toFixed(2)} {sm.lowPrice != null && sm.highPrice != null ? `(Zone: $${sm.lowPrice.toFixed(2)} - $${sm.highPrice.toFixed(2)})` : ""}
                               </div>
-                              <div className="text-xs text-slate-400 mt-0.5">
+                              <div className="mt-0.5 font-mono text-[10px] tabular-nums text-slate-500">
                                 Origin {new Date(sm.originTimeMs ?? sm.timeMs).toLocaleString("vi-VN")} · biết được từ {new Date(sm.availableTimeMs ?? sm.timeMs).toLocaleString("vi-VN")}
                               </div>
                             </div>
                             <span
-                              className={`px-1.5 py-0.5 rounded text-xs font-bold ${
-                                isBull ? "bg-emerald-500/20 text-emerald-400" : isBear ? "bg-rose-500/20 text-rose-400" : "bg-slate-800 text-slate-300"
+                              className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                                isBull ? "bg-emerald-500/15 text-emerald-400" : isBear ? "bg-rose-500/15 text-rose-400" : "bg-slate-800 text-slate-300"
                               }`}
                             >
                               {isBull ? "BULLISH" : isBear ? "BEARISH" : "NEUTRAL"}
@@ -518,7 +513,7 @@ export function BinanceTradingScreen() {
                       })}
                     </div>
                   ) : (
-                    <div className="p-4 bg-slate-950/40 rounded-lg text-center text-slate-400">
+                    <div className="rounded border border-slate-800 bg-slate-950/60 p-4 text-center text-[11px] text-slate-500">
                       Chưa phát hiện sự kiện hình học giá SMC (BOS/CHOCH/FVG/swing) trên {selectedSymbol} ({selectedTf}) tại mốc đang xem.
                     </div>
                   )}
@@ -529,15 +524,26 @@ export function BinanceTradingScreen() {
           </div>
         </div>
 
+        {/* Replay synthesis column — flat accordion sections on mobile, sticky side column on xl */}
+        <div className="min-w-0 xl:sticky xl:top-[104px]">
+          <TechnicalReplayPanel
+            timeframe={selectedTf}
+            asOfTimeMs={asOfTimeMs}
+            replay={technicalReplay}
+            selectedEvent={selectedReplayEvent}
+            onSelectEvent={setSelectedReplayEvent}
+          />
+        </div>
+
         {/* Realtime microstructure is deliberately separated from replay evidence. */}
-        <aside className="min-w-0 relative lg:col-span-4 xl:col-span-1" aria-label="Dữ liệu thị trường realtime độc lập với Technical Replay">
+        <aside className="min-w-0 relative" aria-label="Dữ liệu thị trường realtime độc lập với Technical Replay">
           {/* Collapsed rail strip — xl only */}
           {!asideOpen && (
-            <div className="hidden xl:flex flex-col items-center gap-1 w-12 py-2 rounded-xl border border-slate-800 bg-slate-900">
+            <div className="hidden xl:flex flex-col items-center gap-1 w-12 py-2 rounded border border-slate-800 bg-slate-900">
               <button
                 type="button"
                 onClick={() => setAsideOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                className="p-2 rounded text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
                 aria-label="Mở panel dữ liệu realtime"
               >
                 <PanelRightOpen className="w-4 h-4" />
@@ -545,7 +551,7 @@ export function BinanceTradingScreen() {
               <button
                 type="button"
                 onClick={() => { setRightTab("trades"); setAsideOpen(true); }}
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                className="p-2 rounded text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
                 aria-label="Mở khớp lệnh realtime"
               >
                 <ArrowDownUp className="w-4 h-4" />
@@ -553,7 +559,7 @@ export function BinanceTradingScreen() {
               <button
                 type="button"
                 onClick={() => { setRightTab("depth"); setAsideOpen(true); }}
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
+                className="p-2 rounded text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
                 aria-label="Mở sổ lệnh"
               >
                 <Layers className="w-4 h-4" />
@@ -562,32 +568,32 @@ export function BinanceTradingScreen() {
           )}
 
           {/* Panel: block flow dưới xl; overlay phải trên xl khi mở */}
-          <div className={`space-y-4 ${asideOpen ? "xl:absolute xl:right-0 xl:top-0 xl:z-30 xl:block xl:w-80 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto xl:rounded-xl xl:border xl:border-slate-800 xl:bg-slate-950 xl:p-3 xl:shadow-2xl" : "xl:hidden"}`}>
+          <div className={`space-y-3 ${asideOpen ? "xl:absolute xl:right-0 xl:top-0 xl:z-30 xl:block xl:w-80 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto xl:rounded xl:border xl:border-slate-800 xl:bg-slate-950 xl:p-3 xl:shadow-2xl" : "xl:hidden"}`}>
           <div className="hidden xl:flex justify-end">
             <button
               type="button"
               onClick={() => setAsideOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="p-1.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
               aria-label="Đóng panel dữ liệu realtime"
             >
               <PanelRightClose className="w-4 h-4" />
             </button>
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-xs leading-relaxed text-slate-300">
-            <strong className="block text-sm font-semibold text-slate-200">Realtime market data</strong>
+          <div className="rounded border border-slate-800 bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-400">
+            <strong className="block text-[13px] font-semibold text-slate-200">Realtime market data</strong>
             Khớp lệnh và sổ lệnh bên dưới cập nhật theo thời gian thực, không thuộc cutoff {technicalReplay?.effectiveAsOfTimeMs ? new Date(technicalReplay.effectiveAsOfTimeMs).toLocaleString("vi-VN") : "Technical Replay"} và không phải layer bằng chứng lịch sử.
           </div>
 
-          {/* Right Tabs Header */}
-          <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+          {/* Right Tabs Header — segmented control */}
+          <div className="flex divide-x divide-slate-800 overflow-hidden rounded border border-slate-800 text-[11px]">
             <button
               type="button"
               aria-pressed={rightTab === "trades"}
               onClick={() => setRightTab("trades")}
-              className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
+              className={`flex flex-1 items-center justify-center gap-1 py-1.5 font-medium transition-colors ${
  rightTab === "trades"
- ? "bg-teal-500/20 text-teal-300 "
- : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ ? "bg-teal-500/15 text-teal-300"
+ : "bg-slate-950 text-slate-400 hover:text-slate-200"
  }`}
             >
               <ArrowDownUp className="w-3 h-3" /> Khớp
@@ -596,10 +602,10 @@ export function BinanceTradingScreen() {
               type="button"
               aria-pressed={rightTab === "depth"}
               onClick={() => setRightTab("depth")}
-              className={`flex-1 py-1.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 ${
+              className={`flex flex-1 items-center justify-center gap-1 py-1.5 font-medium transition-colors ${
  rightTab === "depth"
- ? "bg-teal-500/20 text-teal-300 "
- : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+ ? "bg-teal-500/15 text-teal-300"
+ : "bg-slate-950 text-slate-400 hover:text-slate-200"
  }`}
             >
               <Layers className="w-3 h-3" /> Sổ

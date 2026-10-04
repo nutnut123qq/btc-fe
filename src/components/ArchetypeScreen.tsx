@@ -208,10 +208,10 @@ export function ArchetypeScreen() {
           <h2 className="text-lg font-semibold text-slate-100">Mẫu nến</h2>
           <p className="hidden sm:block truncate text-xs text-slate-400">Archetype, analog lịch sử và chuyển đổi trên cửa sổ nến {selectedSymbol.replace("USDT", "/USDT")}.</p>
         </div>
-        <span className="shrink-0 text-xs font-bold text-teal-300">{selectedSymbol.replace("USDT", "/USDT")}</span>
+        <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-teal-300">{selectedSymbol.replace("USDT", "/USDT")}</span>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto text-xs" role="tablist" aria-label="Chế độ mẫu nến">
+      <div className="flex gap-4 overflow-x-auto border-b border-slate-800 text-xs" role="tablist" aria-label="Chế độ mẫu nến">
         {[
           { key: "analog", label: "Analog lịch sử" },
           { key: "gallery", label: "Thư viện (audit)" },
@@ -224,7 +224,7 @@ export function ArchetypeScreen() {
             role="tab"
             aria-selected={activeSubTab === tab.key}
             onClick={() => setActiveSubTab(tab.key as typeof activeSubTab)}
-            className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
+            className={`-mb-px shrink-0 border-b-2 px-1 py-2 font-medium transition-colors ${
               activeSubTab === tab.key
                 ? "border-teal-400 text-teal-300"
                 : "border-transparent text-slate-500 hover:text-slate-300"
@@ -236,12 +236,12 @@ export function ArchetypeScreen() {
       </div>
 
       {tabErrors[activeSubTab] && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="flex items-center justify-between gap-3 rounded-sm border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           <span>{tabErrors[activeSubTab]}</span>
           <button
             type="button"
             onClick={retryActiveTab}
-            className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-rose-500/10"
+            className="h-10 shrink-0 rounded-sm px-3 text-xs font-bold hover:bg-rose-500/10"
           >
             Thử lại
           </button>

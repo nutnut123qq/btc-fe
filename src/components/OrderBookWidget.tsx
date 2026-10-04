@@ -102,32 +102,32 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
   const stale = snapshotAgeMs == null || snapshotAgeMs > 5_000 || Boolean(error);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
+    <div className="flex h-full flex-col overflow-hidden rounded border border-slate-800 bg-slate-900">
       {/* Widget Header */}
-      <div className="p-3 flex items-center justify-between bg-slate-900/90">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-slate-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-slate-200">Sổ lệnh</h3>
-            <p className={`text-xs ${stale ? "text-amber-400" : "text-slate-400"}`}>
-              Binance Spot · REST snapshot mỗi 2s · {snapshotAgeMs == null ? "chưa nhận" : `${(snapshotAgeMs / 1000).toFixed(0)}s trước`}
+      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-slate-800 px-3">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Layers className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+          <div className="min-w-0">
+            <h3 className="text-[13px] font-semibold text-slate-200">Sổ lệnh</h3>
+            <p className={`font-mono text-[10px] tabular-nums ${stale ? "text-amber-400" : "text-slate-500"}`}>
+              REST snapshot 2s · {snapshotAgeMs == null ? "chưa nhận" : `${(snapshotAgeMs / 1000).toFixed(0)}s trước`}
             </p>
           </div>
         </div>
         {spread > 0 && (
-          <div className="text-xs text-slate-400">
-            Spread: <span className="text-slate-200 font-mono">${spread.toFixed(2)}</span> ({spreadPct.toFixed(3)}%)
+          <div className="shrink-0 font-mono text-[10px] tabular-nums text-slate-500">
+            Spread <span className="font-semibold text-slate-200">${spread.toFixed(2)}</span> ({spreadPct.toFixed(3)}%)
           </div>
         )}
       </div>
 
-      <div className=" bg-slate-950/50 px-3 py-1 text-xs leading-relaxed text-slate-400">
+      <div className="border-b border-slate-800 bg-slate-950/60 px-3 py-1 text-[10px] leading-relaxed text-slate-500">
         Không phải local order book đồng bộ theo sequence; mỗi lần tải là một ảnh chụp độc lập.
         {error && <span className="ml-1 text-amber-400">Lần tải gần nhất lỗi: {error}</span>}
       </div>
 
       {/* Table Column Headers */}
-      <div className="grid grid-cols-12 px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-950/60">
+      <div className="grid grid-cols-12 border-b border-slate-800 bg-slate-950/60 px-3 py-1.5 text-[10px] font-medium text-slate-500">
         <div className="col-span-5 @max-[280px]:col-span-6 min-w-0">Giá (USDT)</div>
         <div className="col-span-3 @max-[280px]:col-span-6 text-right">Số lượng</div>
         <div className="col-span-4 @max-[280px]:hidden text-right">Tổng (USDT)</div>
@@ -167,9 +167,9 @@ export function OrderBookWidget({ symbol, limit = 12 }: Props) {
             </div>
 
             {/* Mid Price / Spread Bar */}
-            <div className="my-1 py-1.5 px-3 bg-slate-950/80 border-y border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 text-xs">Giá giữa:</span>
-              <span className="font-bold text-slate-100 font-mono">
+            <div className="my-1 flex items-center justify-between border-y border-slate-800 bg-slate-950 px-3 py-1 text-[11px]">
+              <span className="text-slate-500">Giá giữa:</span>
+              <span className="font-mono font-semibold tabular-nums text-slate-100">
                 ${bestAsk != null && bestBid != null ? formatPrice((bestAsk + bestBid) / 2) : "--"}
               </span>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Newspaper, RefreshCw, Filter } from "lucide-react";
+import { RefreshCw, ExternalLink, AlertTriangle } from "lucide-react";
 import { NewsItem } from "@/lib/types";
 import { getNews } from "@/lib/api";
 import { formatDataAge, isDataStale } from "@/lib/freshness";
@@ -36,14 +36,14 @@ function getRelativeTime(dateStr: string | null): string {
   return `${diffInMonths} tháng trước`;
 }
 
-function getSourceColorClass(source: string): string {
-  const s = source.toLowerCase();
-  if (s.includes("coindesk")) return "bg-slate-800 text-slate-300";
-  if (s.includes("cointelegraph")) return "bg-slate-800 text-slate-300";
-  if (s.includes("decrypt")) return "bg-emerald-500/20 text-emerald-400";
-  if (s.includes("theblock") || s.includes("the block")) return "bg-slate-500/20 text-slate-400";
-  if (s.includes("bitcoinmagazine") || s.includes("bitcoin magazine")) return "bg-slate-800 text-slate-300";
-  return "bg-slate-500/20 text-slate-400";
+function getMonogram(source: string): string {
+  const parts = source
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "·";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 export function NewsScreen() {
@@ -91,10 +91,7 @@ export function NewsScreen() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="text-teal-400" />
-            Tin tức
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-100">Tin tức</h2>
           <p className="hidden sm:block truncate text-xs text-slate-400">Feed RSS đã ingest; mở bài gốc ở nguồn.</p>
         </div>
         <button
@@ -108,15 +105,14 @@ export function NewsScreen() {
       </div>
 
       {sources.length > 0 && (
-        <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+        <div className="flex items-center gap-5 overflow-x-auto border-b border-slate-800 text-xs">
           <button
             onClick={() => setSelectedSource(null)}
-            className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
- selectedSource === null
- ? "border-teal-400 text-teal-300"
- : "border-transparent text-slate-500 hover:text-slate-300"
- }`}
+            className={`shrink-0 -mb-px py-2 font-medium transition-colors border-b-2 ${
+              selectedSource === null
+                ? "border-teal-400 text-teal-300"
+                : "border-transparent text-slate-500 hover:text-slate-300"
+            }`}
           >
             Tất cả
           </button>
@@ -124,11 +120,11 @@ export function NewsScreen() {
             <button
               key={s}
               onClick={() => setSelectedSource(s)}
-              className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${
- selectedSource === s
- ? "border-teal-400 text-teal-300"
- : "border-transparent text-slate-500 hover:text-slate-300"
- }`}
+              className={`shrink-0 -mb-px py-2 font-medium transition-colors border-b-2 ${
+                selectedSource === s
+                  ? "border-teal-400 text-teal-300"
+                  : "border-transparent text-slate-500 hover:text-slate-300"
+              }`}
             >
               {s}
             </button>
@@ -152,8 +148,9 @@ export function NewsScreen() {
       )}
 
       {!loading && !error && newestPublishedAt && isDataStale(newestPublishedAt, 6 * 60 * 60_000) && (
-        <div className="rounded bg-amber-950/20 px-4 py-2.5 text-xs text-amber-300">
-          Nguồn tin đã ngừng cập nhật ({formatDataAge(newestPublishedAt)}). Không dùng danh sách này như tin tức hiện tại.
+        <div className="flex items-center gap-2 rounded bg-amber-950/20 px-4 py-2.5 text-xs text-amber-300">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+          <span className="min-w-0">Nguồn tin đã ngừng cập nhật ({formatDataAge(newestPublishedAt)}). Không dùng danh sách này như tin tức hiện tại.</span>
         </div>
       )}
 
@@ -163,39 +160,50 @@ export function NewsScreen() {
         </div>
       )}
 
-      <div className="space-y-3">
-        {filteredItems.map((n) => {
-          const summary = n.summary ? stripHtml(n.summary) : null;
-          return (
-            <a
-              key={n.id}
-              href={n.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block rounded-xl border border-slate-800/60 bg-slate-900/40 hover:border-teal-500/30 hover:bg-slate-900/80 transition-all duration-200 p-5 group"
-            >
-              <div className="flex justify-between items-start mb-2 gap-3">
-                <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wider ${getSourceColorClass(n.source)}`}>
-                  {n.source}
-                </span>
-                <span className="text-xs text-slate-400 whitespace-nowrap shrink-0 group-hover:text-slate-400 transition-colors">
-                  {getRelativeTime(n.publishedAt)}
-                </span>
-              </div>
-              
-              <h3 className="text-[15px] font-semibold text-slate-100 group-hover:text-teal-400 transition-colors leading-snug">
-                {n.title}
-              </h3>
-              
-              {summary && (
-                <p className="text-[13px] text-slate-400 mt-2.5 line-clamp-2 leading-relaxed">
-                  {summary}
-                </p>
-              )}
-            </a>
-          );
-        })}
-      </div>
+      {filteredItems.length > 0 && (
+        <div className="divide-y divide-slate-800 border-y border-slate-800">
+          {filteredItems.map((n) => {
+            const summary = n.summary ? stripHtml(n.summary) : null;
+            const rel = getRelativeTime(n.publishedAt);
+            return (
+              <a
+                key={n.id}
+                href={n.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-3 py-3.5 sm:gap-4 sm:py-4"
+              >
+                <div
+                  aria-hidden="true"
+                  className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-slate-800 bg-slate-900 sm:h-[72px] sm:w-28"
+                >
+                  <span className="font-mono text-xs font-medium tracking-wide text-slate-500 sm:text-sm">
+                    {getMonogram(n.source)}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="min-w-0 truncate text-xs font-medium text-slate-400">{n.source}</span>
+                    <span className="hidden text-slate-600 sm:inline">·</span>
+                    <span className="ml-auto shrink-0 whitespace-nowrap font-mono text-[11px] text-slate-500 tabular-nums sm:ml-0">
+                      {rel || "—"}
+                    </span>
+                  </div>
+                  <h3 className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-slate-100 transition-colors group-hover:text-teal-300 sm:text-sm">
+                    {n.title}
+                  </h3>
+                  {summary && (
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-400 sm:text-[13px]">
+                      {summary}
+                    </p>
+                  )}
+                </div>
+                <ExternalLink className="mt-1 h-3.5 w-3.5 shrink-0 text-slate-600 transition-colors group-hover:text-teal-400" />
+              </a>
+            );
+          })}
+        </div>
+      )}
       
       {!loading && filteredItems.length > 0 && selectedSource !== null && filteredItems.length < items.filter(i => i.source === selectedSource).length && (
         <p className="text-center text-xs text-slate-400 pt-2">

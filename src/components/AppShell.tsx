@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
-  Activity,
   Bell,
   Newspaper,
   Settings,
@@ -14,7 +13,6 @@ import {
   Shapes,
   ListOrdered,
   FileCheck2,
-  ChevronUp,
 } from "lucide-react";
 import { MarketScreen } from "./MarketScreen";
 import { NewsScreen } from "./NewsScreen";
@@ -56,8 +54,9 @@ const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
   TABS.map((t) => [t.key, t] as const),
 );
 
-// Bottom navigation is grouped into 5 top-level entries; groups with more than
-// one child expand into a sub-row of child chips rendered directly above the bar.
+// 5 top-level nav groups. The child strip of the group containing the active
+// tab is always visible directly below the header (desktop inline nav +
+// mobile bottom bar share the same derived strip).
 const NAV_GROUPS = [
   { key: "market", label: "Thị trường", children: ["market"] },
   { key: "newsAi", label: "Tin tức & AI", children: ["news", "ai"] },
@@ -74,7 +73,6 @@ const ALERT_USER_ID = "default";
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<TabKey>("market");
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["market"]));
-  const [openGroup, setOpenGroup] = useState<NavGroupKey | null>(null);
   const [lastChildByGroup, setLastChildByGroup] = useState<Partial<Record<NavGroupKey, TabKey>>>({});
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -82,6 +80,7 @@ export function AppShell() {
   const [contractState, setContractState] = useState<ApiContractState>("checking");
   const llmState = getLlmUiState(aiCapabilities);
   const groupButtonRefs = useRef<Partial<Record<NavGroupKey, HTMLButtonElement | null>>>({});
+  const groupButtonRefsMobile = useRef<Partial<Record<NavGroupKey, HTMLButtonElement | null>>>({});
   const chipButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
   const focusChipAfterOpen = useRef(false);
   const pendingChipFocus = useRef<TabKey | null>(null);
@@ -100,7 +99,6 @@ export function AppShell() {
     const children = group.children as readonly TabKey[];
     const target = lastChildByGroup[group.key] ?? children[0];
     setLastChildByGroup((prev) => ({ ...prev, [group.key]: target }));
-    setOpenGroup(group.key);
     handleTabChange(target);
     if (focusChipAfterOpen.current) {
       focusChipAfterOpen.current = false;
@@ -108,25 +106,15 @@ export function AppShell() {
     }
   };
 
-  const activateSingleChildGroup = (group: NavGroup) => {
-    setOpenGroup(null);
-    handleTabChange((group.children as readonly TabKey[])[0]);
-  };
-
   const selectChild = (groupKey: NavGroupKey, childKey: TabKey) => {
     setLastChildByGroup((prev) => ({ ...prev, [groupKey]: childKey }));
     handleTabChange(childKey);
-    if (window.matchMedia("(min-width: 1024px)").matches) {
-      setOpenGroup(null);
-    }
   };
 
   const handleGroupKeyDown = (event: KeyboardEvent<HTMLButtonElement>, group: NavGroup) => {
     if (event.key === "Enter" && group.children.length > 1) {
       // Enter also dispatches click, which performs the actual activation.
       focusChipAfterOpen.current = true;
-    } else if (event.key === "Escape") {
-      setOpenGroup(null);
     }
   };
 
@@ -134,8 +122,11 @@ export function AppShell() {
     const children = group.children as readonly TabKey[];
     if (event.key === "Escape") {
       event.preventDefault();
-      setOpenGroup(null);
-      groupButtonRefs.current[group.key]?.focus();
+      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+      const target = isDesktop
+        ? groupButtonRefs.current[group.key]
+        : groupButtonRefsMobile.current[group.key];
+      target?.focus();
       return;
     }
     if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
@@ -147,7 +138,10 @@ export function AppShell() {
     }
   };
 
-  const openGroupDef = NAV_GROUPS.find((g) => g.key === openGroup);
+  const activeGroupDef = NAV_GROUPS.find((g) =>
+    (g.children as readonly TabKey[]).includes(activeTab),
+  );
+  const subRowGroup = activeGroupDef && activeGroupDef.children.length > 1 ? activeGroupDef : null;
 
   // Moves focus into the sub-row after a keyboard-driven group activation.
   useEffect(() => {
@@ -227,29 +221,64 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header className=" bg-slate-950/80 backdrop-blur sticky top-0 z-40 lg:order-1">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-teal-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Activity className="text-teal-400" />
+      <header inert={alertsOpen} className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+        <div className="max-w-[1600px] mx-auto px-4 h-11 flex items-center gap-4">
+          <h1 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-slate-100 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-teal-500" aria-hidden="true" />
             Bitcoin AI Analyst
           </h1>
-          <div className="flex items-center gap-2">
+
+          <nav
+            aria-label="Điều hướng chính"
+            data-testid="nav-groups"
+            className="hidden lg:flex flex-1 items-center justify-center gap-1 min-w-0"
+          >
+            {NAV_GROUPS.map((group) => {
+              const multi = group.children.length > 1;
+              const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
+              return (
+                <button
+                  type="button"
+                  key={group.key}
+                  ref={(el) => {
+                    groupButtonRefs.current[group.key] = el;
+                  }}
+                  onClick={() => activateGroup(group)}
+                  onKeyDown={(event) => handleGroupKeyDown(event, group)}
+                  aria-expanded={multi ? containsActive : undefined}
+                  aria-controls={multi ? "nav-sub-row" : undefined}
+                  aria-current={containsActive ? (multi ? "true" : "page") : undefined}
+                  className={`h-11 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    containsActive
+                      ? "text-teal-300 border-teal-400"
+                      : "text-slate-400 hover:text-slate-200 border-transparent"
+                  }`}
+                >
+                  {group.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="flex-1 lg:hidden" />
+
+          <div className="flex items-center gap-1 shrink-0">
             {llmState === "unknown" && (
-              <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs font-bold text-slate-400">
+              <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs text-slate-400">
                 LLM · đang kiểm tra
               </span>
             )}
             {llmState === "off" && (
-              <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-300">
+              <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
                 LLM OFF · định lượng vẫn hoạt động
               </span>
             )}
             <button
               onClick={() => setAlertsOpen(true)}
-              className="relative p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300"
+              className="relative w-10 h-10 rounded flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
               aria-label="Thông báo"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4" />
               {unread > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-xs font-bold bg-rose-600 text-white rounded-full">
                   {unread > 99 ? "99+" : unread}
@@ -258,19 +287,55 @@ export function AppShell() {
             </button>
           </div>
         </div>
+
+        {subRowGroup && (
+          <div
+            id="nav-sub-row"
+            data-testid="nav-sub-row"
+            role="group"
+            aria-label={`${subRowGroup.label} — mục con`}
+            className="border-t border-slate-800 bg-slate-900/60"
+          >
+            <div className="max-w-[1600px] mx-auto flex gap-1 overflow-x-auto px-4">
+              {subRowGroup.children.map((childKey, index) => {
+                const child = TAB_BY_KEY.get(childKey)!;
+                const childActive = activeTab === childKey;
+                return (
+                  <button
+                    type="button"
+                    key={childKey}
+                    ref={(el) => {
+                      chipButtonRefs.current[childKey] = el;
+                    }}
+                    onClick={() => selectChild(subRowGroup.key, childKey)}
+                    onKeyDown={(event) => handleChipKeyDown(event, subRowGroup, index)}
+                    aria-current={childActive ? "page" : undefined}
+                    className={`h-10 shrink-0 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      childActive
+                        ? "text-teal-300 border-teal-400"
+                        : "text-slate-400 hover:text-slate-200 border-transparent"
+                    }`}
+                  >
+                    {child.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {contractState !== "compatible" && (
+          <div className="border-t border-amber-900/60 bg-amber-950/40 px-4 py-1.5 text-center text-xs text-amber-200" role="alert">
+            {contractState === "checking"
+              ? "Đang kiểm tra API contract; mutation tạm khóa."
+              : contractState === "mismatch"
+                ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
+                : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
+          </div>
+        )}
       </header>
 
-      {contractState !== "compatible" && (
-        <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-200 lg:order-3" role="alert">
-          {contractState === "checking"
-            ? "Đang kiểm tra API contract; mutation tạm khóa."
-            : contractState === "mismatch"
-              ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
-              : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
-        </div>
-      )}
-
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4 lg:order-4">
+      <main inert={alertsOpen} className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4">
         {visitedTabs.has("market") && (
           <div className={activeTab === "market" ? "" : "hidden"}>
             <ErrorBoundary fallbackTitle="Lỗi tải tab Thị trường">
@@ -350,48 +415,15 @@ export function AppShell() {
         )}
       </main>
 
-      <nav aria-label="Điều hướng chính" className=" bg-slate-950 sticky bottom-0 z-40 lg:order-2 lg:sticky lg:top-[60px] lg:bottom-auto lg:border-b lg:border-slate-800">
-        {openGroupDef && openGroupDef.children.length > 1 && (
-          <div
-            id={`nav-sub-${openGroupDef.key}`}
-            data-testid="nav-sub-row"
-            role="group"
-            aria-label={`${openGroupDef.label} — mục con`}
-            className=" bg-slate-900/90 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-slate-800 lg:shadow-2xl"
-          >
-            <div className="max-w-7xl mx-auto flex justify-start gap-2 overflow-x-auto px-3 py-2 sm:justify-center lg:justify-center">
-              {openGroupDef.children.map((childKey, index) => {
-                const child = TAB_BY_KEY.get(childKey)!;
-                const ChildIcon = child.icon;
-                const childActive = activeTab === childKey;
-                return (
-                  <button
-                    type="button"
-                    key={childKey}
-                    ref={(el) => {
-                      chipButtonRefs.current[childKey] = el;
-                    }}
-                    onClick={() => selectChild(openGroupDef.key, childKey)}
-                    onKeyDown={(event) => handleChipKeyDown(event, openGroupDef, index)}
-                    aria-current={childActive ? "page" : undefined}
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
- childActive
- ? " bg-teal-500/10 text-teal-300"
- : " bg-slate-900 text-slate-400 hover:text-slate-200"
- }`}
-                  >
-                    <ChildIcon className="w-3.5 h-3.5" />
-                    {child.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        <div data-testid="nav-groups" className="max-w-7xl mx-auto flex justify-start overflow-x-auto sm:justify-around lg:justify-center lg:gap-1">
+      <nav
+        inert={alertsOpen}
+        aria-label="Điều hướng chính"
+        data-testid="nav-groups-mobile"
+        className="sticky bottom-0 z-40 lg:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur"
+      >
+        <div className="flex">
           {NAV_GROUPS.map((group) => {
             const multi = group.children.length > 1;
-            const expanded = openGroup === group.key;
             const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
             const GroupIcon = TAB_BY_KEY.get((group.children as readonly TabKey[])[0])!.icon;
             return (
@@ -399,27 +431,19 @@ export function AppShell() {
                 type="button"
                 key={group.key}
                 ref={(el) => {
-                  groupButtonRefs.current[group.key] = el;
+                  groupButtonRefsMobile.current[group.key] = el;
                 }}
-                onClick={() => (multi ? activateGroup(group) : activateSingleChildGroup(group))}
+                onClick={() => activateGroup(group)}
                 onKeyDown={(event) => handleGroupKeyDown(event, group)}
-                aria-expanded={multi ? expanded : undefined}
-                aria-controls={multi ? `nav-sub-${group.key}` : undefined}
+                aria-expanded={multi ? containsActive : undefined}
+                aria-controls={multi ? "nav-sub-row" : undefined}
                 aria-current={containsActive ? (multi ? "true" : "page") : undefined}
-                className={`flex min-w-20 flex-col items-center gap-0.5 py-2 px-3 sm:px-4 sm:flex-1 transition-colors lg:min-w-0 lg:flex-none lg:flex-row lg:gap-1.5 lg:px-4 lg:h-11 lg:border-b-2 ${
-                  containsActive ? "text-teal-400 lg:border-teal-400" : "text-slate-500 hover:text-slate-300 lg:border-transparent"
+                className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2 border-t-2 transition-colors ${
+                  containsActive ? "text-teal-300 border-teal-400" : "text-slate-500 hover:text-slate-300 border-transparent"
                 }`}
               >
                 <GroupIcon className="w-5 h-5" />
-                <span className="flex items-center gap-1 text-xs font-medium">
-                  {group.label}
-                  {multi && (
-                    <ChevronUp
-                      className={`w-3 h-3 transition-transform lg:rotate-180 ${expanded ? "rotate-180 lg:rotate-0" : ""}`}
-                      aria-hidden="true"
-                    />
-                  )}
-                </span>
+                <span className="text-[11px] font-medium leading-tight truncate max-w-full px-1">{group.label}</span>
               </button>
             );
           })}
@@ -427,7 +451,11 @@ export function AppShell() {
       </nav>
 
       <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
-      <AiChatWidget capabilities={aiCapabilities} />
+      {/* Whole chat surface (launcher + panel) is inert while the alerts
+          modal is open; an already-open chat is dismissed by the modal. */}
+      <div inert={alertsOpen}>
+        <AiChatWidget capabilities={aiCapabilities} dismissedByModal={alertsOpen} />
+      </div>
     </div>
   );
 }

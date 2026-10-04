@@ -24,11 +24,14 @@ export function SessionAccessPanel({
   };
 
   return (
-    <div className="rounded-lg bg-slate-800/40 p-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="rounded border border-slate-800 bg-slate-900 px-3 py-3 sm:px-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold text-slate-300">{label}</div>
-          <div className="text-xs text-slate-400">
+          <div className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-200">
+            {unlocked && <span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />}
+            {label}
+          </div>
+          <div className="mt-0.5 text-xs text-slate-500">
             {unlocked
               ? "Đã mở khóa trong tab hiện tại. Khóa không được ghi vào bundle hoặc localStorage."
               : "Các thao tác ghi dữ liệu đang bị khóa. Nhập khóa phiên để mở."}
@@ -50,12 +53,12 @@ export function SessionAccessPanel({
               value={key}
               onChange={(event) => setKey(event.target.value)}
               placeholder="Khóa phiên"
-              className="w-40 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200"
+              className="h-10 w-full rounded border border-slate-800 bg-slate-950 px-3 font-mono text-xs text-slate-200 transition-colors focus:border-teal-500 focus:outline-none sm:w-44"
             />
             <button
               type="submit"
               disabled={!key.trim()}
-              className="rounded bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+              className="h-10 shrink-0 rounded border border-teal-700/60 bg-teal-950/40 px-4 text-xs font-semibold text-teal-300 transition-colors hover:bg-teal-950/70 disabled:opacity-40"
             >
               Mở khóa
             </button>
@@ -64,7 +67,7 @@ export function SessionAccessPanel({
           <button
             type="button"
             onClick={() => update("")}
-            className="rounded px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+            className="h-10 shrink-0 rounded border border-slate-700 px-4 text-xs text-slate-400 transition-colors hover:border-slate-600 hover:text-slate-200"
           >
             Khóa lại
           </button>

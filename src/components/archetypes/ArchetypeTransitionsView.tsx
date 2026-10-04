@@ -34,14 +34,17 @@ export function ArchetypeTransitionsView({
   onSelectArc,
 }: ArchetypeTransitionsViewProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-      <div className="flex flex-wrap gap-4 mb-6">
+    <div className="rounded border border-slate-800 bg-slate-900">
+      <div className="flex h-9 items-center border-b border-slate-800 bg-slate-850/60 px-3">
+        <span className="truncate text-[13px] font-semibold text-slate-200">Ma trận chuyển đổi mẫu nến</span>
+      </div>
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-2 border-b border-slate-800 px-3 py-2.5">
         <div>
-          <label className="text-xs text-slate-400 block mb-1">Timeframe</label>
+          <label className="block text-[11px] text-slate-400">Timeframe</label>
           <select
             value={timeframe}
             onChange={(e) => onTimeframeChange(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm"
+            className="mt-1 h-8 rounded-sm border border-slate-800 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500/60 focus:outline-none"
           >
             {timeframeOptions.map((tf) => (
               <option key={tf} value={tf}>
@@ -51,11 +54,11 @@ export function ArchetypeTransitionsView({
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-400 block mb-1">Window Size</label>
+          <label className="block text-[11px] text-slate-400">Window Size</label>
           <select
             value={windowSize}
             onChange={(e) => onWindowSizeChange(Number(e.target.value))}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm"
+            className="mt-1 h-8 rounded-sm border border-slate-800 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500/60 focus:outline-none"
           >
             {windowSizes.map((ws) => (
               <option key={ws} value={ws}>
@@ -66,19 +69,21 @@ export function ArchetypeTransitionsView({
         </div>
       </div>
 
-      {loading ? (
-        <div className="py-12 flex justify-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-teal-500" />
-        </div>
-      ) : (
-        <MarkovMatrixView
-          matrix={matrix}
-          selectedArcForTrans={selectedArcForTrans}
-          arcTransitions={arcTransitions}
-          arcTransLoading={arcTransLoading}
-          onSelectArc={onSelectArc}
-        />
-      )}
+      <div className="p-3">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <RefreshCw className="h-6 w-6 animate-spin text-teal-500" />
+          </div>
+        ) : (
+          <MarkovMatrixView
+            matrix={matrix}
+            selectedArcForTrans={selectedArcForTrans}
+            arcTransitions={arcTransitions}
+            arcTransLoading={arcTransLoading}
+            onSelectArc={onSelectArc}
+          />
+        )}
+      </div>
     </div>
   );
 }

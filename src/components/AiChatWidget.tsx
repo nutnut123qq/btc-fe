@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, X, Send, Sparkles, Loader2 } from "lucide-react";
+import { Bot, X, Send, Loader2, AlertTriangle } from "lucide-react";
 import { streamAiChat } from "@/lib/api";
 import type { AiCapabilitiesDto, AiChatMessage } from "@/lib/types";
 import { canUseAiExplanation, getLlmUiState } from "@/lib/researchUi";
@@ -16,7 +16,7 @@ const QUICK_CHIPS = [
 
 const currentTimestampMs = () => Date.now();
 
-export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto | null }) {
+export function AiChatWidget({ capabilities, dismissedByModal = false }: { capabilities: AiCapabilitiesDto | null; dismissedByModal?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputPrompt, setInputPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,15 +31,21 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const llmState = getLlmUiState(capabilities);
   const canExplain = canUseAiExplanation(capabilities);
 
+  // Non-modal surface: while a modal (alerts drawer) is open the chat is not
+  // rendered at all — its wrapper is also inert. It resumes when the modal
+  // closes; messages and open state are preserved.
+  const open = isOpen && !dismissedByModal;
+
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isOpen]);
+  }, [messages, open]);
 
   useEffect(() => {
     return () => {
@@ -49,6 +55,26 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  // No focus trap, but return focus to the launcher on close — unless the
+  // launcher itself is inside an inert subtree (modal owns focus then).
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    const launcher = launcherRef.current;
+    if (wasOpenRef.current && !isOpen && launcher && !launcher.closest("[inert]")) {
+      launcher.focus();
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleSend = async (customPrompt?: string) => {
     const textToSend = customPrompt || inputPrompt;
@@ -141,39 +167,51 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      {!isOpen && (
+      {/* Floating Trigger Button — kept clear of the mobile bottom nav
+          (nav is sticky bottom-0 below lg, so the launcher sits at bottom-20). */}
+      {!open && (
         <button
+          ref={launcherRef}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-16 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-200"
+          className="fixed bottom-20 right-4 z-50 flex h-10 items-center gap-2 rounded-full border border-teal-500/60 bg-slate-900 px-3.5 text-teal-300 shadow-lg shadow-black/60 transition-colors hover:bg-slate-850 active:scale-95 lg:bottom-6 lg:right-6"
           aria-label="Trợ lý AI Chat"
         >
-          <div className="relative">
-            <Bot className="w-6 h-6 animate-pulse" />
-            <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${llmState === "on" ? "bg-emerald-400" : llmState === "off" ? "bg-slate-400" : "bg-slate-500"}`} />
-          </div>
-          <span className="text-sm tracking-wide">Trợ lý AI (XAI)</span>
-          <Sparkles className="w-4 h-4 text-teal-100" />
+          <Bot className="h-4 w-4" />
+          <span className="text-xs font-medium">Trợ lý AI</span>
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 rounded-full ${
+              llmState === "on"
+                ? "bg-teal-400"
+                : llmState === "off"
+                  ? "bg-amber-400"
+                  : "bg-slate-500"
+            }`}
+          />
         </button>
       )}
 
-      {/* Floating Chat Modal */}
-      {isOpen && (
-        <div className="fixed bottom-16 right-5 z-50 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+      {/* Chat panel: full-height sheet below lg, floating bottom-right
+          panel ~380×520 on lg+. Elevation lives on the panel surface only. */}
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Trợ lý AI"
+          className="fixed inset-0 z-50 flex flex-col overflow-hidden border-slate-800 bg-slate-900 shadow-2xl shadow-black/70 lg:inset-auto lg:bottom-6 lg:right-6 lg:h-[520px] lg:max-h-[calc(100vh-3rem)] lg:w-[380px] lg:rounded-xl lg:border"
+        >
           {/* Header */}
-          <div className="px-4 py-3 bg-slate-950/80 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400">
-                <Bot className="w-5 h-5" />
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-850 px-3.5 lg:h-11">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-teal-500/30 bg-teal-500/10 text-teal-400">
+                <Bot className="h-4 w-4" />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                  Bitcoin AI Strategy Explainer
-                  <span className="px-1.5 py-0.5 text-xs font-semibold bg-teal-500/20 text-teal-300 rounded ">
-                    XAI
-                  </span>
-                </h3>
-                <p className={`text-xs ${llmState === "off" ? "text-amber-300" : "text-slate-400"}`}>
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-slate-100">Trợ lý AI</h3>
+                <p
+                  className={`text-[11px] leading-tight ${
+                    llmState === "off" ? "text-amber-300" : "text-slate-400"
+                  }`}
+                >
                   {llmState === "unknown"
                     ? "Đang kiểm tra khả năng giải thích"
                     : llmState === "off"
@@ -184,80 +222,91 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              aria-label="Đóng trợ lý AI"
+              className="-mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-slate-200"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Messages Container */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm">
+          {/* Messages — flat rows, user right teal-tint / assistant left slate */}
+          <div className="flex-1 space-y-3.5 overflow-y-auto p-4 text-xs text-slate-200">
             {messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[88%] p-3 rounded-2xl ${
+                  className={`px-3 py-2.5 ${
                     m.sender === "user"
-                      ? "bg-teal-600 text-white rounded-br-none shadow-md shadow-teal-900/20"
-                      : "bg-slate-800/90 text-slate-100 rounded-bl-none"
+                      ? "max-w-[85%] rounded-lg border border-teal-500/30 bg-teal-500/15 text-slate-100"
+                      : "max-w-[92%] rounded-lg border border-slate-800 bg-slate-850 text-slate-200"
                   }`}
                 >
-                  {/* Evidence Tags Badges for AI replies */}
+                  <div className="whitespace-pre-wrap text-xs leading-relaxed">
+                    {m.text}
+                  </div>
+
+                  {/* Evidence/citation tags — mono footnote lines */}
                   {m.evidenceTags && m.evidenceTags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
+                    <div className="mt-2 flex flex-wrap gap-x-2.5 gap-y-0.5 border-t border-slate-800/60 pt-1.5">
                       {m.evidenceTags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-1.5 py-0.5 text-xs font-semibold bg-slate-950/60 text-teal-300 rounded"
+                          className="font-mono text-[10px] text-teal-300/80"
                         >
-                          🏷️ {tag}
+                          {tag}
                         </span>
                       ))}
                     </div>
                   )}
-
-                  <div className="whitespace-pre-wrap leading-relaxed text-xs sm:text-sm">
-                    {m.text}
-                  </div>
                 </div>
-                <span className="text-xs text-slate-400 mt-1 px-1">
+                <span className="mt-1 px-1 font-mono text-[10px] tabular-nums text-slate-500">
                   {new Date(m.timestampMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/40 text-slate-400 max-w-[70%]">
-                <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
-                <span className="text-xs">Đang tổng hợp dữ liệu nghiên cứu...</span>
+              <div className="flex max-w-[70%] items-center gap-2 rounded-lg border border-slate-800 bg-slate-850/60 p-2.5 text-slate-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-teal-400" />
+                <span className="text-[11px]">Đang tổng hợp dữ liệu nghiên cứu...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Chips Bar */}
-          <div className="px-3 py-2 bg-slate-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
+          {/* Capability-unavailable amber state (honest, mirrors header subtitle) */}
+          {llmState === "off" && (
+            <div className="mx-3 mb-2 flex shrink-0 items-start gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[11px] leading-snug text-amber-200/90">
+              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-amber-400" />
+              <span>
+                Giải thích LLM tạm không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.
+              </span>
+            </div>
+          )}
+
+          {/* Quick Chips Bar — the 4 real QUICK_CHIPS, unchanged */}
+          <div className="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto border-t border-slate-800/60 bg-slate-950/60 px-3 py-1.5">
             {QUICK_CHIPS.map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => void handleSend(chip.prompt)}
                 disabled={loading || !canExplain}
-                className="whitespace-nowrap text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 transition-colors flex items-center gap-1 disabled:opacity-50"
+                className="shrink-0 whitespace-nowrap rounded border border-slate-800 bg-slate-850 px-2.5 py-1 text-[11px] text-slate-300 transition-colors hover:bg-slate-800 disabled:opacity-50"
               >
                 {chip.label}
               </button>
             ))}
           </div>
 
-          {/* Input Form */}
+          {/* Input Form — dark flat bar, send ≥40px */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               void handleSend();
             }}
-            className="p-3 bg-slate-950 flex items-center gap-2"
+            className="flex shrink-0 items-center gap-2 border-t border-slate-800 bg-slate-950 p-3"
           >
             <input
               type="text"
@@ -265,14 +314,15 @@ export function AiChatWidget({ capabilities }: { capabilities: AiCapabilitiesDto
               onChange={(e) => setInputPrompt(e.target.value)}
               placeholder={llmState === "unknown" ? "Đang kiểm tra dịch vụ giải thích..." : "Hỏi về nến, FVG, POC, dự báo..."}
               disabled={loading || !canExplain}
-              className="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500"
+              className="h-10 flex-1 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-slate-100 placeholder-slate-500 transition-colors focus:border-teal-500 focus:outline-none lg:h-9"
             />
             <button
               type="submit"
+              aria-label="Gửi câu hỏi"
               disabled={loading || !canExplain || !inputPrompt.trim()}
-              className="p-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold disabled:opacity-40 disabled:hover:bg-teal-500 transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-500 text-slate-950 transition-colors hover:bg-teal-400 active:scale-95 disabled:opacity-40 disabled:hover:bg-teal-500"
             >
-              <Send className="w-4 h-4" />
+              <Send className="h-4 w-4" />
             </button>
           </form>
         </div>

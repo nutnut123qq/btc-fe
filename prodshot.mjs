@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = [];
+p.on("pageerror", e => errs.push(e.message));
+p.on("console", m => { if (m.type()==="error") errs.push(m.text().slice(0,120)); });
+await p.goto("https://btc-fe.vercel.app/", { waitUntil: "domcontentloaded", timeout: 30000 });
+await p.waitForTimeout(6000);
+await p.screenshot({ path: ".impl-shots/audit-prod-home.png" });
+console.log("errs:", JSON.stringify(errs.slice(0,8)));
+console.log("bodyTextLen:", await p.evaluate(() => document.body.innerText.length));
+await b.close();
+console.log("DONE");

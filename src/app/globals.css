@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0b1326;
+  --foreground: #e2e8f0;
   --teal: #14b8a6;
   --teal-dark: #0d9488;
-  --surface: #111827;
-  --surface-high: #1f2937;
-  --border: #374151;
+  --surface: #131b2e;
+  --surface-high: #1c263e;
+  --border: #1c263e;
 }
 
 @theme inline {
@@ -15,6 +15,37 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Redesign palette: remap slate/gray scales onto the blue-slate family from
+   the approved reference (bg #0b1326, surfaces #131b2e/#171f33, hairline
+   #1c263e). Existing `slate-*`/`gray-*` classes shift hue without edits. */
+@theme {
+  --color-slate-50: #f3f6fb;
+  --color-slate-100: #e6ecf6;
+  --color-slate-200: #d3dcee;
+  --color-slate-300: #bcc9e2;
+  --color-slate-400: #94a3bf;
+  --color-slate-500: #6d7f9e;
+  --color-slate-600: #55657f;
+  --color-slate-700: #3c4a6b;
+  --color-slate-800: #1c263e;
+  --color-slate-850: #171f33;
+  --color-slate-900: #131b2e;
+  --color-slate-950: #0b1326;
+
+  --color-gray-50: #f3f6fb;
+  --color-gray-100: #e6ecf6;
+  --color-gray-200: #d3dcee;
+  --color-gray-300: #bcc9e2;
+  --color-gray-400: #94a3bf;
+  --color-gray-500: #6d7f9e;
+  --color-gray-600: #55657f;
+  --color-gray-700: #3c4a6b;
+  --color-gray-800: #1c263e;
+  --color-gray-850: #171f33;
+  --color-gray-900: #131b2e;
+  --color-gray-950: #0b1326;
 }
 
 body {

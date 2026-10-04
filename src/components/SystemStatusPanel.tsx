@@ -13,16 +13,31 @@ function ageLabel(seconds: number | null): string {
   return `${(seconds / 86400).toFixed(1)} ngày`;
 }
 
-function statusClass(status: string): string {
+function statusTextClass(status: string): string {
   return status === "degraded" || status === "stale"
-    ? "text-amber-300 bg-amber-950/50"
-    : status === "down" || status === "unavailable" || status === "missing" || status === "error"
-      ? "text-rose-300 bg-rose-950/50"
-      : "text-slate-300 bg-slate-800/40";
+    ? "text-amber-300"
+    : status === "down" || status === "unavailable" || status === "missing" || status === "error" || status === "failed"
+      ? "text-rose-300"
+      : "text-slate-400";
+}
+
+function statusDotClass(status: string): string {
+  return status === "degraded" || status === "stale"
+    ? "bg-amber-400"
+    : status === "down" || status === "unavailable" || status === "missing" || status === "error" || status === "failed"
+      ? "bg-rose-400"
+      : "bg-slate-500";
 }
 
 function freshnessStatusLabel(status: FreshnessHealthDto["klines"][number]["status"]): string {
   return status === "inactive" ? "không theo dõi" : status;
+}
+
+function formatTimestamp(iso: string | null): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("vi-VN", { hour12: false });
 }
 
 export function SystemStatusPanel() {
@@ -58,80 +73,116 @@ export function SystemStatusPanel() {
   }, [load]);
 
   return (
-    <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-5 text-xs">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-slate-100">
-            <Activity className="h-4 w-4 text-teal-400" /> Trạng thái hệ thống
-          </h3>
-          <p className="mt-1 text-xs text-slate-400">Health nhẹ; không chạy Data Audit khi mở Settings.</p>
-        </div>
+    <section className="overflow-hidden rounded border border-slate-800 bg-slate-900 text-xs">
+      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 pl-3 pr-1 py-1">
+        <h3 className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-200">
+          <Activity className="h-3.5 w-3.5 text-slate-500" /> Trạng thái hệ thống
+        </h3>
         <button
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200 disabled:opacity-50"
+          className="inline-flex min-h-9 items-center gap-1.5 px-2 text-[11px] text-slate-500 transition-colors hover:text-slate-200 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Làm mới
         </button>
+      </header>
+      <div className="border-b border-slate-800 bg-slate-950/40 px-3 py-2">
+        <p className="text-[11px] text-slate-500">Các tác vụ nền và health nhẹ; không chạy Data Audit khi mở màn này.</p>
       </div>
 
       {loading && !live && !ready && !freshness && !workers ? (
-        <div className="grid grid-cols-2 gap-2" role="status" aria-label="Đang tải trạng thái hệ thống">
-          {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-slate-800/70" />)}
+        <div className="grid grid-cols-2 gap-2 p-3" role="status" aria-label="Đang tải trạng thái hệ thống">
+          {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded bg-slate-800/50" />)}
         </div>
       ) : (
-        <>
+        <div className="space-y-4 p-3">
           {hasError && (
-            <p className="rounded-lg bg-slate-800/40 p-2 text-slate-300">
+            <p className="border-l-2 border-amber-500/70 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200">
               Một số health endpoint không phản hồi hoặc sai contract; phần tương ứng được đánh dấu không khả dụng.
             </p>
           )}
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div className={`rounded-lg p-3 ${live ? statusClass(live.status) : statusClass("missing")}`}>
-              <div className="font-semibold">Process liveness</div>
-              <div className="mt-1 font-mono">{live?.status ?? "unavailable"}</div>
+          <div className="divide-y divide-slate-800 rounded border border-slate-800">
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <span className="text-slate-400">Process liveness</span>
+              <span className={`flex items-center gap-1.5 font-mono ${statusTextClass(live?.status ?? "missing")}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${statusDotClass(live?.status ?? "missing")}`} aria-hidden="true" />
+                {live?.status ?? "unavailable"}
+              </span>
             </div>
-            <div className={`rounded-lg p-3 ${ready ? statusClass(ready.status) : statusClass("missing")}`}>
-              <div className="flex items-center gap-1 font-semibold"><Database className="h-3.5 w-3.5" /> Database readiness</div>
-              <div className="mt-1 font-mono">
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <Database className="h-3.5 w-3.5" /> Database readiness
+              </span>
+              <span className={`flex items-center gap-1.5 font-mono ${statusTextClass(ready?.status ?? "missing")}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${statusDotClass(ready?.status ?? "missing")}`} aria-hidden="true" />
                 {ready ? `${ready.status} · ${ready.responseTimeMs.toFixed(0)} ms` : "unavailable"}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1.5 text-[11px] font-semibold text-slate-400">Freshness BTCUSDT</div>
+            {freshness && freshness.klines.length > 0 ? (
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                {freshness.klines.map((item) => (
+                  <div key={item.timeframe} className="rounded border border-slate-800 bg-slate-950/50 px-2 py-1.5">
+                    <div className="flex items-baseline justify-between gap-1">
+                      <span className="font-mono font-semibold text-slate-200">{item.timeframe}</span>
+                      <span className={statusTextClass(item.status)}>{freshnessStatusLabel(item.status)}</span>
+                    </div>
+                    <div className="mt-0.5 font-mono text-[11px] text-slate-500">nến cuối {ageLabel(item.ageSeconds)} trước</div>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              <span className="text-slate-500">Không có dữ liệu freshness.</span>
+            )}
           </div>
 
           <div>
-            <div className="mb-1.5 font-semibold text-slate-300">Freshness BTCUSDT</div>
-            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-              {freshness && freshness.klines.length > 0 ? freshness.klines.map((item) => (
-                <div key={item.timeframe} className={`rounded px-2 py-1.5 ${statusClass(item.status)}`}>
-                  <span className="font-semibold">{item.timeframe}</span>
-                  <span className="ml-1">{freshnessStatusLabel(item.status)}</span>
-                  <div className="mt-0.5 text-xs opacity-80">Nến cuối: {ageLabel(item.ageSeconds)} trước</div>
-                </div>
-              )) : <span className="text-slate-400">Không có dữ liệu freshness.</span>}
-            </div>
+            <div className="mb-1.5 text-[11px] font-semibold text-slate-400">Worker heartbeat</div>
+            {workers && workers.workers.length > 0 ? (
+              <div className="divide-y divide-slate-800 rounded border border-slate-800">
+                {workers.workers.map((worker) => {
+                  const delayed = worker.status === "stale";
+                  const statusLabel =
+                    worker.status === "healthy"
+                      ? "đang chạy"
+                      : delayed
+                        ? `trễ ${ageLabel(worker.ageSeconds)}`
+                        : worker.status === "never"
+                          ? "chưa chạy"
+                          : worker.status;
+                  return (
+                    <div
+                      key={worker.name}
+                      className={`px-3 py-2.5 transition-colors hover:bg-slate-850/40 ${delayed ? "bg-amber-950/10" : ""}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-mono text-xs font-medium text-slate-100">{worker.name}</span>
+                        <span className={`flex items-center gap-1.5 text-[11px] ${statusTextClass(worker.status)}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${statusDotClass(worker.status)}`} aria-hidden="true" />
+                          {statusLabel}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-3 font-mono text-[11px] text-slate-500">
+                        <span className="min-w-0 truncate">{formatTimestamp(worker.lastSucceededAtUtc ?? worker.lastStartedAtUtc)}</span>
+                        <span className="shrink-0">{ageLabel(worker.ageSeconds)} trước</span>
+                      </div>
+                      {worker.message && (
+                        <div className="mt-1 break-words text-[11px] text-slate-500">{worker.message}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className="text-slate-500">Không có worker heartbeat.</span>
+            )}
           </div>
-
-          <div>
-            <div className="mb-1.5 font-semibold text-slate-300">Worker heartbeat</div>
-            <div className="space-y-1.5">
-              {workers && workers.workers.length > 0 ? workers.workers.map((worker) => (
-                <div key={worker.name} className={`flex items-start justify-between gap-3 rounded px-2 py-1.5 ${statusClass(worker.status)}`}>
-                  <div>
-                    <div className="font-semibold">{worker.name}</div>
-                    {worker.message && <div className="mt-0.5 max-w-xl break-words text-xs opacity-80">{worker.message}</div>}
-                  </div>
-                  <div className="shrink-0 text-right font-mono">
-                    <div>{worker.status}</div>
-                    <div className="text-xs opacity-80">{ageLabel(worker.ageSeconds)}</div>
-                  </div>
-                </div>
-              )) : <span className="text-slate-400">Không có worker heartbeat.</span>}
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </section>
   );

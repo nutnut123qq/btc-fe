@@ -30,7 +30,8 @@ const KIND_LABEL: Record<CurrentConditionKind, string> = {
 };
 
 const KIND_CLASS: Record<CurrentConditionKind, string> = {
-  triggeredOnBar: "bg-emerald-950/40 text-emerald-300",
+  // Condition kind is a state label, not a success/up signal — keep quiet slate.
+  triggeredOnBar: "bg-slate-800/60 text-slate-200",
   state: "bg-slate-800/40 text-slate-300",
   activeZone: "bg-slate-800/40 text-slate-300",
   operativeLeg: "bg-slate-800/40 text-slate-300",
@@ -87,27 +88,27 @@ function evidenceAgeText(bars: number, timeframe: ActiveTimeframe): string {
 function EvidenceCell({ cell, horizon, metric }: { cell: ConditionEvidenceCell | undefined; horizon: ConditionHorizonKey; metric: ConditionEvidenceMetric }) {
   const label = `h${horizon} · ${metric}`;
   if (cell === undefined) {
-    return <div className="min-w-0 rounded bg-slate-950/40 p-2 text-xs">
-      <div className="font-mono text-slate-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
-      <div className="mt-1 text-slate-400">Chưa báo cáo cho ô này.</div>
+    return <div className="min-w-0 border-t border-slate-800/50 py-1.5 text-xs">
+      <div className="font-mono text-slate-500"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
+      <div className="mt-0.5 text-slate-500">Chưa báo cáo cho ô này.</div>
     </div>;
   }
   if (!cell.tested) {
-    return <div className="min-w-0 rounded bg-slate-950/40 p-2 text-xs">
-      <div className="font-mono text-slate-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
-      <div className="mt-1 break-words text-amber-300/90">Chưa kiểm chứng — {cell.reason}</div>
+    return <div className="min-w-0 border-t border-slate-800/50 py-1.5 text-xs">
+      <div className="font-mono text-slate-500"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
+      <div className="mt-0.5 break-words text-amber-300/90">Chưa kiểm chứng — {cell.reason}</div>
     </div>;
   }
-  return <div className="min-w-0 rounded bg-slate-950/40 p-2 text-xs">
+  return <div className="min-w-0 border-t border-slate-800/50 py-1.5 text-xs">
     <div className="font-mono text-slate-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
-    <dl className="mt-1 grid min-w-0 grid-cols-[auto,minmax(0,1fr)] gap-x-2 gap-y-0.5 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right">
-      <dt className="text-slate-400"><GlossaryTerm term="effect">Effect</GlossaryTerm></dt><dd className="text-slate-300">{percent(cell.effect)}</dd>
-      <dt className="text-slate-400"><GlossaryTerm term="ci">CI</GlossaryTerm></dt><dd className="font-mono text-slate-300">[{percent(cell.ciLower)}, {percent(cell.ciUpper)}]</dd>
-      <dt className="text-slate-400"><GlossaryTerm term="q-p">q / p</GlossaryTerm></dt><dd className="font-mono text-slate-300">{decimal(cell.adjustedQValue)} / {decimal(cell.rawP)}</dd>
-      <dt className="text-slate-400"><GlossaryTerm term="nonOverlappingPairs">n không chồng lấn</GlossaryTerm></dt><dd className="text-slate-300">{cell.nonOverlappingPairs.toLocaleString("vi-VN")}</dd>
-      <dt className="text-slate-400">Đạt <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo</dt><dd className={cell.passesDeclaredFdr === true ? "text-emerald-300" : "text-slate-300"}>{gateText(cell.passesDeclaredFdr)}</dd>
-      <dt className="text-slate-400"><GlossaryTerm term="sufficient-sample">Đủ mẫu</GlossaryTerm></dt><dd className="text-slate-300">{gateText(cell.sufficientSample)}</dd>
-      <dt className="text-slate-400"><GlossaryTerm term="mean-paired-delta">Mean paired Δ</GlossaryTerm></dt><dd className="font-mono text-slate-400">{percent(cell.meanPairedDifference)}</dd>
+    <dl className="mt-0.5 grid min-w-0 grid-cols-[auto,minmax(0,1fr)] gap-x-2 gap-y-0.5 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
+      <dt><GlossaryTerm term="effect">Effect</GlossaryTerm></dt><dd>{percent(cell.effect)}</dd>
+      <dt><GlossaryTerm term="ci">CI</GlossaryTerm></dt><dd>[{percent(cell.ciLower)}, {percent(cell.ciUpper)}]</dd>
+      <dt><GlossaryTerm term="q-p">q / p</GlossaryTerm></dt><dd>{decimal(cell.adjustedQValue)} / {decimal(cell.rawP)}</dd>
+      <dt><GlossaryTerm term="nonOverlappingPairs">n không chồng lấn</GlossaryTerm></dt><dd>{cell.nonOverlappingPairs.toLocaleString("vi-VN")}</dd>
+      <dt>Đạt <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo</dt><dd>{gateText(cell.passesDeclaredFdr)}</dd>
+      <dt><GlossaryTerm term="sufficient-sample">Đủ mẫu</GlossaryTerm></dt><dd>{gateText(cell.sufficientSample)}</dd>
+      <dt><GlossaryTerm term="mean-paired-delta">Mean paired Δ</GlossaryTerm></dt><dd className="text-slate-400">{percent(cell.meanPairedDifference)}</dd>
     </dl>
   </div>;
 }
@@ -117,25 +118,25 @@ function ConditionCard({ condition, manifestSha256, onOpenDossier }: {
   manifestSha256: string | null;
   onOpenDossier?: (manifestSha256: string) => void;
 }) {
-  return <article className="min-w-0 max-w-full overflow-hidden rounded-lg bg-slate-950/50 p-3">
+  return <article className="min-w-0 max-w-full overflow-hidden rounded-md border border-slate-800/70 bg-slate-950/40 p-3">
     <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
       <div className="min-w-0">
         <h4 className="break-all font-mono text-xs font-semibold text-slate-200">{condition.eventType}</h4>
-        <p className="mt-1 text-xs text-slate-400">trend {condition.context.trend ?? "—"} · volatility {condition.context.volatility ?? "—"} · formed {formatTimeMs(condition.formedTimeMs)} · khả dụng từ {formatTimeMs(condition.availableTimeMs)}</p>
+        <p className="mt-1 text-[11px] text-slate-500">trend {condition.context.trend ?? "—"} · volatility {condition.context.volatility ?? "—"} · formed <span className="font-mono tabular-nums">{formatTimeMs(condition.formedTimeMs)}</span> · khả dụng từ <span className="font-mono tabular-nums">{formatTimeMs(condition.availableTimeMs)}</span></p>
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-        <span className={`rounded-full px-2 py-1 text-xs font-bold ${KIND_CLASS[condition.kind]}`}>{KIND_LABEL[condition.kind]}</span>
-        <span className={`rounded-full px-2 py-1 text-xs font-bold ${DIRECTION_CLASS[condition.direction]}`}>{DIRECTION_LABEL[condition.direction]}</span>
-        {onOpenDossier && manifestSha256 && <button type="button" onClick={() => onOpenDossier(manifestSha256)} title={`Mở hồ sơ evidence của manifest ${manifestSha256}`} className="inline-flex items-center gap-0.5 rounded bg-slate-800/60 px-2 py-1 text-xs text-teal-400 hover:bg-slate-800">Hồ sơ<ChevronRight className="h-3 w-3" /></button>}
+        <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${KIND_CLASS[condition.kind]}`}>{KIND_LABEL[condition.kind]}</span>
+        <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${DIRECTION_CLASS[condition.direction]}`}>{DIRECTION_LABEL[condition.direction]}</span>
+        {onOpenDossier && manifestSha256 && <button type="button" onClick={() => onOpenDossier(manifestSha256)} title={`Mở hồ sơ evidence của manifest ${manifestSha256}`} className="inline-flex min-h-10 items-center gap-0.5 rounded bg-slate-800/60 px-2.5 py-1 text-xs text-teal-400 hover:bg-slate-800">Hồ sơ<ChevronRight className="h-3 w-3" /></button>}
       </div>
     </div>
     {condition.evidence == null
-      ? <p className="mt-2 rounded bg-slate-950/40 p-2 text-xs text-amber-300/90">Backend chưa gắn bằng chứng cho điều kiện này; UI không suy diễn ô số liệu.</p>
-      : <div className="mt-3 grid min-w-0 gap-2 lg:grid-cols-3">{CONDITION_HORIZON_KEYS.map((horizon) => {
+      ? <p className="mt-2 border-t border-slate-800/50 pt-2 text-xs text-amber-300/90">Backend chưa gắn bằng chứng cho điều kiện này; UI không suy diễn ô số liệu.</p>
+      : <div className="mt-3 grid min-w-0 gap-x-4 lg:grid-cols-3">{CONDITION_HORIZON_KEYS.map((horizon) => {
         const horizonEvidence = condition.evidence?.[horizon];
-        return <div key={horizon} className="min-w-0 space-y-1.5"><div className="text-xs font-semibold text-slate-400"><GlossaryTerm term="horizon">Horizon</GlossaryTerm> {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
+        return <div key={horizon} className="min-w-0"><div className="text-[11px] font-semibold text-slate-400"><GlossaryTerm term="horizon">Horizon</GlossaryTerm> {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
       })}</div>}
-    {condition.details && <details className="mt-2 text-[10px] text-slate-400"><summary className="cursor-pointer">Chi tiết detector</summary><pre className="mt-1 max-w-full overflow-x-auto break-all rounded bg-slate-950/60 p-2 font-mono text-slate-400">{JSON.stringify(condition.details, null, 2)}</pre></details>}
+    {condition.details && <details className="mt-2 text-[11px] text-slate-500"><summary className="cursor-pointer">Chi tiết detector</summary><pre className="mt-1 max-w-full overflow-x-auto break-all border-t border-slate-800/50 pt-2 font-mono text-slate-400">{JSON.stringify(condition.details, null, 2)}</pre></details>}
   </article>;
 }
 
@@ -181,60 +182,60 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
 
   const evidence = data?.evidence ?? null;
 
-  return <section className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-5" aria-labelledby="current-conditions-title">
-    <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+  return <section className="min-w-0 max-w-full overflow-hidden rounded-md border border-slate-700/80 bg-slate-900/50" aria-labelledby="current-conditions-title">
+    <div className="flex min-w-0 flex-wrap items-start justify-between gap-3 border-b border-slate-800/60 px-4 py-3">
       <div className="min-w-0">
-        <h3 id="current-conditions-title" className="flex items-center gap-2 text-sm font-semibold text-slate-100">Điều kiện hiện tại & bằng chứng · BTCUSDT</h3>
-        <p className="mt-1 text-xs leading-5 text-slate-400">Điều kiện kỹ thuật trên nến đóng gần nhất, nối với thống kê mô tả lịch sử theo từng horizon. Đây không phải xác suất, tỷ lệ thắng hay tín hiệu giao dịch.</p>
+        <h3 id="current-conditions-title" className="flex items-center gap-2 text-[13px] font-semibold text-slate-200">Điều kiện hiện tại & bằng chứng · BTCUSDT</h3>
+        <p className="mt-0.5 text-xs leading-5 text-slate-500">Điều kiện kỹ thuật trên nến đóng gần nhất, nối với thống kê mô tả lịch sử theo từng horizon. Đây không phải xác suất, tỷ lệ thắng hay tín hiệu giao dịch.</p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <select value={timeframe} onChange={(event) => setTimeframe(event.target.value as ActiveTimeframe)} className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200" aria-label="Timeframe điều kiện hiện tại">
+        <select value={timeframe} onChange={(event) => setTimeframe(event.target.value as ActiveTimeframe)} className="min-h-10 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200" aria-label="Timeframe điều kiện hiện tại">
           {ACTIVE_TIMEFRAMES.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
-        <button type="button" onClick={() => void load(timeframe)} disabled={loading} className="rounded bg-slate-950 p-2 text-slate-400 hover:text-slate-200 disabled:opacity-50" aria-label="Làm mới điều kiện hiện tại"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}/></button>
+        <button type="button" onClick={() => void load(timeframe)} disabled={loading} className="inline-flex min-h-10 items-center rounded bg-slate-950/60 px-2 text-slate-400 hover:text-slate-200 disabled:opacity-50" aria-label="Làm mới điều kiện hiện tại"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}/></button>
       </div>
     </div>
 
-    {loading && !data && <div className="mt-4 space-y-4" aria-label="Đang tải điều kiện hiện tại">
+    {loading && !data && <div className="space-y-4 px-4 py-4" aria-label="Đang tải điều kiện hiện tại">
       <div className="h-6 w-2/3 animate-pulse rounded bg-slate-800/70" />
       <div className="grid gap-2 sm:grid-cols-2"><div className="h-14 animate-pulse rounded bg-slate-800/60" /><div className="h-14 animate-pulse rounded bg-slate-800/60" /></div>
       <div className="h-40 animate-pulse rounded-lg bg-slate-800/50" />
     </div>}
 
-    {error && <div role="alert" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-rose-950/30 p-3 text-xs text-rose-300">
+    {error && <div role="alert" className="mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 rounded bg-rose-950/30 p-3 text-xs text-rose-300">
       <span className="min-w-0 break-words">Điều kiện hiện tại chưa sẵn sàng: {error}</span>
-      <button type="button" onClick={() => void load(timeframe)} className="shrink-0 rounded px-2.5 py-1.5 font-semibold text-rose-200 hover:bg-rose-950/60">Thử lại</button>
+      <button type="button" onClick={() => void load(timeframe)} className="min-h-10 shrink-0 rounded px-2.5 py-1.5 font-semibold text-rose-200 hover:bg-rose-950/60">Thử lại</button>
     </div>}
 
-    {data && <>
-      <dl className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
-        <div className="min-w-0 rounded-lg bg-slate-950/50 p-3">
-          <dt className="text-xs font-medium text-slate-400"><GlossaryTerm term="asOf">Nến phân tích (asOf)</GlossaryTerm></dt>
-          <dd className="mt-1 break-words text-sm font-semibold text-slate-200">{formatTimeMs(data.asOfMs)}</dd>
-          <dd className="mt-0.5 text-xs text-slate-400">BTCUSDT · {data.timeframe} · thời điểm nến thị trường được phân tích</dd>
+    {data && <div className="px-4 py-3">
+      <dl className="grid min-w-0 gap-2 sm:grid-cols-2">
+        <div className="min-w-0 rounded-md border border-slate-800/70 p-3">
+          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="asOf">Nến phân tích (asOf)</GlossaryTerm></dt>
+          <dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums text-slate-200">{formatTimeMs(data.asOfMs)}</dd>
+          <dd className="mt-0.5 text-[11px] text-slate-500">BTCUSDT · {data.timeframe} · thời điểm nến thị trường được phân tích</dd>
         </div>
-        <div className="min-w-0 rounded-lg bg-slate-950/50 p-3">
-          <dt className="text-xs font-medium text-slate-400"><GlossaryTerm term="cutoff">Nghiên cứu cắt tại</GlossaryTerm></dt>
+        <div className="min-w-0 rounded-md border border-slate-800/70 p-3">
+          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="cutoff">Nghiên cứu cắt tại</GlossaryTerm></dt>
           {evidence?.available
-            ? <><dd className="mt-1 break-words text-sm font-semibold text-slate-200">{formatTimeMs(evidence.cutoffMs)}</dd><dd className="mt-0.5 text-xs text-slate-400">{evidenceAgeText(evidence.evidenceAgeBars ?? 0, data.timeframe)} so với nến phân tích · <GlossaryTerm term="run">run</GlossaryTerm> {evidence.runId}</dd></>
+            ? <><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums text-slate-200">{formatTimeMs(evidence.cutoffMs)}</dd><dd className="mt-0.5 text-[11px] text-slate-500">{evidenceAgeText(evidence.evidenceAgeBars ?? 0, data.timeframe)} so với nến phân tích · <GlossaryTerm term="run">run</GlossaryTerm> <span className="font-mono">{evidence.runId}</span></dd></>
             : <dd className="mt-1 break-words text-xs text-slate-300">Bằng chứng không khả dụng{evidence?.reason ? ` — ${evidence.reason}` : ""}; các ô bên dưới không suy diễn số liệu.</dd>}
         </div>
       </dl>
 
-      {data.warnings.length > 0 && <div className="mt-3 rounded-lg bg-amber-950/20 p-3" role="note">
+      {data.warnings.length > 0 && <div className="mt-3 rounded-md border border-amber-900/60 bg-amber-950/15 p-3" role="note">
         <h4 className="flex items-center gap-1.5 text-xs font-semibold text-amber-300"><AlertTriangle className="h-3.5 w-3.5" /> Cảnh báo từ pipeline</h4>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-4 text-amber-100/80">{data.warnings.map((warning, index) => <li key={index} className="break-words">{warning}</li>)}</ul>
       </div>}
 
-      {data.unavailableModules.length > 0 && <div className="mt-3 rounded-lg bg-rose-950/20 p-3" role="note">
+      {data.unavailableModules.length > 0 && <div className="mt-3 rounded-md border border-rose-900/60 bg-rose-950/15 p-3" role="note">
         <h4 className="flex items-center gap-1.5 text-xs font-semibold text-rose-300"><AlertTriangle className="h-3.5 w-3.5" /> <GlossaryTerm term="unavailable-module">Module không khả dụng</GlossaryTerm></h4>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-4 text-rose-100/80">{data.unavailableModules.map((item) => <li key={item.module} className="break-words"><span className="font-mono">{item.module}</span>: {item.reason}</li>)}</ul>
       </div>}
 
-      {data.conflicts.length > 0 && <div data-testid="conditions-conflicts" className="mt-3 rounded-lg bg-slate-800/40 p-3">
+      {data.conflicts.length > 0 && <div data-testid="conditions-conflicts" className="mt-3 rounded-md border border-slate-800/70 p-3">
         <h4 className="text-xs font-semibold text-slate-300"><GlossaryTerm term="conflict">Xung đột bằng chứng</GlossaryTerm> (render verbatim)</h4>
-        <p className="mt-1 text-xs leading-4 text-slate-200/70">Bằng chứng mô tả lịch sử đạt ngưỡng <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo ở cả hai chiều trong cùng <GlossaryTerm term="horizon">horizon</GlossaryTerm>/<GlossaryTerm term="metric">metric</GlossaryTerm>. Đây là xung đột thật trong dữ liệu quá khứ — không có winner và UI không tổng hợp thành kết luận.</p>
-        <ul className="mt-2 space-y-2">{data.conflicts.map((conflict, index) => <li key={`${conflict.horizon}-${conflict.metric}-${index}`} className="min-w-0 rounded bg-slate-950/50 p-2 text-xs">
+        <p className="mt-1 text-xs leading-4 text-slate-400">Bằng chứng mô tả lịch sử đạt ngưỡng <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo ở cả hai chiều trong cùng <GlossaryTerm term="horizon">horizon</GlossaryTerm>/<GlossaryTerm term="metric">metric</GlossaryTerm>. Đây là xung đột thật trong dữ liệu quá khứ — không có winner và UI không tổng hợp thành kết luận.</p>
+        <ul className="mt-2 divide-y divide-slate-800/50">{data.conflicts.map((conflict, index) => <li key={`${conflict.horizon}-${conflict.metric}-${index}`} className="min-w-0 py-2 text-xs">
           <div className="font-mono text-slate-400"><GlossaryTerm term={conflict.metric}>h{conflict.horizon} · {conflict.metric}</GlossaryTerm></div>
           <div className="mt-1 flex min-w-0 flex-wrap gap-x-4 gap-y-1">
             <span className="min-w-0 break-words text-emerald-300">Tăng: {conflict.bullish.join(", ")}</span>
@@ -243,14 +244,14 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
         </li>)}</ul>
       </div>}
 
-      {!loading && data.conditions.length === 0 && <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-5 text-sm text-slate-400"><CheckCircle2 className="mb-2 h-5 w-5" />Không có điều kiện nào thỏa trên nến đóng gần nhất.</div>}
+      {!loading && data.conditions.length === 0 && <div className="mt-3 rounded-md border border-slate-800/70 p-4 text-[13px] text-slate-400"><CheckCircle2 className="mb-2 h-5 w-5" />Không có điều kiện nào thỏa trên nến đóng gần nhất.</div>}
 
-      {groups.map(([module, items]) => <div key={module} className="mt-4 min-w-0">
-        <h4 className="break-all font-mono text-xs font-semibold uppercase tracking-widest text-slate-400">{module} <span className="normal-case text-slate-400">· {items.length} điều kiện</span></h4>
+      {groups.map(([module, items]) => <div key={module} className="mt-3 min-w-0">
+        <h4 className="break-all font-mono text-[11px] font-semibold text-slate-500">{module} <span className="text-slate-500">· {items.length} điều kiện</span></h4>
         <div className="mt-2 space-y-2">{items.map((condition) => <ConditionCard key={`${condition.module}|${condition.eventType}|${condition.kind}|${condition.eventId ?? "state"}`} condition={condition} manifestSha256={evidence?.manifestSha256 ?? null} onOpenDossier={onOpenDossier} />)}</div>
       </div>)}
 
-      <p className="mt-4 break-words text-xs leading-4 text-slate-400"><GlossaryTerm term="generatedAt">generatedAt</GlossaryTerm> {formatTimeMs(data.generatedAtMs)} · <GlossaryTerm term="manifest">manifest</GlossaryTerm> {shortHash(evidence?.manifestSha256 ?? null)} · <GlossaryTerm term="spec">spec</GlossaryTerm> {shortHash(evidence?.specSha256 ?? null)} · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
-    </>}
+      <p className="mt-3 break-words text-[11px] leading-4 text-slate-500"><GlossaryTerm term="generatedAt">generatedAt</GlossaryTerm> <span className="font-mono tabular-nums">{formatTimeMs(data.generatedAtMs)}</span> · <GlossaryTerm term="manifest">manifest</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.manifestSha256 ?? null)}</span> · <GlossaryTerm term="spec">spec</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.specSha256 ?? null)}</span> · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
+    </div>}
   </section>;
 }
