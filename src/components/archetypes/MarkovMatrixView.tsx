@@ -111,7 +111,7 @@ export function MarkovMatrixView({
                               t.avgReturnPct > 0 ? "text-emerald-400" : "text-rose-400"
                             }
                           >
-                            {(t.avgReturnPct * 100).toFixed(2)}%
+                            {t.avgReturnPct.toFixed(2)}%
                           </span>
                         </span>
                         <span>TB: {t.avgBarsToTransition.toFixed(1)} nến</span>

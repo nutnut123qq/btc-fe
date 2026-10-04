@@ -48,7 +48,7 @@ export function ArchetypeRankingsTable({ rankings }: ArchetypeRankingsTableProps
                   r.avgReturnPct > 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
-                {(r.avgReturnPct * 100).toFixed(2)}%
+                {r.avgReturnPct.toFixed(2)}%
               </td>
             </tr>
           ))}

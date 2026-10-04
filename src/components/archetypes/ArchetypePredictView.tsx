@@ -147,7 +147,7 @@ export function ArchetypePredictView({ nextPred, seqPred }: ArchetypePredictView
                             : "font-medium text-rose-400"
                         }
                       >
-                        {(seq.avgReturnPct * 100).toFixed(2)}%
+                        {seq.avgReturnPct.toFixed(2)}%
                       </span>
                     </div>
                   </div>

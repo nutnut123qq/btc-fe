@@ -33,7 +33,7 @@ export function SessionAccessPanel({
           </div>
           <div className="mt-0.5 text-xs text-slate-500">
             {unlocked
-              ? "Đã mở khóa trong tab hiện tại. Khóa không được ghi vào bundle hoặc localStorage."
+              ? "Khóa đã nạp cho tab này — quyền được server xác thực khi ghi. Khóa không được ghi vào bundle hoặc localStorage."
               : "Các thao tác ghi dữ liệu đang bị khóa. Nhập khóa phiên để mở."}
           </div>
         </div>

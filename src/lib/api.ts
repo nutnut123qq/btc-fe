@@ -672,7 +672,7 @@ export async function getArchetypeRankings(params: {
   if (params.top) qs.set("top", String(params.top));
   const res = await fetch(`${API_BASE}/api/archetypes/rankings?${qs}`);
   const data: unknown = await getJson(res);
-  const { record, items } = requireArrayField<import("./types").ArchetypeRankingDto>(data, "items", "archetype rankings");
+  const { record, items } = requireArrayField<import("./types").ArchetypeRankingDto>(data, "rankings", "archetype rankings");
   return { ...record, items };
 }
 

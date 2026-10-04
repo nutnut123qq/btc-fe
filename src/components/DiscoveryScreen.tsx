@@ -7,7 +7,7 @@ import { parseRuleConditions } from "@/lib/formatRuleCondition";
 import { RuleConditionsDisplay } from "./RuleConditionsDisplay";
 import { RuleDiscoverySummary } from "./RuleDiscoverySummary";
 import { getSessionKey } from "@/lib/sessionAuth";
-import { DEFAULT_TIMEFRAME } from "@/lib/timeframe";
+import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 import { CapabilityStateBadge } from "./CapabilityStateBadge";
 import { ruleEvidenceView } from "@/lib/evidencePresentation";
@@ -22,7 +22,7 @@ const QUIET_ICON_BTN =
 export function DiscoveryScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [symbol] = useState<string>(ACTIVE_SYMBOL);
-  const timeframe = DEFAULT_TIMEFRAME;
+  const [timeframe, setTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [running, setRunning] = useState(false);
   const [rules, setRules] = useState<SequenceRule[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,6 +99,19 @@ export function DiscoveryScreen() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <label className="flex items-center gap-1.5 text-[11px] text-slate-400">
+            Khung
+            <select
+              value={timeframe}
+              onChange={(event) => { setTimeframe(event.target.value as ActiveTimeframe); setResult(null); setEvalResult(null); }}
+              aria-label="Khung thời gian rules"
+              className="h-8 rounded border border-slate-800 bg-slate-950 px-2 font-mono text-xs text-slate-200 transition-colors focus:border-teal-500/60 focus:outline-none"
+            >
+              {ACTIVE_TIMEFRAMES.map((tf) => (
+                <option key={tf} value={tf}>{tf}</option>
+              ))}
+            </select>
+          </label>
           <button
             onClick={() => void handleRun()}
             disabled={running || !adminUnlocked}
