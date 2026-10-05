@@ -15,6 +15,7 @@ import {
   type CurrentConditionsResponse,
 } from "@/lib/currentConditions";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, intervalToMs, type ActiveTimeframe } from "@/lib/timeframe";
+import { moduleLabel, moduleRefLabel } from "@/lib/moduleLabels";
 import { LatestRequestGate } from "@/lib/technicalReplay";
 import { GlossaryTerm } from "./GlossaryTerm";
 
@@ -26,7 +27,7 @@ const KIND_LABEL: Record<CurrentConditionKind, string> = {
   triggeredOnBar: "mới trên nến đóng gần nhất",
   state: "trạng thái hiện hữu",
   activeZone: "vùng đang hiệu lực",
-  operativeLeg: "nhịp Fibonacci đang operative",
+  operativeLeg: "nhịp Fibonacci đang có hiệu lực",
 };
 
 const KIND_CLASS: Record<CurrentConditionKind, string> = {
@@ -213,12 +214,12 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
     {data && <div className="px-4 py-3">
       <dl className="grid min-w-0 gap-2 sm:grid-cols-2">
         <div className="min-w-0 rounded-md border border-slate-800/70 p-3">
-          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="asOf">Nến phân tích (asOf)</GlossaryTerm></dt>
+          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="asOf">Nến được phân tích (asOf)</GlossaryTerm></dt>
           <dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums text-slate-200">{formatTimeMs(data.asOfMs)}</dd>
           <dd className="mt-0.5 text-[11px] text-slate-500">BTCUSDT · {data.timeframe} · thời điểm nến thị trường được phân tích</dd>
         </div>
         <div className="min-w-0 rounded-md border border-slate-800/70 p-3">
-          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="cutoff">Nghiên cứu cắt tại</GlossaryTerm></dt>
+          <dt className="text-[11px] font-medium text-slate-500"><GlossaryTerm term="cutoff">Bằng chứng cắt tại</GlossaryTerm></dt>
           {evidence?.available
             ? <><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums text-slate-200">{formatTimeMs(evidence.cutoffMs)}</dd><dd className="mt-0.5 text-[11px] text-slate-500">{evidenceAgeText(evidence.evidenceAgeBars ?? 0, data.timeframe)} so với nến phân tích · <GlossaryTerm term="run">run</GlossaryTerm> <span className="font-mono">{evidence.runId}</span></dd></>
             : <dd className="mt-1 break-words text-xs text-slate-300">Bằng chứng không khả dụng{evidence?.reason ? ` — ${evidence.reason}` : ""}; các ô bên dưới không suy diễn số liệu.</dd>}
@@ -226,23 +227,23 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
       </dl>
 
       {data.warnings.length > 0 && <div className="mt-3 rounded-md border border-amber-900/60 bg-amber-950/15 p-3" role="note">
-        <h4 className="flex items-center gap-1.5 text-xs font-semibold text-amber-300"><AlertTriangle className="h-3.5 w-3.5" /> Cảnh báo từ pipeline</h4>
+        <h4 className="flex items-center gap-1.5 text-xs font-semibold text-amber-300"><AlertTriangle className="h-3.5 w-3.5" /> Cảnh báo từ pipeline <span className="font-normal text-amber-300/70">(nguyên văn)</span></h4>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-4 text-amber-100/80">{data.warnings.map((warning, index) => <li key={index} className="break-words">{warning}</li>)}</ul>
       </div>}
 
       {data.unavailableModules.length > 0 && <div className="mt-3 rounded-md border border-rose-900/60 bg-rose-950/15 p-3" role="note">
         <h4 className="flex items-center gap-1.5 text-xs font-semibold text-rose-300"><AlertTriangle className="h-3.5 w-3.5" /> <GlossaryTerm term="unavailable-module">Module không khả dụng</GlossaryTerm></h4>
-        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-4 text-rose-100/80">{data.unavailableModules.map((item) => <li key={item.module} className="break-words"><span className="font-mono">{item.module}</span>: {item.reason}</li>)}</ul>
+        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-4 text-rose-100/80">{data.unavailableModules.map((item) => <li key={item.module} className="break-words"><span title={item.module}>{moduleLabel(item.module)}</span> <span className="font-mono text-[10px] text-rose-200/50">({item.module})</span>: {item.reason}</li>)}</ul>
       </div>}
 
       {data.conflicts.length > 0 && <div data-testid="conditions-conflicts" className="mt-3 rounded-md border border-slate-800/70 p-3">
-        <h4 className="text-xs font-semibold text-slate-300"><GlossaryTerm term="conflict">Xung đột bằng chứng</GlossaryTerm> (render verbatim)</h4>
+        <h4 className="text-xs font-semibold text-slate-300"><GlossaryTerm term="conflict">Xung đột bằng chứng</GlossaryTerm> <span className="font-normal text-slate-500">(nguyên văn từ artifact)</span></h4>
         <p className="mt-1 text-xs leading-4 text-slate-400">Bằng chứng mô tả lịch sử đạt ngưỡng <GlossaryTerm term="fdr">FDR</GlossaryTerm> khai báo ở cả hai chiều trong cùng <GlossaryTerm term="horizon">horizon</GlossaryTerm>/<GlossaryTerm term="metric">metric</GlossaryTerm>. Đây là xung đột thật trong dữ liệu quá khứ — không có winner và UI không tổng hợp thành kết luận.</p>
         <ul className="mt-2 divide-y divide-slate-800/50">{data.conflicts.map((conflict, index) => <li key={`${conflict.horizon}-${conflict.metric}-${index}`} className="min-w-0 py-2 text-xs">
           <div className="font-mono text-slate-400"><GlossaryTerm term={conflict.metric}>h{conflict.horizon} · {conflict.metric}</GlossaryTerm></div>
-          <div className="mt-1 flex min-w-0 flex-wrap gap-x-4 gap-y-1">
-            <span className="min-w-0 break-words text-emerald-300">Tăng: {conflict.bullish.join(", ")}</span>
-            <span className="min-w-0 break-words text-rose-300">Giảm: {conflict.bearish.join(", ")}</span>
+          <div className="mt-1 space-y-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-1"><span className="shrink-0 text-emerald-300">Tăng:</span>{conflict.bullish.map((ref) => <span key={ref} title={ref} className="rounded bg-emerald-950/40 px-1.5 py-0.5 font-mono text-[10px] text-emerald-200">{moduleRefLabel(ref)}</span>)}</div>
+            <div className="flex min-w-0 flex-wrap items-center gap-1"><span className="shrink-0 text-rose-300">Giảm:</span>{conflict.bearish.map((ref) => <span key={ref} title={ref} className="rounded bg-rose-950/40 px-1.5 py-0.5 font-mono text-[10px] text-rose-200">{moduleRefLabel(ref)}</span>)}</div>
           </div>
         </li>)}</ul>
       </div>}
@@ -250,11 +251,11 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
       {!loading && data.conditions.length === 0 && <div className="mt-3 rounded-md border border-slate-800/70 p-4 text-[13px] text-slate-400"><CheckCircle2 className="mb-2 h-5 w-5" />Không có điều kiện nào thỏa trên nến đóng gần nhất.</div>}
 
       {groups.map(([module, items]) => <div key={module} className="mt-3 min-w-0">
-        <h4 className="break-all font-mono text-[11px] font-semibold text-slate-500">{module} <span className="text-slate-500">· {items.length} điều kiện</span></h4>
+        <h4 className="break-all text-[11px] font-semibold text-slate-400">{moduleLabel(module)}{moduleLabel(module) !== module ? <span className="font-mono font-normal text-slate-500"> ({module})</span> : null} <span className="font-normal text-slate-500">· {items.length} điều kiện</span></h4>
         <div className="mt-2 space-y-2">{items.map((condition) => <ConditionCard key={`${condition.module}|${condition.eventType}|${condition.kind}|${condition.eventId ?? "state"}`} condition={condition} manifestSha256={evidence?.manifestSha256 ?? null} onOpenDossier={onOpenDossier} />)}</div>
       </div>)}
 
-      <p className="mt-3 break-words text-[11px] leading-4 text-slate-500"><GlossaryTerm term="generatedAt">generatedAt</GlossaryTerm> <span className="font-mono tabular-nums">{formatTimeMs(data.generatedAtMs)}</span> · <GlossaryTerm term="manifest">manifest</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.manifestSha256 ?? null)}</span> · <GlossaryTerm term="spec">spec</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.specSha256 ?? null)}</span> · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
+      <p className="mt-3 break-words text-[11px] leading-4 text-slate-500"><GlossaryTerm term="generatedAt">Sinh lúc</GlossaryTerm> <span className="font-mono tabular-nums">{formatTimeMs(data.generatedAtMs)}</span> · <GlossaryTerm term="manifest">manifest</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.manifestSha256 ?? null)}</span> · <GlossaryTerm term="spec">spec</GlossaryTerm> <span className="font-mono">{shortHash(evidence?.specSha256 ?? null)}</span> · các ô “Chưa kiểm chứng/Chưa báo cáo” giữ nguyên lý do từ backend, không hiển thị số.</p>
     </div>}
   </section>;
 }
