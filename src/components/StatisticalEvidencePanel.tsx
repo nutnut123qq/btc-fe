@@ -124,7 +124,10 @@ export function StatisticalEvidencePanel({ evidence, audit }: { evidence: Techni
       <label className="min-w-0 text-[11px] font-medium text-slate-500">Module<select value={moduleKey} onChange={(event) => setModuleKey(event.target.value)} className="mt-1 block min-h-10 max-w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs normal-case text-slate-200"><option value="all">Tất cả module</option>{modules.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
       <label className="min-w-0 text-[11px] font-medium text-slate-500">Evidence state<select value={statusKey} onChange={(event) => setStatusKey(event.target.value as StatisticalDisplayStatus | "all")} className="mt-1 block min-h-10 max-w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs normal-case text-slate-200"><option value="all">Tất cả trạng thái</option>{Object.entries(STATUS_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
     </div>
-    {hypotheses.length === 0 ? <div className="mt-3 rounded-md border border-slate-800/70 p-3 text-xs text-slate-300">Không có hypothesis khớp bộ lọc. Không thay thế bằng nhóm khác hoặc ẩn negative/no-sample.</div> : <div className="mt-3 space-y-2">{hypotheses.map((item) => <HypothesisCard key={item.hypothesisId} value={item} alpha={evidence.multipleTesting.declaredQAlpha}/>)}</div>}
+    {hypotheses.length === 0 ? <div className="mt-3 rounded-md border border-slate-800/70 p-3 text-xs text-slate-300">Không có hypothesis khớp bộ lọc. Không thay thế bằng nhóm khác hoặc ẩn negative/no-sample.</div> : <>
+      <div className="mt-3 space-y-2">{hypotheses.slice(0, 40).map((item) => <HypothesisCard key={item.hypothesisId} value={item} alpha={evidence.multipleTesting.declaredQAlpha}/>)}</div>
+      {hypotheses.length > 40 && <p className="mt-2 text-[11px] text-slate-500">UI chỉ hiển thị 40/{hypotheses.length.toLocaleString("vi-VN")} hypothesis đầu — dùng bộ lọc module/trạng thái để thu hẹp; artifact gốc giữ toàn bộ family kể cả negative/no-sample.</p>}
+    </>}
     <p className="mt-3 break-words text-[11px] leading-4 text-slate-500">Retention policy: {evidence.retentionPolicy}. Independence claimed: no. Các nhóm stability không dùng minimum-sample filter.</p>
   </section>;
 }

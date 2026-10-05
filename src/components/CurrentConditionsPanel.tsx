@@ -132,10 +132,13 @@ function ConditionCard({ condition, manifestSha256, onOpenDossier }: {
     </div>
     {condition.evidence == null
       ? <p className="mt-2 border-t border-slate-800/50 pt-2 text-xs text-amber-300/90">Backend chưa gắn bằng chứng cho điều kiện này; UI không suy diễn ô số liệu.</p>
-      : <div className="mt-3 grid min-w-0 gap-x-4 lg:grid-cols-3">{CONDITION_HORIZON_KEYS.map((horizon) => {
-        const horizonEvidence = condition.evidence?.[horizon];
-        return <div key={horizon} className="min-w-0"><div className="text-[11px] font-semibold text-slate-400"><GlossaryTerm term="horizon">Horizon</GlossaryTerm> {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
-      })}</div>}
+      : <details className="mt-3">
+        <summary className="cursor-pointer text-[11px] text-slate-500 hover:text-slate-300">Bằng chứng theo horizon (h1 / h3 / h6 × {CONDITION_METRICS.length} metric)</summary>
+        <div className="mt-2 grid min-w-0 gap-x-4 lg:grid-cols-3">{CONDITION_HORIZON_KEYS.map((horizon) => {
+          const horizonEvidence = condition.evidence?.[horizon];
+          return <div key={horizon} className="min-w-0"><div className="text-[11px] font-semibold text-slate-400"><GlossaryTerm term="horizon">Horizon</GlossaryTerm> {horizon} nến</div>{CONDITION_METRICS.map((metric) => <EvidenceCell key={metric} horizon={horizon} metric={metric} cell={horizonEvidence?.[metric]} />)}</div>;
+        })}</div>
+      </details>}
     {condition.details && <details className="mt-2 text-[11px] text-slate-500"><summary className="cursor-pointer">Chi tiết detector</summary><pre className="mt-1 max-w-full overflow-x-auto break-all border-t border-slate-800/50 pt-2 font-mono text-slate-400">{JSON.stringify(condition.details, null, 2)}</pre></details>}
   </article>;
 }
