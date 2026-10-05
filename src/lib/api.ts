@@ -253,17 +253,22 @@ export async function putAlertSettings(userId: string, body: import("./types").A
   return getJson(res);
 }
 
-export async function getAlerts(userId: string, take = 30, includeArchived = false) {
-  const params = new URLSearchParams({ userId, take: String(take), includeArchived: String(includeArchived) });
+export async function getAlerts(userId: string, take = 30, includeArchived = false, skip = 0) {
+  const params = new URLSearchParams({ userId, take: String(take), skip: String(skip), includeArchived: String(includeArchived) });
   const res = await fetch(`${API_BASE}/api/alerts?${params}`);
   const data: unknown = await getJson(res);
   const { record, items } = requireArrayField<import("./types").AlertItem>(data, "items", "alerts");
+  // Older backends lack `total` — degrade to no-pagination instead of failing the whole list.
+  const total = record.total === undefined ? null : record.total;
+  if (total !== null && (typeof total !== "number" || !Number.isFinite(total))) {
+    throw new Error("INVALID_API_RESPONSE: alerts.total must be a finite number when present");
+  }
   items.forEach((item, index) => {
     if (item.archivedAtUtc !== null && typeof item.archivedAtUtc !== "string") {
       throw new Error(`INVALID_API_RESPONSE: alerts.items[${index}].archivedAtUtc must be null or a string`);
     }
   });
-  return { ...record, items: includeArchived ? items : items.filter((item) => item.archivedAtUtc == null) } as import("./types").AlertListResponse;
+  return { ...record, total, items: includeArchived ? items : items.filter((item) => item.archivedAtUtc == null) } as import("./types").AlertListResponse;
 }
 
 export async function getUnreadCount(userId: string) {

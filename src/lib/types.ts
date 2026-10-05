@@ -41,6 +41,8 @@ export type AlertItem = {
 export type AlertListResponse = {
   userId: string;
   unreadCount: number;
+  /** Total rows matching the filter (pre-skip/pre-take) — drives pagination. null when the backend predates this field. */
+  total: number | null;
   items: AlertItem[];
 };
 

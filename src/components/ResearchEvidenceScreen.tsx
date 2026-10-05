@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   BarChart3,
@@ -476,6 +477,10 @@ export function ResearchEvidenceScreen() {
   const [error, setError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const detailRequestRef = useRef(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const dossierParam = searchParams.get("dossier");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -530,13 +535,28 @@ export function ResearchEvidenceScreen() {
     }
   }, []);
 
+  // Keep the dossier deep-link in the URL: push on user selection so browser Back
+  // restores the previous state, replace when clearing (tab switch already resets
+  // selection, so an extra history entry would only resurrect a stale param).
+  const updateDossierParam = useCallback((id: string | null, mode: "push" | "replace") => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id == null) params.delete("dossier");
+    else params.set("dossier", id);
+    const query = params.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    if (mode === "push") router.push(url, { scroll: false });
+    else router.replace(url, { scroll: false });
+  }, [router, pathname, searchParams]);
+
   // Conditions link to the dossier at manifest level: the catalog artifact id IS
   // the bundle manifest sha256, so we resolve it against the loaded catalog and
   // reuse the same selectArtifact → detail pipeline. No new detail view.
   const openDossierByManifest = useCallback((manifestSha256: string) => {
     const item = catalog?.items.find((entry) => entry.id === manifestSha256 || entry.manifestSha256 === manifestSha256) ?? null;
     if (item) {
-      void selectArtifact(item);
+      // URL is the single source of truth: pushing the param lets the deep-link
+      // effect run selectArtifact — avoids a stale-param render fighting the selection.
+      updateDossierParam(item.id, "push");
       return;
     }
     detailRequestRef.current += 1;
@@ -544,7 +564,32 @@ export function ResearchEvidenceScreen() {
     setDetail(null);
     setDetailLoading(false);
     setDetailError("Chưa có artifact nào trong catalog khớp manifest này; không mở hồ sơ thay thế.");
-  }, [catalog, selectArtifact]);
+  }, [catalog, updateDossierParam]);
+
+  // Deep-link dossier: ?dossier=<artifact id> resolves against the loaded catalog
+  // and goes through the same selectArtifact → detail pipeline. An unknown id is
+  // dropped from the URL instead of faking a selection; a missing param clears
+  // selection so Back/Forward restores the unselected state.
+  useEffect(() => {
+    if (dossierParam == null) {
+      if (selectedId != null) {
+        detailRequestRef.current += 1;
+        setSelectedId(null);
+        setDetail(null);
+        setDetailError(null);
+        setDetailLoading(false);
+      }
+      return;
+    }
+    if (dossierParam === selectedId || !catalog) return;
+    const item = catalog.items.find((entry) => entry.id === dossierParam);
+    if (!item) {
+      updateDossierParam(null, "replace");
+      return;
+    }
+    setSection(item.kind);
+    void selectArtifact(item);
+  }, [dossierParam, selectedId, catalog, selectArtifact, updateDossierParam]);
 
   return <div className="space-y-3">
     <header>
@@ -555,12 +600,12 @@ export function ResearchEvidenceScreen() {
         </div>
         <button type="button" onClick={() => void load()} disabled={loading} className="shrink-0 inline-flex min-h-10 items-center gap-2 rounded px-2 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}/>Làm mới</button>
       </div>
-      <div className="mt-1 flex gap-4 overflow-x-auto border-b border-slate-800/60 text-[13px]" role="tablist" aria-label="Nhóm bằng chứng">{SECTIONS.map((item) => <button type="button" role="tab" aria-selected={section === item.key} key={item.key} onClick={() => { detailRequestRef.current += 1; setDetailLoading(false); setDetailError(null); setSection(item.key); setSelectedId(null); setDetail(null); }} className={`shrink-0 border-b-2 px-0.5 py-2.5 font-medium transition-colors ${section === item.key ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}>{item.label}</button>)}</div>
+      <div className="mt-1 flex gap-4 overflow-x-auto border-b border-slate-800/60 text-[13px]" role="tablist" aria-label="Nhóm bằng chứng">{SECTIONS.map((item) => <button type="button" role="tab" aria-selected={section === item.key} key={item.key} onClick={() => { detailRequestRef.current += 1; setDetailLoading(false); setDetailError(null); setSection(item.key); updateDossierParam(null, "replace"); }} className={`shrink-0 border-b-2 px-0.5 py-2.5 font-medium transition-colors ${section === item.key ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}>{item.label}</button>)}</div>
     </header>
 
     {error && <div role="alert" className="rounded-md border border-rose-900/60 bg-rose-950/20 p-4 text-[13px] text-rose-300">Evidence API chưa sẵn sàng: {error}. Các vùng economic/forward bên dưới vẫn giữ trạng thái độc lập.</div>}
     {catalog && catalog.integrity.rejectedArtifactCount > 0 && <div role="alert" className="rounded-md border border-amber-900/60 bg-amber-950/15 px-4 py-2.5 text-xs text-amber-200">Có {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> bị catalog loại do <GlossaryTerm term="integrity">integrity</GlossaryTerm>/contract không đạt; chúng không được dùng làm bằng chứng. Đã publish {catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/{catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> đã quét.</div>}
-    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog?.items.length ?? 0}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> trong catalog</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog?.items.filter((item) => item.integrityVerified).length ?? 0}</strong> <GlossaryTerm term="integrity">hash hợp lệ</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog?.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length ?? 0}</strong> <GlossaryTerm term="predictive">artifact hỗ trợ predictive</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations?.items.length ?? 0}</strong> <GlossaryTerm term="forward-evidence">quyết định forward</GlossaryTerm></span></div>}
+    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.length}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> trong catalog</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.integrityVerified).length}</strong> <GlossaryTerm term="integrity">hash hợp lệ</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length}</strong> <GlossaryTerm term="predictive">artifact hỗ trợ predictive</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations == null ? "—" : observations.items.length}</strong> <GlossaryTerm term="forward-evidence">quyết định forward</GlossaryTerm></span></div>}
     {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests}/>}
     {(section === "overview" || section === "forward") && <ForwardStatus observations={observations}/>}
 
@@ -572,7 +617,7 @@ export function ResearchEvidenceScreen() {
         </div>
         {loading && !catalog && <div className="px-4 py-4 text-[13px] text-slate-400">Đang tải catalog…</div>}
         {!loading && visibleItems.length === 0 && <div className="px-4 py-4 text-xs text-slate-400">Chưa có <GlossaryTerm term="artifact">artifact</GlossaryTerm> cho tầng này — hệ thống không nâng cấp evidence bằng suy đoán.</div>}
-        <div className="divide-y divide-slate-800/50">{visibleItems.map((item) => <ArtifactCard key={item.id} item={item} selected={selectedId === item.id} onSelect={() => void selectArtifact(item)}/>)}</div>
+        <div className="divide-y divide-slate-800/50">{visibleItems.map((item) => <ArtifactCard key={item.id} item={item} selected={selectedId === item.id} onSelect={() => updateDossierParam(item.id, "push")}/>)}</div>
         {catalog && <p className="border-t border-slate-800/60 px-4 py-2 text-[11px] text-slate-500"><GlossaryTerm term="research-contract">Contract</GlossaryTerm> <span className="font-mono">{catalog.contractVersion}</span> · catalog <span className="font-mono tabular-nums">{formatDate(catalog.generatedAtUtc)}</span></p>}
       </section>
       <EvidenceDetailPanel detail={detail} loading={detailLoading} error={detailError}/>

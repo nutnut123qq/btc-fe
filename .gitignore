@@ -45,3 +45,8 @@ yarn-error.log*
 next-env.d.ts
 *.log
 *.bak
+
+# agent evidence/screenshot artifacts
+.*-shots/
+.stitch-ref/
+.card-grammar/

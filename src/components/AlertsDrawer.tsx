@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X, Trash2, Bell, Check } from "lucide-react";
 import { AlertItem } from "@/lib/types";
 import {
@@ -25,20 +25,37 @@ const isWorkerWarning = (a: AlertItem) =>
 export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [unread, setUnread] = useState(0);
+  // null = backend doesn't report total (older API) → pagination UI hidden, not faked.
+  const [total, setTotal] = useState<number | null>(null);
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLElement>(null);
   const restoreFocusRef = useRef<Element | null>(null);
+  // Latest loaded rows for fetch closures (interval/load-more) without stale state.
+  const alertsRef = useRef<AlertItem[]>([]);
+  alertsRef.current = alerts;
+  // Request-id: a response is applied only while it's still the latest call.
+  // Prevents a stale-filter fetch or an older load-more from overwriting the list.
+  const reqRef = useRef(0);
 
-  const fetchAlerts = async (silent = false) => {
+  const fetchAlerts = useCallback(async (silent = false) => {
+    const reqId = ++reqRef.current;
     try {
-      const data = await getAlerts(ALERT_USER_ID, 30);
+      // Refetch the whole loaded window instead of truncating back to page 1.
+      const take = Math.min(Math.max(alertsRef.current.length, 30), 200);
+      const data = await getAlerts(ALERT_USER_ID, take, includeArchived);
+      if (reqId !== reqRef.current) return;
       setAlerts(data.items ?? []);
+      setTotal(data.total);
       setUnread(typeof data.unreadCount === "number" ? data.unreadCount : 0);
       if (!silent) setError(null);
+      setLoadMoreError(null);
     } catch (e) {
       if (!silent) setError(e instanceof Error ? e.message : "Alerts failed");
     }
-  };
+  }, [includeArchived]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +65,7 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
       clearTimeout(t1);
       clearInterval(t);
     };
-  }, [open]);
+  }, [open, fetchAlerts]);
 
   useEffect(() => {
     if (!open) return;
@@ -124,6 +141,39 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
     } catch {}
   };
 
+  const handleToggleArchived = () => {
+    // Invalidate in-flight responses, reset the list, and let the effect
+    // refetch page 1 under the new filter.
+    reqRef.current += 1;
+    setAlerts([]);
+    alertsRef.current = [];
+    setTotal(null);
+    setError(null);
+    setLoadMoreError(null);
+    setIncludeArchived((v) => !v);
+  };
+
+  const handleLoadMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    const reqId = ++reqRef.current;
+    try {
+      const data = await getAlerts(ALERT_USER_ID, 30, includeArchived, alertsRef.current.length);
+      if (reqId !== reqRef.current) return;
+      setAlerts((prev) => {
+        const seen = new Set(prev.map((a) => a.id));
+        return [...prev, ...data.items.filter((a) => !seen.has(a.id))];
+      });
+      setTotal(data.total);
+      if (typeof data.unreadCount === "number") setUnread(data.unreadCount);
+    } catch (e) {
+      if (reqId === reqRef.current) setLoadMoreError(e instanceof Error ? e.message : "Không tải thêm được");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -180,6 +230,24 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               <X className="h-5 w-5" />
             </button>
           </div>
+        </div>
+
+        {/* Filter row: archived toggle + loaded/total counter */}
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-1.5">
+          <label className="flex cursor-pointer select-none items-center gap-1.5 text-[11px] text-slate-400 transition-colors hover:text-slate-300">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={handleToggleArchived}
+              className="h-3 w-3 accent-teal-500"
+            />
+            Hiện cả đã lưu trữ
+          </label>
+          {total != null && total > 0 && (
+            <span className="font-mono text-[10px] tabular-nums text-slate-500">
+              {alerts.length}/{total}
+            </span>
+          )}
         </div>
 
         {/* Alert list — flat rows separated by hairlines */}
@@ -297,6 +365,20 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
               </div>
             );
           })}
+          {alerts.length > 0 && total != null && alerts.length < total && (
+            <div className="px-3.5 py-3">
+              <button
+                onClick={() => void handleLoadMore()}
+                disabled={loadingMore}
+                className="w-full rounded border border-slate-800 bg-slate-850 px-3 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-teal-300 disabled:opacity-50"
+              >
+                {loadingMore ? "Đang tải…" : `Xem thêm (còn ${total - alerts.length})`}
+              </button>
+              {loadMoreError && (
+                <p className="mt-1.5 text-center text-[11px] text-rose-400">{loadMoreError}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
