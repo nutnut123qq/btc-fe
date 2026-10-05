@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Newspaper,
@@ -14,24 +23,12 @@ import {
   ListOrdered,
   FileCheck2,
 } from "lucide-react";
-import { MarketScreen } from "./MarketScreen";
-import { NewsScreen } from "./NewsScreen";
-import { AiAnalysisScreen } from "./AiAnalysisScreen";
-import { AlertSettingsScreen } from "./AlertSettingsScreen";
 import { AlertsDrawer } from "./AlertsDrawer";
-import { DiscoveryScreen } from "./DiscoveryScreen";
-import { PredictionScreen } from "./PredictionScreen";
-import { BacktestScreen } from "./BacktestScreen";
-import { PaperTradeScreen } from "./PaperTradeScreen";
-import { BinanceTradeHistoryScreen } from "./BinanceTradeHistoryScreen";
-import { ArchetypeScreen } from "./ArchetypeScreen";
-import { ResearchEvidenceScreen } from "./ResearchEvidenceScreen";
 import { AiChatWidget } from "./AiChatWidget";
-import { ErrorBoundary } from "./ErrorBoundary";
 import { getAiCapabilities, getAppMeta, getUnreadCount, setApiContractCompatibility } from "@/lib/api";
 import type { AiCapabilitiesDto } from "@/lib/types";
 import { getLlmUiState, PAPER_JOURNAL_LABEL } from "@/lib/researchUi";
-import { canUseApiMutations, EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible } from "@/lib/apiContract";
+import { EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible } from "@/lib/apiContract";
 import type { ApiContractState } from "@/lib/apiContract";
 
 const TABS = [
@@ -48,10 +45,29 @@ const TABS = [
   { key: "settings", label: "Cảnh báo", icon: Settings },
 ] as const;
 
-type TabKey = (typeof TABS)[number]["key"];
+export type TabKey = (typeof TABS)[number]["key"];
 
 const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
   TABS.map((t) => [t.key, t] as const),
+);
+
+// Real per-screen routes — the URL is the source of truth for activeTab.
+export const TAB_PATH: Record<TabKey, string> = {
+  market: "/",
+  archetype: "/mau-nen",
+  news: "/tin-tuc",
+  ai: "/ai",
+  rules: "/rules-nen",
+  predict: "/du-doan",
+  research: "/nghien-cuu",
+  paper: "/paper",
+  binanceHistory: "/nhat-ky",
+  backtest: "/backtest",
+  settings: "/canh-bao",
+};
+
+const PATH_TAB: ReadonlyMap<string, TabKey> = new Map(
+  (Object.entries(TAB_PATH) as [TabKey, string][]).map(([key, path]) => [path, key] as const),
 );
 
 // 5 top-level nav groups. The child strip of the group containing the active
@@ -70,9 +86,24 @@ type NavGroupKey = NavGroup["key"];
 
 const ALERT_USER_ID = "default";
 
-export function AppShell() {
-  const [activeTab, setActiveTab] = useState<TabKey>("market");
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["market"]));
+type ShellSignals = {
+  aiCapabilities: AiCapabilitiesDto | null;
+  contractState: ApiContractState;
+};
+
+const ShellSignalsContext = createContext<ShellSignals>({
+  aiCapabilities: null,
+  contractState: "checking",
+});
+
+export function useShellSignals(): ShellSignals {
+  return useContext(ShellSignalsContext);
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const activeTab: TabKey = PATH_TAB.get(pathname) ?? "market";
   const [lastChildByGroup, setLastChildByGroup] = useState<Partial<Record<NavGroupKey, TabKey>>>({});
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -86,13 +117,7 @@ export function AppShell() {
   const pendingChipFocus = useRef<TabKey | null>(null);
 
   const handleTabChange = (key: TabKey) => {
-    setActiveTab(key);
-    setVisitedTabs((prev) => {
-      if (prev.has(key)) return prev;
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
+    router.push(TAB_PATH[key]);
   };
 
   const activateGroup = (group: NavGroup) => {
@@ -220,242 +245,168 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header inert={alertsOpen} className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
-        <div className="max-w-[1600px] mx-auto px-4 h-11 flex items-center gap-4">
-          <h1 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-slate-100 shrink-0">
-            <span className="w-2 h-2 rounded-full bg-teal-500" aria-hidden="true" />
-            Bitcoin AI Analyst
-          </h1>
+    <ShellSignalsContext.Provider value={{ aiCapabilities, contractState }}>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+        <header inert={alertsOpen} className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+          <div className="max-w-[1600px] mx-auto px-4 h-11 flex items-center gap-4">
+            <h1 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-slate-100 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-teal-500" aria-hidden="true" />
+              Bitcoin AI Analyst
+            </h1>
 
-          <nav
-            aria-label="Điều hướng chính"
-            data-testid="nav-groups"
-            className="hidden lg:flex flex-1 items-center justify-center gap-1 min-w-0"
-          >
+            <nav
+              aria-label="Điều hướng chính"
+              data-testid="nav-groups"
+              className="hidden lg:flex flex-1 items-center justify-center gap-1 min-w-0"
+            >
+              {NAV_GROUPS.map((group) => {
+                const multi = group.children.length > 1;
+                const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
+                return (
+                  <button
+                    type="button"
+                    key={group.key}
+                    ref={(el) => {
+                      groupButtonRefs.current[group.key] = el;
+                    }}
+                    onClick={() => activateGroup(group)}
+                    onKeyDown={(event) => handleGroupKeyDown(event, group)}
+                    aria-expanded={multi ? containsActive : undefined}
+                    aria-controls={multi ? "nav-sub-row" : undefined}
+                    aria-current={containsActive ? (multi ? "true" : "page") : undefined}
+                    className={`h-11 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      containsActive
+                        ? "text-teal-300 border-teal-400"
+                        : "text-slate-400 hover:text-slate-200 border-transparent"
+                    }`}
+                  >
+                    {group.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex-1 lg:hidden" />
+
+            <div className="flex items-center gap-1 shrink-0">
+              {llmState === "unknown" && (
+                <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs text-slate-400">
+                  LLM · đang kiểm tra
+                </span>
+              )}
+              {llmState === "off" && (
+                <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+                  LLM OFF · định lượng vẫn hoạt động
+                </span>
+              )}
+              <button
+                onClick={() => setAlertsOpen(true)}
+                className="relative w-10 h-10 rounded flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
+                aria-label="Thông báo"
+              >
+                <Bell className="w-4 h-4" />
+                {unread > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-xs font-bold bg-rose-600 text-white rounded-full">
+                    {unread > 99 ? "99+" : unread}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {subRowGroup && (
+            <div
+              id="nav-sub-row"
+              data-testid="nav-sub-row"
+              role="group"
+              aria-label={`${subRowGroup.label} — mục con`}
+              className="border-t border-slate-800 bg-slate-900/60"
+            >
+              <div className="max-w-[1600px] mx-auto flex gap-1 overflow-x-auto px-4">
+                {subRowGroup.children.map((childKey, index) => {
+                  const child = TAB_BY_KEY.get(childKey)!;
+                  const childActive = activeTab === childKey;
+                  return (
+                    <button
+                      type="button"
+                      key={childKey}
+                      ref={(el) => {
+                        chipButtonRefs.current[childKey] = el;
+                      }}
+                      onClick={() => selectChild(subRowGroup.key, childKey)}
+                      onKeyDown={(event) => handleChipKeyDown(event, subRowGroup, index)}
+                      aria-current={childActive ? "page" : undefined}
+                      className={`h-10 shrink-0 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                        childActive
+                          ? "text-teal-300 border-teal-400"
+                          : "text-slate-400 hover:text-slate-200 border-transparent"
+                      }`}
+                    >
+                      {child.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {contractState !== "compatible" && (
+            <div className="border-t border-amber-900/60 bg-amber-950/40 px-4 py-1.5 text-center text-xs text-amber-200" role="alert">
+              {contractState === "checking"
+                ? "Đang kiểm tra API contract; mutation tạm khóa."
+                : contractState === "mismatch"
+                  ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
+                  : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
+            </div>
+          )}
+        </header>
+
+        <main inert={alertsOpen} className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4">
+          {children}
+        </main>
+
+        <nav
+          inert={alertsOpen}
+          aria-label="Điều hướng chính"
+          data-testid="nav-groups-mobile"
+          className="sticky bottom-0 z-40 lg:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur"
+        >
+          <div className="flex">
             {NAV_GROUPS.map((group) => {
               const multi = group.children.length > 1;
               const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
+              const GroupIcon = TAB_BY_KEY.get((group.children as readonly TabKey[])[0])!.icon;
               return (
                 <button
                   type="button"
                   key={group.key}
                   ref={(el) => {
-                    groupButtonRefs.current[group.key] = el;
+                    groupButtonRefsMobile.current[group.key] = el;
                   }}
                   onClick={() => activateGroup(group)}
                   onKeyDown={(event) => handleGroupKeyDown(event, group)}
                   aria-expanded={multi ? containsActive : undefined}
                   aria-controls={multi ? "nav-sub-row" : undefined}
                   aria-current={containsActive ? (multi ? "true" : "page") : undefined}
-                  className={`h-11 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    containsActive
-                      ? "text-teal-300 border-teal-400"
-                      : "text-slate-400 hover:text-slate-200 border-transparent"
+                  className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2 border-t-2 transition-colors ${
+                    containsActive ? "text-teal-300 border-teal-400" : "text-slate-500 hover:text-slate-300 border-transparent"
                   }`}
                 >
-                  {group.label}
+                  <GroupIcon className="w-5 h-5" />
+                  <span className="text-[11px] font-medium leading-tight truncate max-w-full px-1">{group.label}</span>
                 </button>
               );
             })}
-          </nav>
-
-          <div className="flex-1 lg:hidden" />
-
-          <div className="flex items-center gap-1 shrink-0">
-            {llmState === "unknown" && (
-              <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs text-slate-400">
-                LLM · đang kiểm tra
-              </span>
-            )}
-            {llmState === "off" && (
-              <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
-                LLM OFF · định lượng vẫn hoạt động
-              </span>
-            )}
-            <button
-              onClick={() => setAlertsOpen(true)}
-              className="relative w-10 h-10 rounded flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
-              aria-label="Thông báo"
-            >
-              <Bell className="w-4 h-4" />
-              {unread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-xs font-bold bg-rose-600 text-white rounded-full">
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </button>
           </div>
+        </nav>
+
+        <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
+        {/* Whole chat surface (launcher + panel) is inert while the alerts
+            modal is open; an already-open chat is dismissed by the modal. */}
+        <div inert={alertsOpen}>
+          <AiChatWidget capabilities={aiCapabilities} dismissedByModal={alertsOpen} />
         </div>
-
-        {subRowGroup && (
-          <div
-            id="nav-sub-row"
-            data-testid="nav-sub-row"
-            role="group"
-            aria-label={`${subRowGroup.label} — mục con`}
-            className="border-t border-slate-800 bg-slate-900/60"
-          >
-            <div className="max-w-[1600px] mx-auto flex gap-1 overflow-x-auto px-4">
-              {subRowGroup.children.map((childKey, index) => {
-                const child = TAB_BY_KEY.get(childKey)!;
-                const childActive = activeTab === childKey;
-                return (
-                  <button
-                    type="button"
-                    key={childKey}
-                    ref={(el) => {
-                      chipButtonRefs.current[childKey] = el;
-                    }}
-                    onClick={() => selectChild(subRowGroup.key, childKey)}
-                    onKeyDown={(event) => handleChipKeyDown(event, subRowGroup, index)}
-                    aria-current={childActive ? "page" : undefined}
-                    className={`h-10 shrink-0 px-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                      childActive
-                        ? "text-teal-300 border-teal-400"
-                        : "text-slate-400 hover:text-slate-200 border-transparent"
-                    }`}
-                  >
-                    {child.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {contractState !== "compatible" && (
-          <div className="border-t border-amber-900/60 bg-amber-950/40 px-4 py-1.5 text-center text-xs text-amber-200" role="alert">
-            {contractState === "checking"
-              ? "Đang kiểm tra API contract; mutation tạm khóa."
-              : contractState === "mismatch"
-                ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
-                : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
-          </div>
-        )}
-      </header>
-
-      <main inert={alertsOpen} className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4">
-        {visitedTabs.has("market") && (
-          <div className={activeTab === "market" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Thị trường">
-              <MarketScreen onOpenEvidence={() => handleTabChange("research")} />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("archetype") && (
-          <div className={activeTab === "archetype" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Mẫu nến">
-              <ArchetypeScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("news") && (
-          <div className={activeTab === "news" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Tin tức">
-              <NewsScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("ai") && (
-          <div className={activeTab === "ai" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab AI">
-              <AiAnalysisScreen capabilities={aiCapabilities} />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("rules") && (
-          <div className={activeTab === "rules" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Rules nến">
-              <DiscoveryScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("predict") && (
-          <div className={activeTab === "predict" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Dự đoán">
-              <PredictionScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("research") && (
-          <div className={activeTab === "research" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Nghiên cứu">
-              <ResearchEvidenceScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("paper") && (
-          <div className={activeTab === "paper" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Paper Trading">
-              <PaperTradeScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("binanceHistory") && (
-          <div className={activeTab === "binanceHistory" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Nhật ký Paper BTC">
-              <BinanceTradeHistoryScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("backtest") && (
-          <div className={activeTab === "backtest" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Backtest">
-              <BacktestScreen />
-            </ErrorBoundary>
-          </div>
-        )}
-        {visitedTabs.has("settings") && (
-          <div className={activeTab === "settings" ? "" : "hidden"}>
-            <ErrorBoundary fallbackTitle="Lỗi tải tab Cảnh báo">
-              <AlertSettingsScreen contractCompatible={canUseApiMutations(contractState)} />
-            </ErrorBoundary>
-          </div>
-        )}
-      </main>
-
-      <nav
-        inert={alertsOpen}
-        aria-label="Điều hướng chính"
-        data-testid="nav-groups-mobile"
-        className="sticky bottom-0 z-40 lg:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur"
-      >
-        <div className="flex">
-          {NAV_GROUPS.map((group) => {
-            const multi = group.children.length > 1;
-            const containsActive = (group.children as readonly TabKey[]).includes(activeTab);
-            const GroupIcon = TAB_BY_KEY.get((group.children as readonly TabKey[])[0])!.icon;
-            return (
-              <button
-                type="button"
-                key={group.key}
-                ref={(el) => {
-                  groupButtonRefsMobile.current[group.key] = el;
-                }}
-                onClick={() => activateGroup(group)}
-                onKeyDown={(event) => handleGroupKeyDown(event, group)}
-                aria-expanded={multi ? containsActive : undefined}
-                aria-controls={multi ? "nav-sub-row" : undefined}
-                aria-current={containsActive ? (multi ? "true" : "page") : undefined}
-                className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2 border-t-2 transition-colors ${
-                  containsActive ? "text-teal-300 border-teal-400" : "text-slate-500 hover:text-slate-300 border-transparent"
-                }`}
-              >
-                <GroupIcon className="w-5 h-5" />
-                <span className="text-[11px] font-medium leading-tight truncate max-w-full px-1">{group.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
-      {/* Whole chat surface (launcher + panel) is inert while the alerts
-          modal is open; an already-open chat is dismissed by the modal. */}
-      <div inert={alertsOpen}>
-        <AiChatWidget capabilities={aiCapabilities} dismissedByModal={alertsOpen} />
       </div>
-    </div>
+    </ShellSignalsContext.Provider>
   );
 }

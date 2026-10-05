@@ -106,7 +106,7 @@ test("Evidence Center data-quality repair is preview-first, admin-guarded and mo
   const component = readFileSync(new URL("../src/components/DataQualityAdministration.tsx", import.meta.url), "utf8");
   const api = readFileSync(new URL("../src/lib/api.ts", import.meta.url), "utf8");
   const screen = readFileSync(new URL("../src/components/ResearchEvidenceScreen.tsx", import.meta.url), "utf8");
-  assert.match(component, /Dry-run exact issue/);
+  assert.match(component, /Dry-run đúng issue này/);
   assert.match(component, /expectedPlanSha256: binding\.planSha256/);
   assert.match(component, /previewMatchesIssue/);
   assert.match(component, /repairRequestRef/);

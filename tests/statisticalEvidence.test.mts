@@ -215,8 +215,8 @@ test("parses the producer's formal v1 example and preserves nullable unavailable
 test("statistical dossier has explicit unavailable, descriptive, sample, stability and sensitivity UX", () => {
   const source = readFileSync(new URL("../src/components/StatisticalEvidencePanel.tsx", import.meta.url), "utf8");
   assert.match(source, /chưa công bố statisticalEvidence theo schema v1/);
-  assert.match(source, /Raw pairs/);
-  assert.match(source, /Effective n/);
+  assert.match(source, /Số cặp thô/);
+  assert.match(source, /n hiệu dụng/);
   assert.match(source, /Loại để lấy tập không chồng lấn/);
   assert.match(source, /Stability theo năm UTC/);
   assert.match(source, /Stability theo regime/);

@@ -269,8 +269,8 @@ test("current conditions panel keeps required honest copy and contract UX", () =
   const source = readFileSync(new URL("../src/components/CurrentConditionsPanel.tsx", import.meta.url), "utf8");
   assert.match(source, /Không có điều kiện nào thỏa trên nến đóng gần nhất/);
   assert.match(source, /mới trên nến đóng gần nhất/);
-  assert.match(source, /Nghiên cứu cắt tại/);
-  assert.match(source, /Nến phân tích \(asOf\)/);
+  assert.match(source, /Bằng chứng cắt tại/);
+  assert.match(source, /Nến được phân tích \(asOf\)/);
   assert.match(source, /thời điểm nến thị trường được phân tích/);
   assert.match(source, /không phải xác suất/);
   assert.match(source, /không có winner/);

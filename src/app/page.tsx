@@ -1,12 +1,13 @@
-import Home from "./home";
+import type { Metadata } from "next";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { MarketPage } from "@/components/ShellPages";
 
-export default async function Page({
-  params,
-  searchParams,
-}: {
-  params: Promise<Record<string, string | string[] | undefined>>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  await Promise.all([params, searchParams]);
-  return <Home />;
+export const metadata: Metadata = { title: "Thị trường — Bitcoin AI Analyst" };
+
+export default function Page() {
+  return (
+    <ErrorBoundary fallbackTitle="Lỗi tải trang Thị trường">
+      <MarketPage />
+    </ErrorBoundary>
+  );
 }

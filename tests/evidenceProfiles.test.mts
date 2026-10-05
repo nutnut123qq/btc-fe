@@ -101,7 +101,7 @@ test("Evidence Center exposes module/year/timeframe/regime filters without winne
   assert.match(source, /Năm UTC/);
   assert.match(source, /Timeframe/);
   assert.match(source, /Regime/);
-  assert.match(source, /Negative\/no-sample retention/);
+  assert.match(source, /Giữ lại kết quả âm \/ không có mẫu/);
   assert.match(source, /không xếp hạng, chọn winner/);
   assert.match(source, /không phải tỷ lệ thắng/);
   assert.match(detailParserSource, /evidenceProfiles: evidenceProfilesRaw == null \? null : parseTechnicalEvidenceProfiles\(evidenceProfilesRaw\)/);
