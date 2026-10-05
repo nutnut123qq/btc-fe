@@ -135,7 +135,7 @@ export function CausalSmartMoneyAdministration() {
             <article key={timeframe} className="min-w-0 max-w-full overflow-hidden px-4 py-2.5 text-xs">
               <div className="flex min-w-0 items-baseline justify-between gap-2"><strong className="shrink-0 font-mono text-[13px] text-slate-100">{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-rose-300"}`}>{item?.checkpointStatus ?? "unavailable"}</span></div>
               {item ? <>
-                <dl className="mt-1.5 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-xs [&>dt]:py-1 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
+                <dl className="mt-1.5 grid min-w-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-3 text-xs [&>dt]:py-1 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
                   <dt>Coverage start</dt><dd>{time(item.coverageStartOpenTimeMs)}</dd>
                   <dt>Checkpoint</dt><dd>{time(item.lastProcessedOpenTimeMs)}</dd>
                   <dt>Latest segment</dt><dd>{time(item.latestSegmentStartOpenTimeMs)}</dd>
@@ -173,7 +173,7 @@ export function CausalSmartMoneyAdministration() {
 
         {preview && <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded-md border border-slate-800/70 p-3 text-xs text-slate-100">
           <strong className="break-words font-mono tabular-nums">Dry-run · {preview.result.timeframe} · cap {preview.requestedMaxCandles.toLocaleString("vi-VN")}</strong>
-          <dl className="mt-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-xs sm:grid-cols-[repeat(4,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-2 [&>div]:sm:block [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-200">
+          <dl className="mt-2 grid min-w-0 grid-cols-2 gap-x-3 text-xs sm:grid-cols-[repeat(4,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-2 [&>div]:sm:block [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-200">
             <div><dt>Candidates</dt><dd>{preview.result.candidateCandles.toLocaleString("vi-VN")}</dd></div>
             <div><dt>Valid / invalid</dt><dd>{preview.result.validCandidateCandles.toLocaleString("vi-VN")} / {preview.result.invalidDurationCandles.toLocaleString("vi-VN")}</dd></div>
             <div><dt>Context</dt><dd>{preview.result.contextCandles.toLocaleString("vi-VN")}</dd></div>

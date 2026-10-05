@@ -101,7 +101,7 @@ function EvidenceCell({ cell, horizon, metric }: { cell: ConditionEvidenceCell |
   }
   return <div className="min-w-0 border-t border-slate-800/50 py-1.5 text-xs">
     <div className="font-mono text-slate-400"><GlossaryTerm term={metric}>{label}</GlossaryTerm></div>
-    <dl className="mt-0.5 grid min-w-0 grid-cols-[auto,minmax(0,1fr)] gap-x-2 gap-y-0.5 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
+    <dl className="mt-0.5 grid min-w-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-2 gap-y-0.5 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
       <dt><GlossaryTerm term="effect">Effect</GlossaryTerm></dt><dd>{percent(cell.effect)}</dd>
       <dt><GlossaryTerm term="ci">CI</GlossaryTerm></dt><dd>[{percent(cell.ciLower)}, {percent(cell.ciUpper)}]</dd>
       <dt><GlossaryTerm term="q-p">q / p</GlossaryTerm></dt><dd>{decimal(cell.adjustedQValue)} / {decimal(cell.rawP)}</dd>
