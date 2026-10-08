@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef, useCallback, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowUpRight, ArrowDownRight, ChevronRight } from "lucide-react";
 import { getBacktestRuns, getBacktestRunDetail, runEnsembleBacktest, optimizeEnsembleWeights } from "@/lib/api";
 import { getSessionKey } from "@/lib/sessionAuth";
@@ -116,6 +117,13 @@ export function BacktestScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const detailRequestRef = useRef(0);
+  const fetchedRef = useRef<{ id: number; legacy: boolean } | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const runParam = searchParams.get("run");
+
   const [ensTimeframe, setEnsTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [ensMinConf, setEnsMinConf] = useState(0.55);
   const [ensFee, setEnsFee] = useState(5);
@@ -145,7 +153,6 @@ export function BacktestScreen() {
     try {
       const data = await getBacktestRuns(selectedSymbol, undefined, 50, includeLegacy);
       setRuns(data.items ?? []);
-      setSelected(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load backtests");
     } finally {
@@ -153,18 +160,57 @@ export function BacktestScreen() {
     }
   }, [selectedSymbol, includeLegacy]);
 
-  const loadDetail = async (id: number) => {
+  const loadDetail = useCallback(async (id: number) => {
+    const requestId = ++detailRequestRef.current;
     setLoading(true);
     setError("");
     try {
       const data = await getBacktestRunDetail(id, includeLegacy);
+      if (requestId !== detailRequestRef.current) return;
+      fetchedRef.current = { id, legacy: includeLegacy };
       setSelected(data);
     } catch (e: unknown) {
+      if (requestId !== detailRequestRef.current) return;
+      setSelected(null);
       setError(e instanceof Error ? e.message : "Failed to load backtest detail");
     } finally {
       setLoading(false);
     }
-  };
+  }, [includeLegacy]);
+
+  // Keep the run deep-link in the URL: push on user selection so browser Back
+  // restores the list view, replace when clearing (tab switch already resets
+  // selection, so an extra history entry would only resurrect a stale param).
+  const updateRunParam = useCallback((id: number | null, mode: "push" | "replace") => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id == null) params.delete("run");
+    else params.set("run", String(id));
+    const query = params.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    if (mode === "push") router.push(url, { scroll: false });
+    else router.replace(url, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  // Deep-link run: ?run=<id> fetches the detail endpoint directly — run ids need
+  // no list/catalog resolution. A non-canonical id is dropped from the URL
+  // instead of faking a selection; a missing param clears selection so
+  // Back/Forward restores the unselected list view.
+  useEffect(() => {
+    if (runParam == null) {
+      fetchedRef.current = null;
+      detailRequestRef.current += 1;
+      if (selected != null) setSelected(null);
+      return;
+    }
+    const id = Number(runParam);
+    if (!Number.isInteger(id) || id <= 0 || String(id) !== runParam) {
+      updateRunParam(null, "replace");
+      return;
+    }
+    if (fetchedRef.current?.id === id && fetchedRef.current.legacy === includeLegacy) return;
+    setActiveTab("ml");
+    void loadDetail(id);
+  }, [runParam, selected, includeLegacy, loadDetail, updateRunParam]);
 
   useEffect(() => {
     void loadRuns();
@@ -299,7 +345,7 @@ export function BacktestScreen() {
         <button
           role="tab"
           aria-selected={activeTab === "ensemble"}
-          onClick={() => setActiveTab("ensemble")}
+          onClick={() => { setActiveTab("ensemble"); updateRunParam(null, "replace"); }}
           className={`shrink-0 py-1 font-medium transition-colors border-b-2 ${activeTab === "ensemble" ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}
         >
           Ensemble (Experimental)
@@ -353,7 +399,7 @@ export function BacktestScreen() {
                     return (
                       <tr
                         key={r.id}
-                        onClick={() => void loadDetail(r.id)}
+                        onClick={() => (runParam === String(r.id) ? void loadDetail(r.id) : updateRunParam(r.id, "push"))}
                         className={`h-8 cursor-pointer font-mono tabular-nums transition-colors ${isSel ? "bg-teal-500/[0.07]" : "hover:bg-slate-800/40"}`}
                       >
                         <td className={`border-l-2 px-3 py-1 font-medium ${isSel ? "border-l-teal-400 text-teal-300" : "border-l-transparent text-slate-400"}`}>
@@ -405,7 +451,7 @@ export function BacktestScreen() {
                   <button
                     key={r.id}
                     type="button"
-                    onClick={() => void loadDetail(r.id)}
+                    onClick={() => (runParam === String(r.id) ? void loadDetail(r.id) : updateRunParam(r.id, "push"))}
                     className={`block w-full border-l-2 px-3 py-2.5 text-left transition-colors ${isSel ? "border-l-teal-400 bg-teal-500/[0.07]" : "border-l-transparent hover:bg-slate-800/40"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
