@@ -128,6 +128,7 @@ function ConditionCard({ condition, manifestSha256, onOpenDossier }: {
       <div className="flex shrink-0 flex-wrap items-center gap-1.5">
         <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${KIND_CLASS[condition.kind]}`}>{KIND_LABEL[condition.kind]}</span>
         <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${DIRECTION_CLASS[condition.direction]}`}>{DIRECTION_LABEL[condition.direction]}</span>
+        {condition.details?.decisionPredatesWindow === true && <span title="Nến quyết định của zone nằm trước cửa sổ phân tích — mitigation trước firstOpenTimeMs không quan sát được." className="rounded bg-amber-950/40 px-1.5 py-0.5 text-[11px] font-medium text-amber-300">quyết định trước cửa sổ</span>}
         {onOpenDossier && manifestSha256 && <button type="button" onClick={() => onOpenDossier(manifestSha256)} title={`Mở hồ sơ evidence của manifest ${manifestSha256}`} className="inline-flex min-h-10 items-center gap-0.5 rounded bg-slate-800/60 px-2.5 py-1 text-xs text-teal-400 hover:bg-slate-800">Hồ sơ<ChevronRight className="h-3 w-3" /></button>}
       </div>
     </div>

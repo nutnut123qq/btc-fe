@@ -223,7 +223,7 @@ test.describe("production dashboard", () => {
     await openTab(page, "Paper", "Paper Trading");
     await openTab(page, "Nhật ký Paper BTC", /Danh sách giao dịch mô phỏng/);
     await openTab(page, "Backtest", "Backtest chiến lược ML");
-    await openTab(page, "Cảnh báo", "Cài đặt cảnh báo giá (BTC)");
+    await openTab(page, "Cảnh báo", /Ngưỡng giá BTC/);
 
     await page.getByRole("button", { name: "Thông báo" }).click();
     await expect(page.getByText(/Thông báo/).first()).toBeVisible();

@@ -16,6 +16,11 @@ const GROUP_LABEL_BY_TAB: Readonly<Record<string, string | null>> = {
   "Cảnh báo": "Hệ thống",
 };
 
+// Groups whose only child is navigated to directly by the group-button click —
+// no sub-row ever renders, so the aria-expanded wait below would always burn
+// its full 5s timeout before returning.
+const SINGLE_CHILD_GROUPS: ReadonlySet<string> = new Set(["Hệ thống"]);
+
 /**
  * Navigate to a bottom-nav tab by its (unchanged) label. For tabs inside a
  * multi-child group, opens the group sub-row first, then clicks the chip.
@@ -34,11 +39,14 @@ export async function openMainTab(page: Page, tabLabel: string): Promise<void> {
   if ((await groupButton.getAttribute("aria-expanded")) !== "true") {
     await groupButton.click();
   }
-  // Single-child groups ("Hệ thống") navigate on click and never render a sub-row.
-  // aria-expanded reflects "group contains the active tab" — it only flips
-  // after the router commits, so a single sample raced the transition and
-  // silently returned early, leaving the test on the group's first child.
-  // Wait for the attribute instead (bounded); timeout means single-child.
+  // Single-child groups (SINGLE_CHILD_GROUPS) navigate on the click itself and
+  // never render a sub-row — return instead of burning the wait below.
+  if (SINGLE_CHILD_GROUPS.has(groupLabel)) return;
+  // Multi-child groups: aria-expanded reflects "group contains the active tab" —
+  // it only flips after the router commits, so a single sample raced the
+  // transition and silently returned early, leaving the test on the group's
+  // first child. Wait for the attribute instead (bounded); a timeout means the
+  // click did not expand/navigate — bail rather than click a missing chip.
   try {
     await expect(groupButton).toHaveAttribute("aria-expanded", "true", { timeout: 5_000 });
   } catch {

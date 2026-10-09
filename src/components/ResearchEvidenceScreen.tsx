@@ -613,7 +613,7 @@ export function ResearchEvidenceScreen() {
       <section className="min-w-0 self-start overflow-hidden rounded-md border border-slate-800 bg-slate-900/50" aria-label="Danh sách artifact">
         <div className="flex items-baseline justify-between gap-2 border-b border-slate-800/60 px-4 py-2.5">
           <h3 className="text-[13px] font-semibold text-slate-200">Hồ sơ bằng chứng (Dossier)</h3>
-          <span className="rounded bg-slate-800/40 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-slate-400">{visibleItems.length}</span>
+          <span className="rounded bg-slate-800/40 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-slate-400">{catalog == null ? "—" : visibleItems.length}</span>
         </div>
         {loading && !catalog && <div className="px-4 py-4 text-[13px] text-slate-400">Đang tải catalog…</div>}
         {!loading && visibleItems.length === 0 && <div className="px-4 py-4 text-xs text-slate-400">Chưa có <GlossaryTerm term="artifact">artifact</GlossaryTerm> cho tầng này — hệ thống không nâng cấp evidence bằng suy đoán.</div>}
