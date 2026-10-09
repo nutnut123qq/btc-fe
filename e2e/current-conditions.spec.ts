@@ -65,8 +65,8 @@ test.describe("current conditions panel (live stack)", () => {
     expect(payload.asOfMs).toBeGreaterThan(0);
 
     // Two separate labeled meta values — never merged into one timestamp.
-    await expect(panel.getByText("Nến phân tích (asOf)")).toBeVisible();
-    await expect(panel.getByText("Nghiên cứu cắt tại")).toBeVisible();
+    await expect(panel.getByText("Nến được phân tích (asOf)")).toBeVisible();
+    await expect(panel.getByText("Bằng chứng cắt tại")).toBeVisible();
 
     if (payload.evidence?.available === true) {
       await expect(panel.getByText(/cách \d+.*nến|trùng mốc nến phân tích/).first()).toBeVisible();
@@ -85,7 +85,9 @@ test.describe("current conditions panel (live stack)", () => {
       await expect(conflictsBox.getByText(/không có winner/)).toBeVisible();
       await expect(conflictsBox.getByText(`h${conflict.horizon} · ${conflict.metric}`)).toBeVisible();
       for (const id of [...conflict.bullish, ...conflict.bearish]) {
-        await expect(conflictsBox.getByText(id, { exact: false }).first()).toBeVisible();
+        // Refs render via moduleRefLabel() ("SMC nhân quả · FVG_BULL"); the raw
+        // evidence identity is preserved verbatim in the title attribute.
+        await expect(conflictsBox.locator(`[title="${id}"]`).first()).toBeVisible();
       }
     }
 
@@ -105,7 +107,15 @@ test.describe("current conditions panel (live stack)", () => {
       const untested = conditions
         .flatMap((item) => Object.values(item.evidence ?? {}).flatMap((horizon) => Object.values(horizon)))
         .find((cell) => cell && cell.tested === false && cell.reason);
-      if (untested?.reason) await expect(panel.getByText(new RegExp(untested.reason.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).first()).toBeVisible();
+      if (untested?.reason) {
+        // Evidence grids live behind a collapsed <details> per card (overview
+        // hierarchy pass) — open disclosures first, then the verbatim reason
+        // must be visible. The disclosure is honest density, not removal.
+        await panel.locator("details").evaluateAll((els) => {
+          for (const el of els) (el as HTMLDetailsElement).open = true;
+        });
+        await expect(panel.getByText(new RegExp(untested.reason.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).first()).toBeVisible();
+      }
     }
 
     // Descriptive-only copy: the panel must never show trading/probability verbs.

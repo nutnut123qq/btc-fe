@@ -210,19 +210,21 @@ test.describe("production dashboard", () => {
       await expect(archetypeEvidence.getByText(/ĐÚNG HƯỚNG|SAI HƯỚNG/, { exact: true }).first()).toBeVisible();
     }
     await openTab(page, "Tin tức", "Tin tức");
-    await openTab(page, "AI", /Phân tích AI Đa Tác Tử/);
+    // Marker = AiAnalysisScreen subtitle — unconditional, unique to this screen.
+    await openTab(page, "AI", /LangGraph nhiều tác tử/);
     if (requireLlm) {
-      await expect(page.locator("main").getByRole("button", { name: "Phân tích bằng AI" })).toBeEnabled({ timeout: 30_000 });
+      await expect(page.locator("main").getByRole("button", { name: "Phân tích BTC" })).toBeEnabled({ timeout: 30_000 });
     } else {
       await expect(page.locator("main").getByText(/LLM OFF — phân tích đa tác tử chưa khả dụng/)).toBeVisible();
     }
-    await openTab(page, "Rules nến", /Rule Discovery/);
-    await openTab(page, "Dự đoán", "Dự đoán hướng giá ML");
+    // Marker = the run button — always rendered (disabled until admin unlock).
+    await openTab(page, "Rules nến", /Chạy Discovery/);
+    await openTab(page, "Dự đoán", /Dự đoán ML 3 nhãn/);
     await expect(page.locator("main").getByRole("button", { name: "Dự đoán", exact: true })).toBeDisabled();
     await expect(page.getByText(/Chưa có model tương thích đã qua promotion gate/)).toBeVisible({ timeout: 30_000 });
-    await openTab(page, "Paper", "Paper Trading");
+    await openTab(page, "Paper", "Paper BTC");
     await openTab(page, "Nhật ký Paper BTC", /Danh sách giao dịch mô phỏng/);
-    await openTab(page, "Backtest", "Backtest chiến lược ML");
+    await openTab(page, "Backtest", /Kết quả backtest chiến lược/);
     await openTab(page, "Cảnh báo", /Ngưỡng giá BTC/);
 
     await page.getByRole("button", { name: "Thông báo" }).click();

@@ -65,7 +65,7 @@ test.describe("research evidence center (live stack)", () => {
 
     const hypothesis = panel.locator("article").filter({ has: page.locator("h4") }).first();
     await expect(hypothesis.locator("h4")).toHaveText(/^[A-Za-z0-9-]+:[A-Za-z_]+:[136]:(forwardReturn|mfe|mae)$/);
-    await expect(hypothesis.getByText(/Raw p \/ adjusted q/)).toBeVisible();
+    await expect(hypothesis.getByText(/p thô \/ q đã hiệu chỉnh/)).toBeVisible();
     await expect(hypothesis.getByText(/Loại để lấy tập không chồng lấn/)).toBeVisible();
 
     const sensitivity = panel.locator("details").filter({ hasText: "Sensitivity audit · per-variant" });

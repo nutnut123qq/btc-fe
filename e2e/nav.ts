@@ -30,7 +30,14 @@ export async function openMainTab(page: Page, tabLabel: string): Promise<void> {
     throw new Error(`openMainTab: unknown tab label "${tabLabel}"`);
   }
   const groupLabel = GROUP_LABEL_BY_TAB[tabLabel];
-  const navGroups = page.getByTestId("nav-groups");
+  // Two nav containers exist (post-REDESIGN): desktop `nav-groups` is
+  // `hidden lg:flex`, mobile bottom bar `nav-groups-mobile` is `lg:hidden` —
+  // exactly one is visible per viewport. Resolve by visibility or mobile
+  // tests hang on a click target that can never appear.
+  const desktopNav = page.getByTestId("nav-groups");
+  const navGroups = (await desktopNav.isVisible())
+    ? desktopNav
+    : page.getByTestId("nav-groups-mobile");
   if (groupLabel === null) {
     await navGroups.getByRole("button", { name: tabLabel, exact: true }).click();
     return;
