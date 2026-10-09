@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 // Bottom nav now renders 5 groups; multi-child groups open a chip sub-row.
 // Map each tab label to its top-level group label (null = single-child group).
@@ -35,7 +35,13 @@ export async function openMainTab(page: Page, tabLabel: string): Promise<void> {
     await groupButton.click();
   }
   // Single-child groups ("Hệ thống") navigate on click and never render a sub-row.
-  if ((await groupButton.getAttribute("aria-expanded")) !== "true") {
+  // aria-expanded reflects "group contains the active tab" — it only flips
+  // after the router commits, so a single sample raced the transition and
+  // silently returned early, leaving the test on the group's first child.
+  // Wait for the attribute instead (bounded); timeout means single-child.
+  try {
+    await expect(groupButton).toHaveAttribute("aria-expanded", "true", { timeout: 5_000 });
+  } catch {
     return;
   }
   await page
