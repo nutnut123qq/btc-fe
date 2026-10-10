@@ -12,7 +12,7 @@ const item = {
   id,
   kind: "model",
   title: "ML walk-forward v2",
-  status: "available",
+  status: "supported",
   evidenceTier: "validated-predictive",
   symbol: "BTCUSDT",
   timeframe: "4h",
@@ -150,8 +150,8 @@ test("descriptive technical bundle preserves coverage, exclusions and artifact r
     summary: "Historical event distributions only.",
     conclusion: "No predictive probability or trading claim.",
     limitations: ["Legacy rows with unknown availability were excluded."],
-    dataset: { source: "stored-finalized-klines", rowCount: 500, cutoffTimeUtc: "2026-09-21T00:00:00Z", datasetSha256: "d".repeat(64) },
-    protocol: { name: "btc-technical-event-descriptive-evidence/v1", chronologicalOos: true, decisionTime: "finalized candle close" },
+    dataset: { source: "stored-finalized-klines", rowCount: 500, datasetSha256: "d".repeat(64) },
+    protocol: { evaluatorVersion: "btc-technical-event-descriptive-evidence/v1", chronologicalOos: true, decisionTime: "finalized candle close" },
     metrics: [{ name: "events.eligible", label: "Causally eligible events", value: 420, unit: "count" }],
     findings: [{ id: "BOS_BULL:1:return:event", label: "BOS_BULL after one bar", status: "descriptive", metricName: "forwardReturn", value: 0.01, lower: -0.02, upper: 0.03, sampleSize: 120 }],
     uncertainty: [{ name: "BOS_BULL.1.forwardReturn.event.mean", lower: -0.02, upper: 0.03, confidenceLevel: 0.95, familywise: false }],
@@ -226,6 +226,44 @@ test("detail maps sensitivityAudit, reportExclusions and eventTypeDetail passthr
   const partial = parseResearchEvidenceDetail({ ...item, sensitivityAudit: {} });
   assert.deepEqual(partial.sensitivityAudit?.variants, []);
   assert.equal(partial.sensitivityAudit?.method, null);
+});
+
+test("detail ignores keys absent from the emitted research-evidence contract", () => {
+  // DEADFE-1 pin: folds/rows/question/abstentionRate and the raw dataset block
+  // keys exist in source artifacts but are allow-listed out of the normalized
+  // ResearchEvidenceDetailDto — the parser must not resurrect them.
+  const parsed = parseResearchEvidenceDetail({
+    ...item,
+    folds: [{ fold: 1, rows: 100 }],
+    rows: [{ decisionTimeMs: 1 }],
+    predictions: [{ outcome: 1 }],
+    question: "ignored",
+    dataset: {
+      source: "stored-finalized-klines",
+      rowCount: 500,
+      cutoffTimeUtc: "2026-09-21T00:00:00Z",
+      predictionsSha256: "f".repeat(64),
+      immutable: true,
+      featureCount: 12,
+      datasetSha256: "d".repeat(64),
+    },
+    protocol: { name: "ignored", foldCount: 99, purgeBars: 5, notes: ["x"], evaluatorVersion: "v1" },
+    coverage: { evaluatedRows: 400, eligibleRows: 420, ratio: 0.84, abstentionRate: 0.16, foldCount: 8 },
+    provenance: { artifactPath: "/secret", evaluatorSha256: "e".repeat(64) },
+  });
+  assert.equal("folds" in parsed, false);
+  assert.equal("rows" in parsed, false);
+  assert.equal("question" in parsed, false);
+  assert.equal("rawSections" in parsed, false);
+  assert.equal("abstentionRate" in (parsed.coverage ?? {}), false);
+  assert.equal("predictionsSha256" in (parsed.dataset ?? {}), false);
+  assert.equal("immutable" in (parsed.dataset ?? {}), false);
+  assert.equal("artifactPath" in parsed.provenance, false);
+  assert.equal("foldCount" in (parsed.protocol ?? {}), false);
+  // Contracted fields still parse.
+  assert.equal(parsed.dataset?.snapshotSha256, "d".repeat(64));
+  assert.equal(parsed.coverage?.foldCount, 8);
+  assert.equal(parsed.protocol?.version, "v1");
 });
 
 test("catalog rejects non-BTC evidence and duplicate ids", () => {

@@ -90,7 +90,6 @@ const EVIDENCE_STATUS_LABEL: Record<string, string> = {
   inconclusive: "chưa kết luận",
   unavailable: "không khả dụng",
   "integrity-limited": "integrity hạn chế",
-  available: "khả dụng",
 };
 
 function tierClass(tier: ResearchEvidenceTier): string {
@@ -130,12 +129,9 @@ function MetricCard({ metric, descriptive }: { metric: EvidenceMetric; descripti
       <div className="mt-1 font-mono text-lg font-semibold tabular-nums text-slate-100">{formatValue(metric.value, metric.unit)}</div>
       <div className="mt-1 space-y-0.5 text-[11px] text-slate-400">
         <div className="font-mono text-[10px] text-slate-500">{metric.name}</div>
-        {metric.baselineValue != null && <div><GlossaryTerm term="baseline">Baseline</GlossaryTerm>: <span className="font-mono tabular-nums">{formatValue(metric.baselineValue, metric.unit)}</span></div>}
-        {metric.lift != null && <div><GlossaryTerm term="lift">Lift</GlossaryTerm>: <span className="font-mono tabular-nums">{formatValue(metric.lift, metric.unit)}</span></div>}
         {(metric.intervalLow != null || metric.intervalHigh != null) && (
           <div><GlossaryTerm term="interval">{descriptive ? "Khoảng thống kê" : "Khoảng bất định"}</GlossaryTerm>: <span className="font-mono tabular-nums">[{formatValue(metric.intervalLow, metric.unit)}, {formatValue(metric.intervalHigh, metric.unit)}]</span></div>
         )}
-        {metric.sampleCount != null && <div><GlossaryTerm term="n">n</GlossaryTerm> = <span className="font-mono tabular-nums">{metric.sampleCount.toLocaleString("vi-VN")}</span></div>}
         {metric.baseline && <div>So với: <span className="font-mono text-slate-400">{metric.baseline}</span></div>}
         {metric.interpretation && <div>{metric.interpretation}</div>}
       </div>
@@ -214,10 +210,9 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
   const descriptive = detail.tier === "descriptive";
   const snapshotArtifact = detail.artifacts.find((artifact) => artifact.role === "datasetSnapshot" || artifact.role === "snapshot") ?? null;
   const predictionsArtifact = detail.artifacts.find((artifact) => artifact.role === "rowPredictions" || artifact.role === "ledger") ?? null;
-  const predictionRowCount = detail.dataset?.predictionRowCount ?? predictionsArtifact?.rowCount ?? null;
-  const predictionsSha256 = detail.dataset?.predictionsSha256 ?? predictionsArtifact?.sha256 ?? null;
-  const immutable = detail.dataset?.immutable
-    ?? (detail.integrityVerified && snapshotArtifact && predictionsArtifact ? true : null);
+  const predictionRowCount = predictionsArtifact?.rowCount ?? null;
+  const predictionsSha256 = predictionsArtifact?.sha256 ?? null;
+  const immutable = detail.integrityVerified && snapshotArtifact && predictionsArtifact ? true : null;
   return (
     <article className="min-w-0 space-y-3" aria-label={`Hồ sơ bằng chứng ${detail.title}`}>
       <section className="rounded-md border border-slate-800 bg-slate-900/50 p-4">
@@ -229,7 +224,7 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
           <span className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${tierClass(detail.tier)}`}><GlossaryTerm term={detail.tier}>{TIER_LABELS[detail.tier]}</GlossaryTerm></span>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <div className="min-w-0 border-t border-slate-800/60 pt-2"><div className="text-[11px] text-slate-500">Câu hỏi nghiên cứu <span className="text-slate-600">· nguyên văn artifact</span></div><p className="mt-1 text-[13px] text-slate-300">{detail.question ?? detail.hypothesis ?? <><GlossaryTerm term="artifact">Artifact</GlossaryTerm> chưa khai báo câu hỏi nghiên cứu.</>}</p></div>
+          <div className="min-w-0 border-t border-slate-800/60 pt-2"><div className="text-[11px] text-slate-500">Câu hỏi nghiên cứu <span className="text-slate-600">· nguyên văn artifact</span></div><p className="mt-1 text-[13px] text-slate-300">{detail.hypothesis ?? <><GlossaryTerm term="artifact">Artifact</GlossaryTerm> chưa khai báo câu hỏi nghiên cứu.</>}</p></div>
           <div className="min-w-0 border-t border-slate-800/60 pt-2"><div className="text-[11px] text-slate-500">Kết luận của artifact <span className="text-slate-600">· nguyên văn</span></div><p className="mt-1 text-[13px] text-slate-300">{detail.conclusion ?? detail.summary}</p></div>
         </div>
         {descriptive && <div className="mt-3 border-t border-slate-800/60 pt-2 text-[11px] leading-5 text-slate-400">Đây là bằng chứng mô tả các sự kiện đã quan sát. Giá trị và khoảng bên dưới không phải xác suất dự báo, tín hiệu giao dịch hay bằng chứng <GlossaryTerm term="pnl">PnL</GlossaryTerm>.</div>}
@@ -242,8 +237,8 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
             <dt>Nguồn</dt><dd>{detail.dataset.source ?? "—"}</dd>
             <dt>Số dòng</dt><dd>{detail.dataset.rowCount?.toLocaleString("vi-VN") ?? "—"}</dd>
             <dt>{descriptive ? "Số dòng event / ledger" : "Số dòng prediction"}</dt><dd>{predictionRowCount?.toLocaleString("vi-VN") ?? "—"}</dd>
-            <dt>Quyết định sớm nhất</dt><dd>{detail.dataset.startTimeUtc ? formatDate(detail.dataset.startTimeUtc) : formatTimeMs(detail.dataset.firstDecisionTimeMs)}</dd>
-            <dt>Quyết định muộn nhất / <GlossaryTerm term="cutoff">cutoff</GlossaryTerm></dt><dd>{detail.dataset.cutoffTimeUtc ? formatDate(detail.dataset.cutoffTimeUtc) : detail.dataset.endTimeUtc ? formatDate(detail.dataset.endTimeUtc) : formatTimeMs(detail.dataset.lastDecisionTimeMs)}</dd>
+            <dt>Quyết định sớm nhất</dt><dd>{formatTimeMs(detail.dataset.firstDecisionTimeMs)}</dd>
+            <dt>Quyết định muộn nhất / <GlossaryTerm term="cutoff">cutoff</GlossaryTerm></dt><dd>{formatTimeMs(detail.dataset.lastDecisionTimeMs)}</dd>
             <dt><GlossaryTerm term="sha256">Snapshot hash</GlossaryTerm></dt><dd title={detail.dataset.snapshotSha256 ?? undefined}>{shortHash(detail.dataset.snapshotSha256)}</dd>
             <dt><GlossaryTerm term="sha256">Predictions hash</GlossaryTerm></dt><dd title={predictionsSha256 ?? undefined}>{shortHash(predictionsSha256)}</dd>
             <dt><GlossaryTerm term="immutable">Không thay đổi</GlossaryTerm></dt><dd>{immutable == null ? "Chưa khai báo" : immutable ? "Có" : "Không"}</dd>
@@ -253,9 +248,9 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
         <section className="min-w-0 rounded-md border border-slate-800 bg-slate-900/50 p-4">
           <h3 className="flex items-center gap-2 text-[13px] font-semibold text-slate-200"><FlaskConical className="h-4 w-4 text-slate-500" /> <GlossaryTerm term="protocol">Protocol</GlossaryTerm></h3>
           {detail.protocol ? <dl className="mt-2 grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-3 text-xs [&>dt]:border-b [&>dt]:border-slate-800/50 [&>dt]:py-1.5 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:border-b [&>dd]:border-slate-800/50 [&>dd]:py-1.5 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
-            <dt><GlossaryTerm term="evaluator">Evaluator</GlossaryTerm></dt><dd>{detail.protocol.name ?? detail.protocol.version ?? "—"}</dd>
+            <dt><GlossaryTerm term="evaluator">Evaluator</GlossaryTerm></dt><dd>{detail.protocol.version ?? "—"}</dd>
             <dt><GlossaryTerm term="chronological-oos">Chronological OOS</GlossaryTerm></dt><dd>{detail.protocol.chronologicalOos == null ? "Chưa khai báo" : detail.protocol.chronologicalOos ? "Có" : "Không"}</dd>
-            <dt>Số <GlossaryTerm term="fold">fold</GlossaryTerm></dt><dd>{detail.protocol.foldCount ?? detail.coverage?.foldCount ?? "—"}</dd>
+            <dt>Số <GlossaryTerm term="fold">fold</GlossaryTerm></dt><dd>{detail.coverage?.foldCount ?? "—"}</dd>
             <dt><GlossaryTerm term="decision-time">Thời điểm quyết định</GlossaryTerm></dt><dd>{detail.protocol.decisionTime ?? "—"}</dd>
             <dt><GlossaryTerm term="outcome-basis">Cách đo outcome</GlossaryTerm></dt><dd>{detail.protocol.outcomePriceBasis ?? "—"}</dd>
             <dt><GlossaryTerm term="multiple-testing">Kiểm nhiều giả thuyết</GlossaryTerm></dt><dd>{detail.protocol.multipleTesting ?? "—"}</dd>
@@ -297,8 +292,6 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
           <dl className="mt-2 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] gap-x-3 text-xs [&>dt]:border-b [&>dt]:border-slate-800/50 [&>dt]:py-1.5 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:truncate [&>dd]:border-b [&>dd]:border-slate-800/50 [&>dd]:py-1.5 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300"><dt>Report</dt><dd title={detail.provenance.reportSha256 ?? undefined}>{shortHash(detail.provenance.reportSha256)}</dd><dt><GlossaryTerm term="manifest">Manifest</GlossaryTerm></dt><dd title={detail.provenance.manifestSha256 ?? undefined}>{shortHash(detail.provenance.manifestSha256)}</dd><dt><GlossaryTerm term="evaluator">Evaluator</GlossaryTerm></dt><dd title={detail.provenance.evaluatorSha256 ?? undefined}>{shortHash(detail.provenance.evaluatorSha256)}</dd><dt><GlossaryTerm term="research-contract">Research contract</GlossaryTerm></dt><dd title={detail.provenance.researchContractSha256 ?? undefined}>{shortHash(detail.provenance.researchContractSha256)}</dd><dt>Git</dt><dd>{detail.provenance.codeVersion ?? "—"}{detail.provenance.gitDirty === true ? " (dirty)" : detail.provenance.gitDirty === false ? " (clean)" : ""}</dd><dt>Sinh lúc</dt><dd>{formatDate(detail.provenance.generatedAtUtc)}</dd></dl>
         </div>
       </section>
-      <JsonRows title="Fold drill-down" rows={detail.folds} />
-      <JsonRows title="Prediction / event rows" rows={detail.rows} />
       <JsonRows title="Report exclusion reasons" rows={detail.reportExclusions ? [detail.reportExclusions] : []} />
       <JsonRows title="Event-type lifecycle & denominators" rows={eventTypeDetailRows(detail.eventTypeDetail)} />
     </article>
@@ -605,7 +598,7 @@ export function ResearchEvidenceScreen() {
 
     {error && <div role="alert" className="rounded-md border border-rose-900/60 bg-rose-950/20 p-4 text-[13px] text-rose-300">Evidence API chưa sẵn sàng: {error}. Các vùng economic/forward bên dưới vẫn giữ trạng thái độc lập.</div>}
     {catalog && catalog.integrity.rejectedArtifactCount > 0 && <div role="alert" className="rounded-md border border-amber-900/60 bg-amber-950/15 px-4 py-2.5 text-xs text-amber-200">Có {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> bị catalog loại do <GlossaryTerm term="integrity">integrity</GlossaryTerm>/contract không đạt; chúng không được dùng làm bằng chứng. Đã publish {catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/{catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> đã quét.</div>}
-    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.length}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> trong catalog</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.integrityVerified).length}</strong> <GlossaryTerm term="integrity">hash hợp lệ</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length}</strong> <GlossaryTerm term="predictive">artifact hỗ trợ predictive</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations == null ? "—" : observations.items.length}</strong> <GlossaryTerm term="forward-evidence">quyết định forward</GlossaryTerm></span></div>}
+    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.length}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> trong catalog</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.integrityVerified).length}</strong> <GlossaryTerm term="integrity">hash hợp lệ</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : `${catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/${catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")}`}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> publish/đã quét{catalog != null && catalog.integrity.rejectedArtifactCount > 0 ? <span className="font-mono tabular-nums text-amber-300"> · {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} bị loại</span> : null}</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length}</strong> <GlossaryTerm term="predictive">artifact hỗ trợ predictive</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations == null ? "—" : observations.items.length}</strong> <GlossaryTerm term="forward-evidence">quyết định forward</GlossaryTerm></span></div>}
     {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests}/>}
     {(section === "overview" || section === "forward") && <ForwardStatus observations={observations}/>}
 

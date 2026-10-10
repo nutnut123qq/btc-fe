@@ -21,11 +21,8 @@ export type EvidenceMetric = {
   label: string;
   value: number | null;
   unit: string | null;
-  baselineValue: number | null;
-  lift: number | null;
   intervalLow: number | null;
   intervalHigh: number | null;
-  sampleCount: number | null;
   baseline: string | null;
   interpretation: string | null;
 };
@@ -45,33 +42,18 @@ export type EvidenceBaseline = {
   id: string;
   name: string;
   description: string | null;
-  metrics: EvidenceMetric[];
 };
 
 export type EvidenceDataset = {
-  snapshotId: string | null;
   snapshotSha256: string | null;
-  predictionsSha256: string | null;
   source: string | null;
   rowCount: number | null;
-  predictionRowCount: number | null;
-  featureCount: number | null;
-  startTimeUtc: string | null;
-  endTimeUtc: string | null;
-  cutoffTimeUtc: string | null;
   firstDecisionTimeMs: number | null;
   lastDecisionTimeMs: number | null;
-  immutable: boolean | null;
 };
 
 export type EvidenceProtocol = {
-  name: string | null;
   version: string | null;
-  foldCount: number | null;
-  purgeBars: number | null;
-  calibrationRows: number | null;
-  testRows: number | null;
-  notes: string[];
   decisionTime: string | null;
   outcomePriceBasis: string | null;
   chronologicalOos: boolean | null;
@@ -82,7 +64,6 @@ export type EvidenceCoverage = {
   evaluatedRows: number | null;
   eligibleRows: number | null;
   ratio: number | null;
-  abstentionRate: number | null;
   foldCount: number | null;
 };
 
@@ -109,7 +90,6 @@ export type EvidenceProvenance = {
   codeVersion: string | null;
   gitDirty: boolean | null;
   generatedAtUtc: string | null;
-  artifactPath: string | null;
 };
 
 export type ResearchEvidenceSummary = {
@@ -118,7 +98,7 @@ export type ResearchEvidenceSummary = {
   kind: ResearchEvidenceKind;
   tier: ResearchEvidenceTier;
   available: boolean;
-  status: "supported" | "inconclusive" | "unavailable" | "integrity-limited" | "available";
+  status: "supported" | "inconclusive" | "unavailable" | "integrity-limited";
   integrityVerified: boolean;
   symbol: "BTCUSDT";
   timeframe: string | null;
@@ -165,7 +145,6 @@ export type ResearchEvidenceCatalog = {
 
 export type ResearchEvidenceDetail = ResearchEvidenceSummary & {
   hypothesis: string | null;
-  question: string | null;
   conclusion: string | null;
   dataset: EvidenceDataset | null;
   protocol: EvidenceProtocol | null;
@@ -176,14 +155,11 @@ export type ResearchEvidenceDetail = ResearchEvidenceSummary & {
   artifacts: EvidenceArtifact[];
   coverage: EvidenceCoverage | null;
   provenance: EvidenceProvenance;
-  folds: Record<string, unknown>[];
-  rows: Record<string, unknown>[];
   evidenceProfiles: TechnicalEvidenceProfiles | null;
   statisticalEvidence: TechnicalStatisticalEvidence | null;
   sensitivityAudit: TechnicalSensitivityAudit | null;
   reportExclusions: Record<string, unknown> | null;
   eventTypeDetail: Record<string, unknown> | null;
-  rawSections: Record<string, unknown>;
 };
 
 const KINDS = new Set<string>(RESEARCH_EVIDENCE_KINDS);
@@ -273,55 +249,43 @@ function requireSha256(value: string | null, label: string): string | null {
 }
 
 function inferKind(source: Record<string, unknown>): ResearchEvidenceKind {
-  const explicit = optionalString(source, "kind", "category", "evidenceKind")?.toLowerCase();
-  if (explicit && KINDS.has(explicit)) return explicit as ResearchEvidenceKind;
-  if (explicit === "ml-v2" || explicit === "model-evaluation") return "model";
-  if (explicit === "feature-groups" || explicit === "feature-ablation") return "feature";
-  if (explicit === "technical-events" || explicit === "technical-event") return "event";
-  const id = optionalString(source, "id", "artifactId")?.toLowerCase() ?? "";
-  if (id.includes("feature")) return "feature";
-  if (id.includes("event") || id.includes("technical")) return "event";
-  if (id.includes("economic") || id.includes("backtest")) return "economic";
-  if (id.includes("forward") || id.includes("paper")) return "forward";
-  return "model";
+  const explicit = optionalString(source, "kind")?.toLowerCase();
+  return explicit && KINDS.has(explicit) ? (explicit as ResearchEvidenceKind) : "model";
 }
 
 function inferTier(source: Record<string, unknown>): ResearchEvidenceTier {
-  const explicit = optionalString(source, "tier", "evidenceTier", "stage")?.toLowerCase();
-  if (explicit && TIERS.has(explicit)) return explicit as ResearchEvidenceTier;
-  return optionalBoolean(source, "available") === false ? "unavailable" : "descriptive";
+  const explicit = optionalString(source, "evidenceTier")?.toLowerCase();
+  return explicit && TIERS.has(explicit) ? (explicit as ResearchEvidenceTier) : "descriptive";
 }
 
 function parseSummary(value: unknown): ResearchEvidenceSummary {
   const source = record(value, "evidence summary");
   const symbol = optionalString(source, "symbol") ?? "BTCUSDT";
   if (symbol !== "BTCUSDT") throw new Error("INVALID_API_RESPONSE: research evidence must be BTCUSDT");
-  const statusValue = optionalString(source, "status")?.toLowerCase() ?? "available";
-  if (!new Set(["supported", "inconclusive", "unavailable", "integrity-limited", "available"]).has(statusValue)) {
+  const statusValue = requiredString(source, "evidence status", "status").toLowerCase();
+  if (!new Set(["supported", "inconclusive", "unavailable", "integrity-limited"]).has(statusValue)) {
     throw new Error(`INVALID_API_RESPONSE: unknown evidence status ${statusValue}`);
   }
   const status = statusValue as ResearchEvidenceSummary["status"];
-  const available = optionalBoolean(source, "available") ?? status !== "unavailable";
+  const available = status !== "unavailable";
   const integrityRaw = valueAt(source, "integrity");
   const integrity = integrityRaw == null ? null : record(integrityRaw, "evidence integrity");
-  const integrityVerified = optionalBoolean(source, "integrityVerified", "integrityValid")
-    ?? (integrity ? optionalBoolean(integrity, "verified") : null)
-    ?? false;
+  const integrityVerified = (integrity ? optionalBoolean(integrity, "verified") : null) ?? false;
   if (available && !integrityVerified && status !== "integrity-limited") {
     throw new Error("INVALID_API_RESPONSE: available evidence must have verified integrity");
   }
-  const reportSha256 = optionalString(source, "reportSha256", "reportHash");
-  const manifestSha256 = optionalString(source, "manifestSha256", "manifestHash");
+  const reportSha256 = optionalString(source, "reportSha256");
+  const manifestSha256 = optionalString(source, "manifestSha256");
   if (integrityVerified && (!reportSha256 || !manifestSha256)) {
     throw new Error("INVALID_API_RESPONSE: verified evidence must expose report and manifest hashes");
   }
-  const id = requiredString(source, "evidence id", "id", "artifactId");
+  const id = requiredString(source, "evidence id", "id");
   requireSha256(id, "evidence id");
   requireSha256(reportSha256, "reportSha256");
   requireSha256(manifestSha256, "manifestSha256");
   return {
     id,
-    title: requiredString(source, "evidence title", "title", "name"),
+    title: requiredString(source, "evidence title", "title"),
     kind: inferKind(source),
     tier: inferTier(source),
     available,
@@ -329,9 +293,9 @@ function parseSummary(value: unknown): ResearchEvidenceSummary {
     integrityVerified,
     symbol: "BTCUSDT",
     timeframe: optionalString(source, "timeframe"),
-    summary: optionalString(source, "summary", "conclusion") ?? "Chưa có tóm tắt kết luận.",
-    limitations: strings(valueAt(source, "limitations", "caveats"), "limitations"),
-    generatedAtUtc: optionalString(source, "generatedAtUtc", "createdAtUtc"),
+    summary: optionalString(source, "summary") ?? "Chưa có tóm tắt kết luận.",
+    limitations: strings(valueAt(source, "limitations"), "limitations"),
+    generatedAtUtc: optionalString(source, "createdAtUtc"),
     reportSha256,
     manifestSha256,
   };
@@ -339,44 +303,22 @@ function parseSummary(value: unknown): ResearchEvidenceSummary {
 
 function parseMetric(value: unknown): EvidenceMetric {
   const source = record(value, "metric");
-  const interval = valueAt(source, "interval", "confidenceInterval");
-  const intervalRecord = interval == null ? null : record(interval, "metric interval");
   return {
-    name: requiredString(source, "metric name", "name", "metric"),
-    label: optionalString(source, "label") ?? requiredString(source, "metric name", "name", "metric"),
+    name: requiredString(source, "metric name", "name"),
+    label: optionalString(source, "label") ?? requiredString(source, "metric name", "name"),
     value: optionalNumber(source, "value"),
     unit: optionalString(source, "unit"),
-    baselineValue: typeof valueAt(source, "baselineValue", "baseline") === "number"
-      ? optionalNumber(source, "baselineValue", "baseline")
-      : null,
-    lift: optionalNumber(source, "lift"),
-    intervalLow: optionalNumber(source, "intervalLow", "ciLow") ?? (intervalRecord ? optionalNumber(intervalRecord, "low") : null),
-    intervalHigh: optionalNumber(source, "intervalHigh", "ciHigh") ?? (intervalRecord ? optionalNumber(intervalRecord, "high") : null),
-    sampleCount: optionalNumber(source, "sampleCount", "n"),
-    baseline: typeof valueAt(source, "baseline") === "string" ? optionalString(source, "baseline") : null,
+    intervalLow: null,
+    intervalHigh: null,
+    baseline: optionalString(source, "baseline"),
     interpretation: optionalString(source, "interpretation"),
   };
 }
 
 function parseMetrics(value: unknown, label: string): EvidenceMetric[] {
   if (value == null) return [];
-  if (Array.isArray(value)) return value.map(parseMetric);
-  const source = record(value, label);
-  return Object.entries(source)
-    .filter(([, metricValue]) => typeof metricValue === "number" && Number.isFinite(metricValue))
-    .map(([name, metricValue]) => ({
-      name,
-      label: name,
-      value: metricValue as number,
-      unit: null,
-      baselineValue: null,
-      lift: null,
-      intervalLow: null,
-      intervalHigh: null,
-      sampleCount: null,
-      baseline: null,
-      interpretation: null,
-    }));
+  if (!Array.isArray(value)) throw new Error(`INVALID_API_RESPONSE: ${label} must be an array`);
+  return value.map(parseMetric);
 }
 
 export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCatalog {
@@ -385,7 +327,7 @@ export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCa
     throw new Error("INVALID_API_RESPONSE: research evidence catalog must be BTCUSDT");
   }
   const integrity = record(valueAt(source, "integrity"), "evidence catalog integrity");
-  const rawItems = valueAt(source, "items", "artifacts");
+  const rawItems = valueAt(source, "items");
   if (!Array.isArray(rawItems)) throw new Error("INVALID_API_RESPONSE: evidence catalog items must be an array");
   const items = rawItems.map(parseSummary);
   if (new Set(items.map((item) => item.id)).size !== items.length) {
@@ -459,9 +401,9 @@ export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCa
 export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDetail {
   const source = record(value, "research evidence detail");
   const summary = parseSummary(source);
-  const datasetRaw = valueAt(source, "dataset", "dataSnapshot");
+  const datasetRaw = valueAt(source, "dataset");
   const dataset = datasetRaw == null ? null : record(datasetRaw, "evidence dataset");
-  const protocolRaw = valueAt(source, "protocol", "evaluationProtocol");
+  const protocolRaw = valueAt(source, "protocol");
   const protocol = protocolRaw == null ? null : record(protocolRaw, "evidence protocol");
   const coverageRaw = valueAt(source, "coverage");
   const coverage = coverageRaw == null ? null : record(coverageRaw, "evidence coverage");
@@ -489,39 +431,21 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
     } : metric;
   });
   const datasetSnapshotSha256 = dataset
-    ? requireSha256(optionalString(dataset, "snapshotSha256", "datasetSha256", "sha256"), "datasetSha256")
-    : null;
-  const datasetPredictionsSha256 = dataset
-    ? requireSha256(optionalString(dataset, "predictionsSha256", "predictionSha256"), "predictionsSha256")
+    ? requireSha256(optionalString(dataset, "datasetSha256"), "datasetSha256")
     : null;
   return {
     ...summary,
     hypothesis: optionalString(source, "hypothesis"),
-    question: optionalString(source, "question", "researchQuestion"),
     conclusion: optionalString(source, "conclusion"),
     dataset: dataset ? {
-      snapshotId: optionalString(dataset, "snapshotId", "id"),
       snapshotSha256: datasetSnapshotSha256,
-      predictionsSha256: datasetPredictionsSha256,
       source: optionalString(dataset, "source"),
-      rowCount: optionalNumber(dataset, "rowCount", "rows"),
-      predictionRowCount: optionalNumber(dataset, "predictionRowCount", "predictionsCount"),
-      featureCount: optionalNumber(dataset, "featureCount", "features"),
-      startTimeUtc: optionalString(dataset, "startTimeUtc", "startUtc"),
-      endTimeUtc: optionalString(dataset, "endTimeUtc", "endUtc"),
-      cutoffTimeUtc: optionalString(dataset, "cutoffTimeUtc", "cutoffUtc"),
+      rowCount: optionalNumber(dataset, "rowCount"),
       firstDecisionTimeMs: optionalNumber(dataset, "firstDecisionTimeMs"),
       lastDecisionTimeMs: optionalNumber(dataset, "lastDecisionTimeMs"),
-      immutable: optionalBoolean(dataset, "immutable"),
     } : null,
     protocol: protocol ? {
-      name: optionalString(protocol, "name", "method"),
-      version: optionalString(protocol, "version", "evaluatorVersion"),
-      foldCount: optionalNumber(protocol, "foldCount", "folds"),
-      purgeBars: optionalNumber(protocol, "purgeBars"),
-      calibrationRows: optionalNumber(protocol, "calibrationRows"),
-      testRows: optionalNumber(protocol, "testRows"),
-      notes: strings(valueAt(protocol, "notes"), "protocol notes"),
+      version: optionalString(protocol, "evaluatorVersion"),
       decisionTime: optionalString(protocol, "decisionTime"),
       outcomePriceBasis: optionalString(protocol, "outcomePriceBasis"),
       chronologicalOos: optionalBoolean(protocol, "chronologicalOos"),
@@ -529,12 +453,8 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
     } : null,
     baselines: (baselinesRaw as unknown[] | null ?? []).map((item) => {
       const baseline = record(item, "baseline");
-      return {
-        id: requiredString(baseline, "baseline id", "id", "name"),
-        name: optionalString(baseline, "name") ?? requiredString(baseline, "baseline id", "id"),
-        description: optionalString(baseline, "description"),
-        metrics: parseMetrics(valueAt(baseline, "metrics"), "baseline metrics"),
-      };
+      const id = requiredString(baseline, "baseline id", "id");
+      return { id, name: id, description: optionalString(baseline, "description") };
     }),
     metrics,
     findings: findingRows.map((item) => ({
@@ -563,28 +483,23 @@ export function parseResearchEvidenceDetail(value: unknown): ResearchEvidenceDet
     coverage: coverage ? {
       evaluatedRows: optionalNumber(coverage, "evaluatedRows"),
       eligibleRows: optionalNumber(coverage, "eligibleRows"),
-      ratio: optionalNumber(coverage, "ratio", "coverageRatio"),
-      abstentionRate: optionalNumber(coverage, "abstentionRate"),
+      ratio: optionalNumber(coverage, "ratio"),
       foldCount: optionalNumber(coverage, "foldCount"),
     } : null,
     provenance: {
-      reportSha256: optionalString(provenance, "reportSha256", "reportHash") ?? summary.reportSha256,
-      manifestSha256: optionalString(provenance, "manifestSha256", "manifestHash") ?? summary.manifestSha256,
+      reportSha256: summary.reportSha256,
+      manifestSha256: summary.manifestSha256,
       evaluatorSha256: requireSha256(optionalString(provenance, "evaluatorSha256"), "evaluatorSha256"),
       researchContractSha256: requireSha256(optionalString(provenance, "researchContractSha256"), "researchContractSha256"),
-      codeVersion: optionalString(provenance, "codeVersion", "gitCommit"),
+      codeVersion: optionalString(provenance, "gitCommit"),
       gitDirty: optionalBoolean(provenance, "gitDirty"),
-      generatedAtUtc: optionalString(provenance, "generatedAtUtc") ?? summary.generatedAtUtc,
-      artifactPath: optionalString(provenance, "artifactPath"),
+      generatedAtUtc: summary.generatedAtUtc,
     },
-    folds: objectRows(valueAt(source, "folds"), "folds"),
-    rows: objectRows(valueAt(source, "rows", "predictions"), "evidence rows"),
     evidenceProfiles: evidenceProfilesRaw == null ? null : parseTechnicalEvidenceProfiles(evidenceProfilesRaw),
     statisticalEvidence: statisticalEvidenceRaw == null ? null : parseTechnicalStatisticalEvidence(statisticalEvidenceRaw),
     sensitivityAudit: sensitivityAuditRaw == null ? null : parseTechnicalSensitivityAudit(sensitivityAuditRaw),
     reportExclusions: reportExclusionsRaw == null ? null : record(reportExclusionsRaw, "report exclusion reasons"),
     eventTypeDetail: eventTypeDetailRaw == null ? null : record(eventTypeDetailRaw, "event type detail"),
-    rawSections: source,
   };
 }
 
