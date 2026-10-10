@@ -427,6 +427,25 @@ export type RuleDiscoveryRunResponse = {
   trialLedger: RuleDiscoveryTrialSummary[];
 };
 
+// Metadata của một lần chạy bounded discovery (GET /api/discovery/runs) —
+// không gồm trial ledger. Dùng để phân biệt "chưa từng chạy" vs "đã chạy, 0 qua gate".
+export type DiscoveryRun = {
+  id: number;
+  methodVersion: string;
+  symbol: string;
+  timeframe: string;
+  futureBars: number;
+  candidateBudget: number;
+  trialCount: number;
+  labelDeadZonePct: number;
+  roundTripCostBps: number;
+  selectionStartTimeMs: number;
+  selectionEndTimeMs: number;
+  evaluationStartTimeMs: number;
+  evaluationEndTimeMs: number;
+  createdAtUtc: string;
+};
+
 // --- Sequence / structure analysis (api/market/{market-structure,sequence-scenarios,validate-candles}) ---
 export type MarketStructureResponse = {
   symbol: string;

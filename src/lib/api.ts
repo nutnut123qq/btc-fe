@@ -391,6 +391,15 @@ export async function getDiscoveredRules(params?: { symbol?: string; timeframe?:
   return getJson(res) as Promise<import("./types").SequenceRule[]>;
 }
 
+export async function getDiscoveryRuns(params?: { symbol?: string; timeframe?: string; take?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.symbol) qs.set("symbol", params.symbol);
+  if (params?.timeframe) qs.set("timeframe", params.timeframe);
+  if (params?.take != null) qs.set("take", String(params.take));
+  const res = await fetch(`${API_BASE}/api/discovery/runs?${qs}`);
+  return getJson(res) as Promise<import("./types").DiscoveryRun[]>;
+}
+
 export async function clearDiscoveredRules() {
   const res = await adminFetch(`${API_BASE}/api/discovery/clear`, { method: "POST" });
   return getJson(res);
