@@ -61,6 +61,8 @@ export interface MbbDecisionTrigger {
   name: string;
   timeframe: MbbTimeframe;
   condition: string;
+  /** e.g. "close-below" — the direction the conditional order watches. */
+  direction: string | null;
   priceLevelVnd: number | null;
   /** null = trigger could not be band-checked (e.g. no reference price). */
   withinPriceBand: boolean | null;
@@ -370,11 +372,12 @@ export function parseMbbPosition(value: unknown): MbbPosition {
 function decisionTrigger(value: unknown, index: number): MbbDecisionTrigger {
   const label = `mbbDecision.triggers[${index}]`;
   const source = object(value, label);
-  requireKeys(source, label, ["name", "timeframe", "condition", "priceLevelVnd", "withinPriceBand", "nonFillRisk"]);
+  requireKeys(source, label, ["name", "timeframe", "condition", "direction", "priceLevelVnd", "withinPriceBand", "nonFillRisk"]);
   return {
     name: nonBlank(source.name, `${label}.name`),
     timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`),
     condition: nonBlank(source.condition, `${label}.condition`),
+    direction: nullableNonBlank(source.direction, `${label}.direction`),
     priceLevelVnd: nullableFinite(source.priceLevelVnd, `${label}.priceLevelVnd`),
     withinPriceBand: nullableBool(source.withinPriceBand, `${label}.withinPriceBand`),
     nonFillRisk: nullableNonBlank(source.nonFillRisk, `${label}.nonFillRisk`),

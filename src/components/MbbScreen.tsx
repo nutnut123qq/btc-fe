@@ -110,8 +110,10 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
   // sessionStorage is client-only — initialize locked so SSR and the first
   // client render match, then sync the real state after mount.
   const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   useEffect(() => {
     setAdminUnlocked(Boolean(getSessionKey("admin")));
+    setSessionChecked(true);
   }, []);
   const [lotDrafts, setLotDrafts] = useState<LotDraft[]>([]);
   const [cashDraft, setCashDraft] = useState("");
@@ -165,6 +167,15 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
 
   const loadDecision = useCallback(async () => {
     const token = decisionGate.current.begin();
+    // AdminGuard'd endpoint carrying personal data — fail-closed when the
+    // session has no admin key instead of firing a doomed 401 request.
+    if (!getSessionKey("admin")) {
+      if (!decisionGate.current.isCurrent(token)) return;
+      setDecision(null);
+      setDecisionError(null);
+      setDecisionLoading(false);
+      return;
+    }
     setDecisionLoading(true);
     setDecisionError(null);
     try {
@@ -174,13 +185,25 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
     } catch (e) {
       if (!decisionGate.current.isCurrent(token)) return;
       setDecision(null);
-      setDecisionError(e instanceof Error ? e.message : "Không tải được quyết định MBB");
+      if (e instanceof Error && e.message === "ADMIN_AUTH_REQUIRED") {
+        setAdminUnlocked(false);
+      } else {
+        setDecisionError(e instanceof Error ? e.message : "Không tải được quyết định MBB");
+      }
     } finally {
       if (decisionGate.current.isCurrent(token)) setDecisionLoading(false);
     }
   }, []);
 
   const loadPosition = useCallback(async () => {
+    if (!getSessionKey("admin")) {
+      setPosition(null);
+      setPositionError(null);
+      setPositionLoading(false);
+      setLotDrafts([]);
+      setCashDraft("");
+      return;
+    }
     setPositionLoading(true);
     setPositionError(null);
     try {
@@ -193,8 +216,13 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
       })));
       setCashDraft(String(data.availableCashVnd));
     } catch (e) {
-      setPosition(null);
-      setPositionError(e instanceof Error ? e.message : "Không tải được vị thế MBB");
+      if (e instanceof Error && e.message === "ADMIN_AUTH_REQUIRED") {
+        setAdminUnlocked(false);
+        setPosition(null);
+      } else {
+        setPosition(null);
+        setPositionError(e instanceof Error ? e.message : "Không tải được vị thế MBB");
+      }
     } finally {
       setPositionLoading(false);
     }
@@ -217,8 +245,10 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
     void loadConditions(timeframe);
   }, [timeframe, loadCandles, loadConditions]);
 
-  useEffect(() => { void loadDecision(); }, [loadDecision, decisionEpoch]);
-  useEffect(() => { void loadPosition(); }, [loadPosition]);
+  // Unlocking the admin session (re)loads the personal endpoints; locking
+  // clears their state through the loaders' fail-closed guard.
+  useEffect(() => { void loadDecision(); }, [loadDecision, decisionEpoch, adminUnlocked]);
+  useEffect(() => { void loadPosition(); }, [loadPosition, adminUnlocked]);
   useEffect(() => { void loadQuality(); }, [loadQuality]);
 
   const savePosition = async () => {
@@ -429,6 +459,11 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
           </div>
           <div className="p-3">
             {decisionLoading && <p className="text-sm text-slate-500">Đang tính quyết định…</p>}
+            {!decisionLoading && sessionChecked && !adminUnlocked && (
+              <p className="rounded border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-500" data-testid="mbb-decision-locked">
+                Quyết định theo vị thế là dữ liệu cá nhân — mở khóa quyền quản trị ở mục “Vị thế MBB” bên dưới để xem.
+              </p>
+            )}
             {!decisionLoading && decisionError && (
               <div className="flex items-center gap-3 rounded border border-rose-900/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-200" role="alert">
                 <span className="min-w-0 flex-1 break-words">Không tải được quyết định: {decisionError}</span>
@@ -520,6 +555,12 @@ export function MbbScreen({ contractCompatible = false }: { contractCompatible?:
         <div className="space-y-3 p-3">
           <SessionAccessPanel kind="admin" label="Quyền quản trị (ghi vị thế)" onChange={setAdminUnlocked} />
           {positionLoading && <p className="text-sm text-slate-500">Đang tải vị thế…</p>}
+          {!positionLoading && sessionChecked && !adminUnlocked && (
+            <p className="text-xs text-slate-500" data-testid="mbb-position-locked">
+              Vị thế đang khoá — nhập khoá quản trị ở trên để tải và chỉnh sửa.
+            </p>
+          )}
+
           {!positionLoading && positionError && (
             <div className="flex items-center gap-3 rounded border border-rose-900/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-200" role="alert">
               <span className="min-w-0 flex-1 break-words">Không tải được vị thế: {positionError}</span>

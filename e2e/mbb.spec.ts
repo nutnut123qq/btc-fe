@@ -81,6 +81,7 @@ const DECISION = {
       name: "stop-loss -8%",
       timeframe: "1d",
       condition: "close1d < giá vốn × 0.92",
+      direction: "close-below",
       priceLevelVnd: 22_540,
       withinPriceBand: true,
       nonFillRisk: null,
@@ -253,7 +254,16 @@ async function mockBackend(page: Page, requests: string[], mocks: Mocks = {}): P
       const tf = url.searchParams.get("timeframe") ?? "1d";
       return route.fulfill(json(CONDITIONS(tf)));
     }
-    if (path === "/api/mbb/decision") return route.fulfill(json(DECISION));
+    // Personal-data reads are AdminGuard'd like the write — the mock mirrors
+    // the real contract so the page can only reach them through the session key.
+    if (path === "/api/mbb/decision" || path === "/api/mbb/position") {
+      if (route.request().headers()["x-admin-key"] !== "e2e-admin") {
+        return route.fulfill(json({
+          code: "UNAUTHORIZED", message: "Missing or invalid admin key.", retryable: false, requestId: "e2e",
+        }, 401));
+      }
+      if (path === "/api/mbb/decision") return route.fulfill(json(DECISION));
+    }
     if (path === "/api/mbb/data-quality") return route.fulfill(json(COVERAGE));
     if (path === "/api/mbb/position") {
       if (route.request().method() === "PUT") {
@@ -363,9 +373,30 @@ test.describe("/mbb lane", () => {
     await expect(page.getByText(/Đã lưu vị thế/)).toBeVisible();
   });
 
+  test("position + decision stay locked without an admin session key", async ({ page }) => {
+    const requests: string[] = [];
+    const errors = await mockBackend(page, requests);
+    // No btc.adminKey — the page must not even fire the guarded reads.
+    await page.goto("/mbb");
+
+    await expect(page.getByRole("heading", { name: "MBB — MB Bank" })).toBeVisible();
+    await expect(page.getByTestId("mbb-decision-locked")).toBeVisible();
+    await expect(page.getByTestId("mbb-position-locked")).toBeVisible();
+    // Public lanes still render.
+    await expect(page.getByText("Chất lượng dữ liệu")).toBeVisible();
+
+    const apiPaths = requests.map((r) => r.split(" ")[1].split("?")[0]);
+    expect(apiPaths).toContain("/api/mbb/candles");
+    expect(apiPaths).not.toContain("/api/mbb/decision");
+    expect(apiPaths).not.toContain("/api/mbb/position");
+    await page.waitForTimeout(500);
+    expect(errors).toEqual([]);
+  });
+
   test("conditions 502 renders an honest unavailable state, not fabricated data", async ({ page }) => {
     const requests: string[] = [];
     await mockBackend(page, requests, { conditionsStatus: 502 });
+    await page.addInitScript(() => window.sessionStorage.setItem("btc.adminKey", "e2e-admin"));
     await page.goto("/mbb");
     await expect(page.getByRole("heading", { name: "Đồ thị nến MBB" })).toBeVisible();
     await expect(page.getByText(/Điều kiện hiện tại chưa khả dụng/)).toBeVisible({ timeout: 30_000 });

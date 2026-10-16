@@ -1419,13 +1419,15 @@ export async function getMbbConditions(timeframe: MbbTimeframe, signal?: AbortSi
   return parseCurrentConditionsResponse(await getJson(res));
 }
 
+// Position + decision reads expose personal holdings — AdminGuard'd on the
+// server, so they go through the same admin session key as the writes.
 export async function getMbbDecision(signal?: AbortSignal) {
-  const res = await fetch(`${API_BASE}/api/mbb/decision`, { signal, cache: "no-store" });
+  const res = await authenticatedFetch("admin", `${API_BASE}/api/mbb/decision`, { signal, cache: "no-store" });
   return parseMbbDecision(await getJson(res));
 }
 
 export async function getMbbPosition(signal?: AbortSignal) {
-  const res = await fetch(`${API_BASE}/api/mbb/position`, { signal, cache: "no-store" });
+  const res = await authenticatedFetch("admin", `${API_BASE}/api/mbb/position`, { signal, cache: "no-store" });
   return parseMbbPosition(await getJson(res));
 }
 

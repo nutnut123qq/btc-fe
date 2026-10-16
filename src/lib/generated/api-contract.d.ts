@@ -6723,6 +6723,7 @@ export interface components {
         };
         MbbDecisionTrigger: {
             condition: string;
+            direction?: string | null;
             name: string;
             nonFillRisk?: string | null;
             /** Format: double */
