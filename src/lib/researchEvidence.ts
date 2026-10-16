@@ -1,6 +1,7 @@
 import { parseTechnicalEvidenceProfiles, type TechnicalEvidenceProfiles } from "./evidenceProfiles.ts";
 import { parseTechnicalSensitivityAudit, type TechnicalSensitivityAudit } from "./sensitivityAudit.ts";
 import { parseTechnicalStatisticalEvidence, type TechnicalStatisticalEvidence } from "./statisticalEvidence.ts";
+import { canonicalizeSymbol, isKnownSymbol } from "./marketScope.ts";
 
 export const RESEARCH_EVIDENCE_KINDS = ["model", "feature", "event", "economic", "forward"] as const;
 
@@ -100,7 +101,7 @@ export type ResearchEvidenceSummary = {
   available: boolean;
   status: "supported" | "inconclusive" | "unavailable" | "integrity-limited";
   integrityVerified: boolean;
-  symbol: "BTCUSDT";
+  symbol: string;
   timeframe: string | null;
   summary: string;
   limitations: string[];
@@ -260,8 +261,10 @@ function inferTier(source: Record<string, unknown>): ResearchEvidenceTier {
 
 function parseSummary(value: unknown): ResearchEvidenceSummary {
   const source = record(value, "evidence summary");
-  const symbol = optionalString(source, "symbol") ?? "BTCUSDT";
-  if (symbol !== "BTCUSDT") throw new Error("INVALID_API_RESPONSE: research evidence must be BTCUSDT");
+  const symbol = canonicalizeSymbol(optionalString(source, "symbol") ?? "BTCUSDT");
+  if (!isKnownSymbol(symbol)) {
+    throw new Error("INVALID_API_RESPONSE: research evidence symbol must be a known instrument (BTCUSDT, MBB, …)");
+  }
   const statusValue = requiredString(source, "evidence status", "status").toLowerCase();
   if (!new Set(["supported", "inconclusive", "unavailable", "integrity-limited"]).has(statusValue)) {
     throw new Error(`INVALID_API_RESPONSE: unknown evidence status ${statusValue}`);
@@ -291,7 +294,7 @@ function parseSummary(value: unknown): ResearchEvidenceSummary {
     available,
     status,
     integrityVerified,
-    symbol: "BTCUSDT",
+    symbol,
     timeframe: optionalString(source, "timeframe"),
     summary: optionalString(source, "summary") ?? "Chưa có tóm tắt kết luận.",
     limitations: strings(valueAt(source, "limitations"), "limitations"),
@@ -323,8 +326,9 @@ function parseMetrics(value: unknown, label: string): EvidenceMetric[] {
 
 export function parseResearchEvidenceCatalog(value: unknown): ResearchEvidenceCatalog {
   const source = record(value, "research evidence catalog");
-  if (requiredString(source, "evidence symbol", "symbol") !== "BTCUSDT") {
-    throw new Error("INVALID_API_RESPONSE: research evidence catalog must be BTCUSDT");
+  const catalogSymbol = requiredString(source, "evidence symbol", "symbol");
+  if (catalogSymbol !== "ALL" && !isKnownSymbol(catalogSymbol)) {
+    throw new Error("INVALID_API_RESPONSE: research evidence catalog symbol must be ALL or a known instrument (BTCUSDT)");
   }
   const integrity = record(valueAt(source, "integrity"), "evidence catalog integrity");
   const rawItems = valueAt(source, "items");

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { MarketScreen } from "./MarketScreen";
+import { MbbScreen } from "./MbbScreen";
 import { AiAnalysisScreen } from "./AiAnalysisScreen";
 import { AlertSettingsScreen } from "./AlertSettingsScreen";
 import { useShellSignals, TAB_PATH } from "./AppShell";
@@ -20,4 +21,9 @@ export function AiAnalysisPage() {
 export function AlertSettingsPage() {
   const { contractState } = useShellSignals();
   return <AlertSettingsScreen contractCompatible={canUseApiMutations(contractState)} />;
+}
+
+export function MbbPage() {
+  const { contractState } = useShellSignals();
+  return <MbbScreen contractCompatible={canUseApiMutations(contractState)} />;
 }

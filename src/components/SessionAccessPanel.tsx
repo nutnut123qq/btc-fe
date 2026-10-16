@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getSessionKey, setSessionKey, type SessionKeyKind } from "@/lib/sessionAuth";
 
 export function SessionAccessPanel({
@@ -13,7 +13,12 @@ export function SessionAccessPanel({
   onChange?: (unlocked: boolean) => void;
 }) {
   const [key, setKey] = useState("");
-  const [unlocked, setUnlocked] = useState(() => Boolean(getSessionKey(kind)));
+  // sessionStorage is client-only — initialize locked so SSR and the first
+  // client render match, then sync the real state after mount.
+  const [unlocked, setUnlocked] = useState(false);
+  useEffect(() => {
+    setUnlocked(Boolean(getSessionKey(kind)));
+  }, [kind]);
 
   const update = (value: string) => {
     setSessionKey(kind, value);

@@ -3,7 +3,8 @@ import { expect, type Page } from "@playwright/test";
 // Bottom nav now renders 5 groups; multi-child groups open a chip sub-row.
 // Map each tab label to its top-level group label (null = single-child group).
 const GROUP_LABEL_BY_TAB: Readonly<Record<string, string | null>> = {
-  "Thị trường": null,
+  "BTC/USDT": "Thị trường",
+  "MBB": "Thị trường",
   "Tin tức": "Tin tức & AI",
   "AI": "Tin tức & AI",
   "Nghiên cứu": "Nghiên cứu",

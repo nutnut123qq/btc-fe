@@ -1,3 +1,5 @@
+import { getInstrument } from "./marketScope.ts";
+
 export const TECHNICAL_STATISTICAL_EVIDENCE_SCHEMA = "btc-technical-evidence-statistics/v1" as const;
 
 export const STATISTICAL_METRICS = ["forwardReturn", "mfe", "mae"] as const;
@@ -336,8 +338,9 @@ export function parseTechnicalStatisticalEvidence(value: unknown): TechnicalStat
   if (source.schema !== TECHNICAL_STATISTICAL_EVIDENCE_SCHEMA) throw new Error("INVALID_STATISTICAL_EVIDENCE: unsupported schema");
   const scope = object(source.scope, "statisticalEvidence.scope");
   requireKeys(scope, "statisticalEvidence.scope", ["symbol", "timeframe"]);
-  if (scope.symbol !== "BTCUSDT" || !["1h", "4h", "1d"].includes(String(scope.timeframe))) {
-    throw new Error("INVALID_STATISTICAL_EVIDENCE: scope must be BTCUSDT on 1h/4h/1d");
+  const scopeInstrument = getInstrument(typeof scope.symbol === "string" ? scope.symbol : null);
+  if (!scopeInstrument || !scopeInstrument.activeTimeframes.includes(String(scope.timeframe))) {
+    throw new Error("INVALID_STATISTICAL_EVIDENCE: scope must be a known instrument on its active timeframes");
   }
   if (source.claimType !== "descriptive_only") throw new Error("INVALID_STATISTICAL_EVIDENCE: only descriptive evidence is allowed");
   const family = object(source.declaredFamily, "statisticalEvidence.declaredFamily");

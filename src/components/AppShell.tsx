@@ -22,6 +22,7 @@ import {
   Shapes,
   ListOrdered,
   FileCheck2,
+  Landmark,
 } from "lucide-react";
 import { AlertsDrawer } from "./AlertsDrawer";
 import { AiChatWidget } from "./AiChatWidget";
@@ -32,7 +33,8 @@ import { EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible } from "@/lib/ap
 import type { ApiContractState } from "@/lib/apiContract";
 
 const TABS = [
-  { key: "market", label: "Thị trường", icon: LineChart },
+  { key: "market", label: "BTC/USDT", icon: LineChart },
+  { key: "mbb", label: "MBB", icon: Landmark },
   { key: "archetype", label: "Mẫu nến", icon: Shapes },
   { key: "news", label: "Tin tức", icon: Newspaper },
   { key: "ai", label: "AI", icon: Bot },
@@ -54,6 +56,7 @@ const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
 // Real per-screen routes — the URL is the source of truth for activeTab.
 export const TAB_PATH: Record<TabKey, string> = {
   market: "/",
+  mbb: "/mbb",
   archetype: "/mau-nen",
   news: "/tin-tuc",
   ai: "/ai",
@@ -74,7 +77,7 @@ const PATH_TAB: ReadonlyMap<string, TabKey> = new Map(
 // tab is always visible directly below the header (desktop inline nav +
 // mobile bottom bar share the same derived strip).
 const NAV_GROUPS = [
-  { key: "market", label: "Thị trường", children: ["market"] },
+  { key: "market", label: "Thị trường", children: ["market", "mbb"] },
   { key: "newsAi", label: "Tin tức & AI", children: ["news", "ai"] },
   { key: "research", label: "Nghiên cứu", children: ["research", "archetype", "rules", "backtest"] },
   { key: "simulation", label: "Mô phỏng", children: ["predict", "paper", "binanceHistory"] },

@@ -219,9 +219,12 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-09-research-evidence-v9";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-10-mbb-position-decision-v1";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
+  "2026-10-evidence-symbol-scope-v1",
+  "2026-10-instrument-catalog-v1",
+  "2026-09-research-evidence-v9",
   "2026-09-research-evidence-v3",
   "2026-09-research-evidence-v2",
   "2026-09-archetype-evidence",
@@ -343,6 +346,8 @@ export function safeApiErrorMessage(body: string, status: number): string {
       UNSUPPORTED_SYMBOL: "Tài sản này chưa được hỗ trợ cho phân tích AI.",
       GAP_NOT_FOUND: "Gap dữ liệu không còn tồn tại.",
       GAP_ALREADY_FILLED: "Gap dữ liệu này đã được lấp; không cần retry.",
+      CONDITIONS_SOURCE_UNAVAILABLE: "Nguồn phân tích điều kiện (AI service) tạm thời không khả dụng.",
+      CONDITIONS_PAYLOAD_INVALID: "Dữ liệu điều kiện hiện tại từ nguồn phân tích không hợp lệ.",
     };
     if (typeof payload.code === "string" && knownMessages[payload.code]) {
       return knownMessages[payload.code];

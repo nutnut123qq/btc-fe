@@ -11,6 +11,15 @@ import { parseTechnicalReplayEnvelope } from "./technicalReplay";
 import { parseTechnicalEvidenceCoverage, parseTechnicalEvidenceRebuildResult } from "./technicalEvidenceAdmin";
 import { parseCausalSmartMoneyCoverage, parseCausalSmartMoneyRebuildResult } from "./causalSmartMoneyAdmin";
 import { parseKlineDataIssues, parseKlineDataRepair } from "./dataQuality";
+import {
+  isMbbTimeframe,
+  parseMbbCandles,
+  parseMbbCoverageReport,
+  parseMbbDecision,
+  parseMbbPosition,
+  type MbbTimeframe,
+  type UpdateMbbPositionRequest,
+} from "./mbb";
 
 const API_BASE = "";
 
@@ -1374,4 +1383,63 @@ export async function getTechSummary(symbol = "BTCUSDT", interval = DEFAULT_TIME
   const params = new URLSearchParams({ symbol, interval, limit: String(limit) });
   const res = await fetch(`${API_BASE}/api/market/btc/tech-summary?${params}`);
   return getJson(res);
+}
+
+// --- MBB (HOSE equity lane, MBB-06) ---
+// Dedicated /api/mbb/* routes — the global symbol gate rejects `symbol` args for
+// disabled instruments, so none of these calls carry a symbol parameter.
+
+export async function getMbbCandles({
+  timeframe,
+  limit = 500,
+  endTimeMs,
+  signal,
+}: {
+  timeframe: MbbTimeframe;
+  limit?: number;
+  endTimeMs?: number;
+  signal?: AbortSignal;
+}) {
+  if (!isMbbTimeframe(timeframe)) {
+    throw new Error("Timeframe MBB không hợp lệ (chỉ hỗ trợ 1h/1d).");
+  }
+  const params = new URLSearchParams({ timeframe, limit: String(limit) });
+  if (endTimeMs != null) params.set("endTimeMs", String(endTimeMs));
+  const res = await fetch(`${API_BASE}/api/mbb/candles?${params}`, { signal, cache: "no-store" });
+  return parseMbbCandles(await getJson(res));
+}
+
+/** MBB current conditions — same envelope as /api/research/current-conditions; 502 when the AI source is down. */
+export async function getMbbConditions(timeframe: MbbTimeframe, signal?: AbortSignal) {
+  if (!isMbbTimeframe(timeframe)) {
+    throw new Error("Timeframe MBB không hợp lệ (chỉ hỗ trợ 1h/1d).");
+  }
+  const params = new URLSearchParams({ timeframe });
+  const res = await fetch(`${API_BASE}/api/mbb/conditions?${params}`, { signal, cache: "no-store" });
+  return parseCurrentConditionsResponse(await getJson(res));
+}
+
+export async function getMbbDecision(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/mbb/decision`, { signal, cache: "no-store" });
+  return parseMbbDecision(await getJson(res));
+}
+
+export async function getMbbPosition(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/mbb/position`, { signal, cache: "no-store" });
+  return parseMbbPosition(await getJson(res));
+}
+
+/** Full-replacement position write (AdminGuard). The body IS the desired state — idempotent. */
+export async function putMbbPosition(body: UpdateMbbPositionRequest) {
+  const res = await adminFetch(`${API_BASE}/api/mbb/position`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return parseMbbPosition(await getJson(res));
+}
+
+export async function getMbbDataQuality(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/mbb/data-quality`, { signal, cache: "no-store" });
+  return parseMbbCoverageReport(await getJson(res));
 }

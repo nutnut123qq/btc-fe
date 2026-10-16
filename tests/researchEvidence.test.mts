@@ -266,6 +266,54 @@ test("detail ignores keys absent from the emitted research-evidence contract", (
   assert.equal(parsed.protocol?.version, "v1");
 });
 
+test("catalog accepts known non-BTC instrument evidence and the ALL scope marker", () => {
+  const mbbItem = { ...item, id: "e".repeat(64), symbol: "MBB", timeframe: "1d" };
+  const parsed = parseResearchEvidenceCatalog({
+    contractVersion: "v1",
+    generatedAtUtc: "2026-09-21T00:00:00Z",
+    symbol: "ALL",
+    integrity: { ...catalogIntegrity, scannedArtifactCount: 2, publishedArtifactCount: 2 },
+    items: [item, mbbItem],
+  });
+  assert.equal(parsed.items[1].symbol, "MBB");
+  assert.equal(parsed.items[1].timeframe, "1d");
+
+  const mbbOnly = parseResearchEvidenceCatalog({
+    contractVersion: "v1",
+    generatedAtUtc: "2026-09-21T00:00:00Z",
+    symbol: "MBB",
+    integrity: catalogIntegrity,
+    items: [mbbItem],
+  });
+  assert.equal(mbbOnly.items[0].symbol, "MBB");
+});
+
+test("catalog tolerates per-symbol pipeline entries", () => {
+  const pipeline = {
+    symbol: "MBB",
+    state: "succeeded",
+    integrityVerified: true,
+    running: false,
+    locked: false,
+    lastStartedAtUtc: null,
+    lastSucceededAtUtc: "2026-09-21T00:05:00Z",
+    lastFailedAtUtc: null,
+    lastError: null,
+    updatedAtUtc: "2026-09-21T00:05:00Z",
+    staleAfterUtc: "2026-09-22T00:05:00Z",
+    timeframes: [{ timeframe: "1d", cutoffMs: 1_800_000_000_000, manifestSha256: "d".repeat(64), stored: 10, eligible: 8, excluded: 2, realizedAtMaxHorizon: 7, definitionsSha256: "e".repeat(64), semanticVerification: true }],
+  };
+  const parsed = parseResearchEvidenceCatalog({
+    contractVersion: "v1",
+    generatedAtUtc: "2026-09-21T00:00:00Z",
+    symbol: "ALL",
+    integrity: catalogIntegrity,
+    items: [item],
+    pipelines: [pipeline],
+  });
+  assert.equal(parsed.pipeline, null);
+});
+
 test("catalog rejects non-BTC evidence and duplicate ids", () => {
   assert.throws(() => parseResearchEvidenceCatalog({
     contractVersion: "v1",
@@ -281,4 +329,11 @@ test("catalog rejects non-BTC evidence and duplicate ids", () => {
     integrity: catalogIntegrity,
     items: [item, item],
   }), /duplicate/);
+  assert.throws(() => parseResearchEvidenceCatalog({
+    contractVersion: "v1",
+    generatedAtUtc: "2026-09-21T00:00:00Z",
+    symbol: "ETHUSDT",
+    integrity: catalogIntegrity,
+    items: [item],
+  }), /BTCUSDT/);
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FileCheck2, ShieldCheck } from "lucide-react";
 import { BinanceTradingScreen } from "./BinanceTradingScreen";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -23,10 +24,16 @@ export function MarketScreen({ onOpenEvidence }: Props) {
         <p className="hidden min-w-0 flex-1 truncate text-xs text-slate-400 lg:block">
           BTCUSDT 1h/4h/1d từ nến đã đóng, cùng nguồn, cùng mốc as-of · snapshot legacy chưa kiểm chứng point-in-time đã bị cách ly
         </p>
+        <Link
+          href="/mbb"
+          className="ml-auto inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded border border-slate-700 bg-slate-950 px-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 lg:ml-0"
+        >
+          MBB · HOSE →
+        </Link>
         <button
           type="button"
           onClick={onOpenEvidence}
-          className="ml-auto inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded border border-teal-500/40 bg-teal-500/10 px-2.5 text-xs font-medium text-teal-300 transition-colors hover:bg-teal-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 lg:ml-0"
+          className="inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded border border-teal-500/40 bg-teal-500/10 px-2.5 text-xs font-medium text-teal-300 transition-colors hover:bg-teal-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
         >
           <FileCheck2 className="h-3.5 w-3.5" aria-hidden="true" />
           Mở Evidence Center

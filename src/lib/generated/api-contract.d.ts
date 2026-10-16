@@ -194,6 +194,7 @@ export interface paths {
             parameters: {
                 query?: {
                     includeArchived?: boolean;
+                    skip?: number;
                     take?: number;
                     unreadOnly?: boolean;
                     userId?: string;
@@ -1153,6 +1154,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/discovery/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    take?: number;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/discovery/volume-stats": {
         parameters: {
             query?: never;
@@ -2099,6 +2137,43 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/instruments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InstrumentsResponse"];
+                        "text/json": components["schemas"]["InstrumentsResponse"];
+                        "text/plain": components["schemas"]["InstrumentsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3213,6 +3288,548 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mbb/admin/backfill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    timeframe?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbTimeframeSync"];
+                        "text/json": components["schemas"]["MbbTimeframeSync"];
+                        "text/plain": components["schemas"]["MbbTimeframeSync"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/admin/observe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ObserveReport"];
+                        "text/json": components["schemas"]["ObserveReport"];
+                        "text/plain": components["schemas"]["ObserveReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/admin/recompute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                        "text/json": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                        "text/plain": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/admin/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbSyncReport"];
+                        "text/json": components["schemas"]["MbbSyncReport"];
+                        "text/plain": components["schemas"]["MbbSyncReport"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/candles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    endTimeMs?: number;
+                    limit?: number;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbCandleDto"][];
+                        "text/json": components["schemas"]["MbbCandleDto"][];
+                        "text/plain": components["schemas"]["MbbCandleDto"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/data-quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbCoverageReport"];
+                        "text/json": components["schemas"]["MbbCoverageReport"];
+                        "text/plain": components["schemas"]["MbbCoverageReport"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbDecisionDto"];
+                        "text/json": components["schemas"]["MbbDecisionDto"];
+                        "text/plain": components["schemas"]["MbbDecisionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    take?: number;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbObservationDto"][];
+                        "text/json": components["schemas"]["MbbObservationDto"][];
+                        "text/plain": components["schemas"]["MbbObservationDto"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mbb/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbPositionDto"];
+                        "text/json": components["schemas"]["MbbPositionDto"];
+                        "text/plain": components["schemas"]["MbbPositionDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["UpdateMbbPositionRequest"];
+                    "application/json": components["schemas"]["UpdateMbbPositionRequest"];
+                    "text/json": components["schemas"]["UpdateMbbPositionRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbPositionDto"];
+                        "text/json": components["schemas"]["MbbPositionDto"];
+                        "text/plain": components["schemas"]["MbbPositionDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/meta": {
         parameters: {
             query?: never;
@@ -4004,6 +4621,64 @@ export interface paths {
                         "application/json": components["schemas"]["TechnicalCapabilitiesResponse"];
                         "text/json": components["schemas"]["TechnicalCapabilitiesResponse"];
                         "text/plain": components["schemas"]["TechnicalCapabilitiesResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/current-conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    symbol?: string;
+                    timeframe?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
                     };
                 };
             };
@@ -5169,6 +5844,14 @@ export interface components {
             startOpenTimeMs?: number;
             status?: string | null;
         };
+        CandleGapRange: {
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            /** Format: int64 */
+            missingBars?: number;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+        };
         CandlePatternEventDto: {
             /** Format: int64 */
             availableTimeMs?: number;
@@ -5678,6 +6361,38 @@ export interface components {
             reason?: string | null;
             status?: string | null;
         };
+        InstrumentCapabilities: {
+            execution?: boolean;
+            futures?: boolean;
+            liquidation?: boolean;
+            news?: boolean;
+            orderBook?: boolean;
+            paperTrading?: boolean;
+            sentiment?: boolean;
+            technicalAnalysis?: boolean;
+        };
+        InstrumentDescriptor: {
+            activeTimeframes: string[];
+            aliases: string[];
+            assetClass: string;
+            capabilities: components["schemas"]["InstrumentCapabilities"];
+            crossCheckDataProvider?: string | null;
+            currency: string;
+            dataProvider: string;
+            defaultTimeframe: string;
+            enabled?: boolean;
+            label: string;
+            priceBasis: string;
+            symbol: string;
+            timezone: string;
+            venue: string;
+        };
+        InstrumentsResponse: {
+            contractVersion: string;
+            /** Format: date-time */
+            generatedAtUtc: string;
+            items: components["schemas"]["InstrumentDescriptor"][];
+        };
         KlineDataIssueDto: {
             /** Format: int64 */
             actualDurationMs?: number | null;
@@ -5946,6 +6661,255 @@ export interface components {
             /** Format: int64 */
             timeMs?: number;
         };
+        MbbBuyMoreCapacity: {
+            /** Format: double */
+            estimatedCostVnd: number;
+            /** Format: int32 */
+            maxBuyableLots: number;
+            /** Format: int32 */
+            maxBuyableShares: number;
+        };
+        MbbCandleDto: {
+            /** Format: double */
+            close?: number;
+            /** Format: int64 */
+            closeTimeMs?: number;
+            /** Format: double */
+            high?: number;
+            /** Format: double */
+            low?: number;
+            /** Format: double */
+            open?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            quoteVolume?: number | null;
+            /** Format: double */
+            takerBuyQuoteVolume?: number | null;
+            /** Format: double */
+            takerBuyVolume?: number | null;
+            timeIso?: string | null;
+            /** Format: int32 */
+            tradeCount?: number | null;
+            /** Format: double */
+            volume?: number;
+        };
+        MbbCoverageReport: {
+            crossCheckProvider?: string | null;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            limitations?: string[] | null;
+            priceBasis?: string | null;
+            provider?: string | null;
+            sourceTimezone?: string | null;
+            symbol?: string | null;
+            timeframes?: components["schemas"]["MbbTimeframeCoverage"][] | null;
+            venue?: string | null;
+        };
+        MbbDecisionDto: {
+            action: string;
+            buyMore?: components["schemas"]["MbbBuyMoreCapacity"];
+            dataFreshness: components["schemas"]["MbbTimeframeFreshness"][];
+            evidenceStatus: string;
+            /** Format: date-time */
+            generatedAtUtc: string;
+            invalidation?: string | null;
+            market: components["schemas"]["MbbMarketContext"];
+            position: components["schemas"]["MbbPositionSummary"];
+            priceBasis: string;
+            reasons: string[];
+            symbol: string;
+            triggers: components["schemas"]["MbbDecisionTrigger"][];
+        };
+        MbbDecisionTrigger: {
+            condition: string;
+            name: string;
+            nonFillRisk?: string | null;
+            /** Format: double */
+            priceLevelVnd?: number | null;
+            timeframe: string;
+            withinPriceBand?: boolean | null;
+        };
+        MbbMarketContext: {
+            /** Format: double */
+            atr14?: number | null;
+            /** Format: double */
+            ceilingPriceVnd?: number | null;
+            /** Format: double */
+            ema50?: number | null;
+            /** Format: double */
+            floorPriceVnd?: number | null;
+            /** Format: double */
+            lastDailyCloseVnd?: number | null;
+            /** Format: double */
+            latestHourlyCloseVnd?: number | null;
+            /** Format: double */
+            previousDailyCloseVnd?: number | null;
+            /** Format: double */
+            rsi14?: number | null;
+            rsiZone: string;
+            /** Format: double */
+            sma50?: number | null;
+            trend: string;
+        };
+        MbbObservationDto: {
+            decision?: string | null;
+            decisionId?: string | null;
+            evidenceStatus?: string | null;
+            /** Format: int64 */
+            fillBarOpenTimeMs?: number | null;
+            /** Format: date-time */
+            fillObservedAtUtc?: string | null;
+            /** Format: double */
+            fillPrice?: number | null;
+            fillSource?: string | null;
+            /** Format: double */
+            marketCloseVnd?: number | null;
+            /** Format: date-time */
+            observedAtUtc?: string;
+            outcomeHorizon?: string | null;
+            /** Format: date-time */
+            outcomeObservedAtUtc?: string | null;
+            /** Format: double */
+            outcomeReturn?: number | null;
+            priceBasis?: string | null;
+            recorderVersion?: string | null;
+            /** Format: int64 */
+            signalBarCloseTimeMs?: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number;
+            timeframe?: string | null;
+        };
+        MbbPositionDto: {
+            /** Format: double */
+            availableCashVnd: number;
+            /** Format: double */
+            avgCostPerShareVnd?: number | null;
+            lots: components["schemas"]["MbbPositionLotDto"][];
+            /** Format: int32 */
+            pendingShares: number;
+            /** Format: int32 */
+            settledShares: number;
+            symbol: string;
+            /** Format: int32 */
+            totalShares: number;
+            /** Format: date-time */
+            updatedAtUtc?: string | null;
+        };
+        MbbPositionLotDto: {
+            acquireDate: string;
+            /** Format: double */
+            costPerShareVnd: number;
+            /** Format: int64 */
+            id: number;
+            /** Format: int32 */
+            quantity: number;
+            settled: boolean;
+            settleDate: string;
+            source: string;
+        };
+        MbbPositionSummary: {
+            /** Format: double */
+            avgCostPerShareVnd?: number | null;
+            /** Format: double */
+            lastPriceVnd?: number | null;
+            /** Format: double */
+            netProceedsIfSellableNowVnd?: number | null;
+            /** Format: int32 */
+            pendingShares: number;
+            /** Format: int32 */
+            sellableSharesNow: number;
+            /** Format: int32 */
+            settledShares: number;
+            /** Format: int32 */
+            totalShares: number;
+            /** Format: double */
+            unrealizedPnlPct?: number | null;
+            /** Format: double */
+            unrealizedPnlVnd?: number | null;
+        };
+        MbbRecomputeModuleResult: {
+            detail?: string | null;
+            module?: string | null;
+            /** Format: int32 */
+            rowsWritten?: number;
+            status?: string | null;
+        };
+        MbbSyncReport: {
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            status?: string | null;
+            symbol?: string | null;
+            timeframes?: components["schemas"]["MbbTimeframeSync"][] | null;
+        };
+        MbbTechnicalRecomputeReport: {
+            /** Format: int32 */
+            candleCount?: number;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            modules?: components["schemas"]["MbbRecomputeModuleResult"][] | null;
+            status?: string | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        MbbTimeframeCoverage: {
+            /** Format: double */
+            coveragePct?: number;
+            /** Format: int64 */
+            expectedBars?: number;
+            /** Format: date-time */
+            firstOpenUtc?: string | null;
+            /** Format: int64 */
+            gapRangeCount?: number;
+            /** Format: int64 */
+            invalidOhlcvRows?: number;
+            isStale?: boolean;
+            /** Format: date-time */
+            lastOpenUtc?: string | null;
+            /** Format: int64 */
+            latestBarAgeSeconds?: number | null;
+            /** Format: date-time */
+            latestExpectedFinalizedOpenUtc?: string | null;
+            /** Format: int64 */
+            missingBars?: number;
+            timeframe?: string | null;
+            topGaps?: components["schemas"]["CandleGapRange"][] | null;
+            /** Format: int64 */
+            totalBars?: number;
+            /** Format: int64 */
+            unexpectedSessionBars?: number;
+            unexpectedSessionOpenTimeMs?: number[] | null;
+        };
+        MbbTimeframeFreshness: {
+            isStale: boolean;
+            /** Format: int64 */
+            latestExpectedFinalizedOpenMs?: number | null;
+            /** Format: int64 */
+            latestOpenTimeMs?: number | null;
+            timeframe: string;
+        };
+        MbbTimeframeSync: {
+            error?: string | null;
+            /** Format: int32 */
+            fetchedBars?: number;
+            /** Format: int32 */
+            fetchedRequests?: number;
+            /** Format: int32 */
+            gapRangesProcessed?: number;
+            /** Format: int32 */
+            gapRangesRemaining?: number;
+            /** Format: int32 */
+            insertedBars?: number;
+            /** Format: int64 */
+            missingExpectedBars?: number;
+            /** Format: int32 */
+            rejectedInvalidBars?: number;
+            /** Format: int32 */
+            skippedFormingBars?: number;
+            timeframe?: string | null;
+            /** Format: int32 */
+            updatedBars?: number;
+        };
         MetaResponse: {
             apiContractVersion?: string | null;
             appVersion?: string | null;
@@ -5962,6 +6926,19 @@ export interface components {
             maxDate?: string | null;
             /** Format: date-time */
             minDate?: string | null;
+        };
+        ObserveReport: {
+            decision?: string | null;
+            decisionId?: string | null;
+            detail?: string | null;
+            /** Format: int32 */
+            fillsResolved?: number;
+            /** Format: int32 */
+            outcomesResolved?: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number | null;
+            status?: string | null;
+            timeframe?: string | null;
         };
         OrderBookDepthDto: {
             asks?: components["schemas"]["OrderBookEntryDto"][] | null;
@@ -6126,6 +7103,7 @@ export interface components {
             integrity: components["schemas"]["EvidenceIntegritySummaryDto"];
             items: components["schemas"]["ResearchEvidenceCatalogItemDto"][];
             pipeline?: components["schemas"]["ResearchEvidencePipelineStatusDto"];
+            pipelines?: components["schemas"]["ResearchEvidencePipelineStatusDto"][] | null;
             symbol: string;
         };
         ResearchEvidenceCoverageDto: {
@@ -6156,6 +7134,7 @@ export interface components {
             /** Format: date-time */
             createdAtUtc?: string | null;
             dataset: components["schemas"]["ResearchEvidenceDatasetDto"];
+            eventTypeDetail?: unknown;
             evidenceProfiles?: unknown;
             evidenceTier: string;
             findings: components["schemas"]["ResearchEvidenceFindingDto"][];
@@ -6168,7 +7147,9 @@ export interface components {
             metrics: components["schemas"]["ResearchEvidenceMetricDto"][];
             protocol: components["schemas"]["ResearchEvidenceProtocolDto"];
             provenance: components["schemas"]["ResearchEvidenceProvenanceDto"];
+            reportExclusions?: unknown;
             reportSha256: string;
+            sensitivityAudit?: unknown;
             statisticalEvidence?: unknown;
             status: string;
             summary: string;
@@ -6214,6 +7195,7 @@ export interface components {
             /** Format: date-time */
             staleAfterUtc?: string | null;
             state: string;
+            symbol: string;
             timeframes: components["schemas"]["ResearchEvidencePipelineTimeframeStatusDto"][];
             /** Format: date-time */
             updatedAtUtc?: string | null;
@@ -6658,6 +7640,18 @@ export interface components {
             topTransitions?: components["schemas"]["ArchetypeTransitionDto"][] | null;
             validated?: boolean;
         };
+        UpdateMbbPositionLotItem: {
+            acquireDate: string;
+            /** Format: double */
+            costPerShareVnd: number;
+            /** Format: int32 */
+            quantity: number;
+        };
+        UpdateMbbPositionRequest: {
+            /** Format: double */
+            availableCashVnd: number;
+            lots: components["schemas"]["UpdateMbbPositionLotItem"][];
+        };
         UpdatePriceAlertSettingsDto: {
             /** Format: int32 */
             cooldownMinutes?: number;
@@ -6736,6 +7730,10 @@ export interface components {
         WorkerHealth: {
             /** Format: int64 */
             ageSeconds?: number | null;
+            /** Format: int32 */
+            attempted?: number | null;
+            /** Format: int32 */
+            failed?: number | null;
             /** Format: int64 */
             lastDurationMs?: number | null;
             /** Format: date-time */
@@ -6748,7 +7746,13 @@ export interface components {
             maxAgeSeconds?: number;
             message?: string | null;
             name?: string | null;
+            /** Format: int32 */
+            remaining?: number | null;
+            /** Format: int32 */
+            skipped?: number | null;
             status?: string | null;
+            /** Format: int32 */
+            succeeded?: number | null;
         };
         WorkerHealthResponse: {
             /** Format: date-time */
