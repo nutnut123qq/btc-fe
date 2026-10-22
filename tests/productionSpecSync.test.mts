@@ -18,6 +18,8 @@ const component = (name: string) =>
 const productionSpec = spec("production.spec.ts");
 const researchSpec = spec("research-evidence.spec.ts");
 const conditionsSpec = spec("current-conditions.spec.ts");
+const equityLiveSpec = spec("equity-live.spec.ts");
+const equityV2LiveSpec = spec("equity-v2-live.spec.ts");
 
 // specNeedle = raw bytes the spec file must contain (regex source kept as
 // written, backslashes included); componentNeedle = regex the component source
@@ -210,6 +212,34 @@ const pins: Array<{
     componentPath: "CurrentConditionsPanel.tsx",
     componentNeedle: /title=\{ref\}[^>]*>\{moduleRefLabel\(ref\)\}/,
   },
+
+  // equity-live.spec.ts — /co-phieu live-stack markers (EQX-C3, env-skip)
+  { specSource: equityLiveSpec, specNeedle: "Chọn mã cổ phiếu", componentPath: "EquityScreen.tsx", componentNeedle: /aria-label="Chọn mã cổ phiếu"/ },
+  { specSource: equityLiveSpec, specNeedle: '"Khung thời gian BID"', componentPath: "EquityScreen.tsx", componentNeedle: /aria-label=\{`Khung thời gian \$\{symbol\}`\}/ },
+  { specSource: equityLiveSpec, specNeedle: '"BID — BIDV"', componentPath: "EquityScreen.tsx", componentNeedle: /\{symbol\} — \{profile\.name\}/ },
+  { specSource: equityLiveSpec, specNeedle: '"BID — BIDV"', componentPath: "../lib/equity.ts", componentNeedle: /name: "BIDV"/ },
+  { specSource: equityLiveSpec, specNeedle: "chưa kiểm định \\/ unvalidated", componentPath: "EquityResearchPanels.tsx", componentNeedle: /chưa kiểm định \/ unvalidated/ },
+  { specSource: equityLiveSpec, specNeedle: '"chưa qua gate"', componentPath: "EquityResearchPanels.tsx", componentNeedle: /"chưa qua gate"/ },
+  { specSource: equityLiveSpec, specNeedle: '"chưa đáo hạn"', componentPath: "EquityJournalPanels.tsx", componentNeedle: />chưa đáo hạn</ },
+  { specSource: equityLiveSpec, specNeedle: "Lớp LLM trong app đã ngừng", componentPath: "EquityJournalPanels.tsx", componentNeedle: /Lớp LLM trong app đã ngừng/ },
+  { specSource: equityLiveSpec, specNeedle: '"Nhật ký quan sát MBB (1h)"', componentPath: "EquityResearchPanels.tsx", componentNeedle: /Nhật ký quan sát \{symbol\} \(\{timeframe\}\)/ },
+  { specSource: equityLiveSpec, specNeedle: "Điều kiện hiện tại chưa khả dụng", componentPath: "EquityScreen.tsx", componentNeedle: /Điều kiện hiện tại chưa khả dụng/ },
+  { specSource: equityLiveSpec, specNeedle: '"Lưu vị thế"', componentPath: "EquityScreen.tsx", componentNeedle: /"Lưu vị thế"/ },
+  { specSource: equityLiveSpec, specNeedle: "Đã lưu vị thế", componentPath: "EquityScreen.tsx", componentNeedle: /Đã lưu vị thế/ },
+  { specSource: equityLiveSpec, specNeedle: "· chưa validated", componentPath: "EquityScreen.tsx", componentNeedle: /· chưa validated/ },
+  { specSource: equityLiveSpec, specNeedle: '"+ Thêm lô"', componentPath: "EquityScreen.tsx", componentNeedle: /\+ Thêm lô/ },
+  { specSource: equityLiveSpec, specNeedle: '"Mở khóa"', componentPath: "SessionAccessPanel.tsx", componentNeedle: /Mở khóa/ },
+  { specSource: equityLiveSpec, specNeedle: '"Khóa lại"', componentPath: "SessionAccessPanel.tsx", componentNeedle: /Khóa lại/ },
+  { specSource: equityLiveSpec, specNeedle: "Dữ liệu thị trường realtime", componentPath: "BinanceTradingScreen.tsx", componentNeedle: /Dữ liệu thị trường realtime/ },
+  { specSource: equityLiveSpec, specNeedle: "Stored finalized Binance Spot klines", componentPath: "BinanceTradingScreen.tsx", componentNeedle: /Stored finalized Binance Spot klines/ },
+
+  // equity-v2-live.spec.ts — EQX v2 live markers (env-skip)
+  { specSource: equityV2LiveSpec, specNeedle: '"BID — BIDV"', componentPath: "EquityScreen.tsx", componentNeedle: /\{symbol\} — \{profile\.name\}/ },
+  { specSource: equityV2LiveSpec, specNeedle: "Lớp LLM trong app đã ngừng", componentPath: "EquityJournalPanels.tsx", componentNeedle: /Lớp LLM trong app đã ngừng/ },
+  { specSource: equityV2LiveSpec, specNeedle: "Quỹ tiền mặt chung (MBB + BID)", componentPath: "EquityScreen.tsx", componentNeedle: /Quỹ tiền mặt chung \(MBB \+ BID\)/ },
+  { specSource: equityV2LiveSpec, specNeedle: '"Lưu vị thế"', componentPath: "EquityScreen.tsx", componentNeedle: /"Lưu vị thế"/ },
+  { specSource: equityV2LiveSpec, specNeedle: "Đã lưu vị thế", componentPath: "EquityScreen.tsx", componentNeedle: /Đã lưu vị thế/ },
+  { specSource: equityV2LiveSpec, specNeedle: "quỹ tiền mặt chung", componentPath: "../lib/apiContract.ts", componentNeedle: /CASH_UNKNOWN: "Chưa nhập quỹ tiền mặt chung/ },
 ];
 
 test("openMainTab resolves the nav container that is visible per viewport", () => {

@@ -34,6 +34,7 @@ import type { ApiContractState } from "@/lib/apiContract";
 
 const TABS = [
   { key: "market", label: "BTC/USDT", icon: LineChart },
+  { key: "equity", label: "Cổ phiếu", icon: Landmark },
   { key: "mbb", label: "MBB", icon: Landmark },
   { key: "archetype", label: "Mẫu nến", icon: Shapes },
   { key: "news", label: "Tin tức", icon: Newspaper },
@@ -56,6 +57,7 @@ const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
 // Real per-screen routes — the URL is the source of truth for activeTab.
 export const TAB_PATH: Record<TabKey, string> = {
   market: "/",
+  equity: "/co-phieu",
   mbb: "/mbb",
   archetype: "/mau-nen",
   news: "/tin-tuc",
@@ -77,7 +79,7 @@ const PATH_TAB: ReadonlyMap<string, TabKey> = new Map(
 // tab is always visible directly below the header (desktop inline nav +
 // mobile bottom bar share the same derived strip).
 const NAV_GROUPS = [
-  { key: "market", label: "Thị trường", children: ["market", "mbb"] },
+  { key: "market", label: "Thị trường", children: ["market", "equity", "mbb"] },
   { key: "newsAi", label: "Tin tức & AI", children: ["news", "ai"] },
   { key: "research", label: "Nghiên cứu", children: ["research", "archetype", "rules", "backtest"] },
   { key: "simulation", label: "Mô phỏng", children: ["predict", "paper", "binanceHistory"] },

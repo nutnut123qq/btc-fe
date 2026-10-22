@@ -202,6 +202,7 @@ const ALLOWED_SHELL_PATHS = new Set([
   "/api/meta",
   "/api/ai-chat/capabilities",
   "/api/alerts/unread-count",
+  "/api/instruments",
 ]);
 
 type Mocks = { conditionsStatus?: number };
@@ -256,15 +257,21 @@ async function mockBackend(page: Page, requests: string[], mocks: Mocks = {}): P
     }
     // Personal-data reads are AdminGuard'd like the write — the mock mirrors
     // the real contract so the page can only reach them through the session key.
-    if (path === "/api/mbb/decision" || path === "/api/mbb/position") {
+    if (path === "/api/mbb/decision" || path === "/api/mbb/position" || path === "/api/mbb/observations") {
       if (route.request().headers()["x-admin-key"] !== "e2e-admin") {
         return route.fulfill(json({
           code: "UNAUTHORIZED", message: "Missing or invalid admin key.", retryable: false, requestId: "e2e",
         }, 401));
       }
       if (path === "/api/mbb/decision") return route.fulfill(json(DECISION));
+      if (path === "/api/mbb/observations") return route.fulfill(json([]));
     }
     if (path === "/api/mbb/data-quality") return route.fulfill(json(COVERAGE));
+    // EQX new-only surfaces (base-rates/context) — this suite models a backend
+    // without them; the shared equity screen must degrade to "unavailable".
+    if (path.startsWith("/api/equities/MBB/")) {
+      return route.fulfill({ status: 404, contentType: "text/plain", body: "Not Found" });
+    }
     if (path === "/api/mbb/position") {
       if (route.request().method() === "PUT") {
         const body = route.request().postDataJSON() as { lots: unknown[]; availableCashVnd: number };
@@ -321,7 +328,7 @@ test.describe("/mbb lane", () => {
     expect(apiPaths).toContain("/api/mbb/position");
     expect(apiPaths).toContain("/api/mbb/data-quality");
     for (const path of apiPaths) {
-      const allowed = ALLOWED_SHELL_PATHS.has(path) || path.startsWith("/api/mbb/");
+      const allowed = ALLOWED_SHELL_PATHS.has(path) || path.startsWith("/api/mbb/") || path.startsWith("/api/equities/MBB/");
       expect(allowed, `unexpected API request on /mbb: ${path}`).toBe(true);
     }
     await page.waitForTimeout(500);
@@ -384,11 +391,15 @@ test.describe("/mbb lane", () => {
     await expect(page.getByTestId("mbb-position-locked")).toBeVisible();
     // Public lanes still render.
     await expect(page.getByText("Chất lượng dữ liệu")).toBeVisible();
+    // Give a wrongly fired request time to be recorded before asserting its absence.
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1_000);
 
     const apiPaths = requests.map((r) => r.split(" ")[1].split("?")[0]);
     expect(apiPaths).toContain("/api/mbb/candles");
     expect(apiPaths).not.toContain("/api/mbb/decision");
     expect(apiPaths).not.toContain("/api/mbb/position");
+    expect(apiPaths).not.toContain("/api/mbb/observations");
     await page.waitForTimeout(500);
     expect(errors).toEqual([]);
   });

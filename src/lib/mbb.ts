@@ -21,6 +21,18 @@ export const MBB_TIMEFRAMES = (getInstrument(MBB_SYMBOL)?.activeTimeframes ?? []
 export type MbbTimeframe = "1h" | "1d";
 export const MBB_DEFAULT_TIMEFRAME: MbbTimeframe = "1d";
 
+/**
+ * Parse scope for the shared equity DTO shapes (EQX: /api/equities/{symbol}/* reuses
+ * the /api/mbb/* DTOs). Defaults to MBB so existing callers keep their contract;
+ * BID passes its own symbol + 1d-only timeframes so a 1h row is rejected.
+ */
+export interface EquityParseScope {
+  symbol: string;
+  timeframes: readonly string[];
+}
+
+export const MBB_PARSE_SCOPE: EquityParseScope = { symbol: MBB_SYMBOL, timeframes: MBB_TIMEFRAMES };
+
 export function isMbbTimeframe(value: unknown): value is MbbTimeframe {
   return typeof value === "string" && isTimeframeActiveFor(MBB_SYMBOL, value);
 }
@@ -79,6 +91,13 @@ export interface MbbPositionSummary {
   unrealizedPnlVnd: number | null;
   unrealizedPnlPct: number | null;
   netProceedsIfSellableNowVnd: number | null;
+  /**
+   * Additive (EQX): false = a corporate action since acquisition makes the real
+   * cost basis incomparable with adjusted prices — P&L is withheld (null).
+   * null = older backend without the field.
+   */
+  costBasisComparable: boolean | null;
+  costBasisNote: string | null;
 }
 
 export interface MbbBuyMoreCapacity {
@@ -140,9 +159,24 @@ export interface MbbPosition {
   settledShares: number;
   pendingShares: number;
   avgCostPerShareVnd: number | null;
+  /** Legacy per-symbol cash (EQX v2 A3: never purchasing power once the shared pool is reported). */
   availableCashVnd: number;
   updatedAtUtc: string | null;
   lots: MbbPositionLot[];
+  /**
+   * EQX v2 A3 (additive): true when the backend reports the shared cash pool fields.
+   * false = older backend — sharedCashVnd/buyBudgetVnd/cashSource are then null and mean "not reported".
+   */
+  cashPoolReported: boolean;
+  /** One cash pool shared by MBB and BID; null = not entered yet (cash-unknown). */
+  sharedCashVnd: number | null;
+  /** Declared buy-more budget for THIS symbol; null = undeclared (no buy quantity is ever proposed). */
+  buyBudgetVnd: number | null;
+  cashSource: string | null;
+  /** Σ declared buy budgets over all symbols (shared-pool backend); null when not reported. */
+  totalDeclaredBudgetsVnd: number | null;
+  /** Backend explanations of the cash/budget state (untrusted text, shown as-is). */
+  cashNotes: string[];
 }
 
 export interface UpdateMbbPositionLotItem {
@@ -151,10 +185,14 @@ export interface UpdateMbbPositionLotItem {
   acquireDate: string;
 }
 
-export interface UpdateMbbPositionRequest {
-  lots: UpdateMbbPositionLotItem[];
-  availableCashVnd: number;
-}
+/**
+ * Older backend: per-symbol `availableCashVnd`. EQX v2 A3 backend: lots + `buyBudgetVnd`
+ * (cash lives in the shared pool, written by PUT /api/equities/cash — never sent here,
+ * since a position body's availableCashVnd would overwrite the shared pool).
+ */
+export type UpdateMbbPositionRequest =
+  | { lots: UpdateMbbPositionLotItem[]; availableCashVnd: number }
+  | { lots: UpdateMbbPositionLotItem[]; buyBudgetVnd: number | null };
 
 export interface MbbGapRange {
   startOpenTimeMs: number;
@@ -258,17 +296,17 @@ function integerArray(value: unknown, label: string): number[] {
   return value.map((item, index) => integer(item, `${label}[${index}]`));
 }
 
-function mbbTimeframe(value: unknown, label: string): MbbTimeframe {
+function mbbTimeframe(value: unknown, label: string, scope: EquityParseScope = MBB_PARSE_SCOPE): MbbTimeframe {
   const parsed = nonBlank(value, label);
-  if (!isMbbTimeframe(parsed)) {
-    throw new Error(`${ERR}: ${label} must be one of ${MBB_TIMEFRAMES.join("/")}; got "${parsed}"`);
+  if (!isMbbTimeframe(parsed) || !scope.timeframes.includes(parsed)) {
+    throw new Error(`${ERR}: ${label} must be one of ${scope.timeframes.join("/")}; got "${parsed}"`);
   }
   return parsed as MbbTimeframe;
 }
 
-function requireMbbSymbol(value: unknown, label: string): string {
+function requireMbbSymbol(value: unknown, label: string, scope: EquityParseScope = MBB_PARSE_SCOPE): string {
   const parsed = nonBlank(value, label);
-  if (parsed !== MBB_SYMBOL) throw new Error(`${ERR}: ${label} must be "${MBB_SYMBOL}"; got "${parsed}"`);
+  if (parsed !== scope.symbol) throw new Error(`${ERR}: ${label} must be "${scope.symbol}"; got "${parsed}"`);
   return parsed;
 }
 
@@ -348,15 +386,27 @@ function mbbPositionLot(value: unknown, index: number): MbbPositionLot {
   };
 }
 
-export function parseMbbPosition(value: unknown): MbbPosition {
+export function parseMbbPosition(value: unknown, scope: EquityParseScope = MBB_PARSE_SCOPE): MbbPosition {
   const source = object(value, "mbbPosition");
   requireKeys(source, "mbbPosition", [
     "symbol", "totalShares", "settledShares", "pendingShares", "avgCostPerShareVnd",
     "availableCashVnd", "updatedAtUtc", "lots",
   ]);
   if (!Array.isArray(source.lots)) throw new Error(`${ERR}: mbbPosition.lots must be an array`);
+  // Additive A3 fields (pitfall #30): absent ⇒ older backend, validated only when present.
+  const cashPoolReported = source.sharedCashVnd !== undefined || source.buyBudgetVnd !== undefined || source.cashSource !== undefined;
+  const sharedCashVnd = source.sharedCashVnd === undefined ? null : nullableFinite(source.sharedCashVnd, "mbbPosition.sharedCashVnd");
+  const buyBudgetVnd = source.buyBudgetVnd === undefined ? null : nullableFinite(source.buyBudgetVnd, "mbbPosition.buyBudgetVnd");
+  if (sharedCashVnd != null && sharedCashVnd < 0) throw new Error(`${ERR}: mbbPosition.sharedCashVnd must be >= 0`);
+  if (buyBudgetVnd != null && buyBudgetVnd < 0) throw new Error(`${ERR}: mbbPosition.buyBudgetVnd must be >= 0`);
   return {
-    symbol: requireMbbSymbol(source.symbol, "mbbPosition.symbol"),
+    cashPoolReported,
+    sharedCashVnd,
+    buyBudgetVnd,
+    cashSource: source.cashSource === undefined ? null : nullableNonBlank(source.cashSource, "mbbPosition.cashSource"),
+    totalDeclaredBudgetsVnd: source.totalDeclaredBudgetsVnd === undefined ? null : nullableFinite(source.totalDeclaredBudgetsVnd, "mbbPosition.totalDeclaredBudgetsVnd"),
+    cashNotes: Array.isArray(source.cashNotes) ? source.cashNotes.filter((n): n is string => typeof n === "string" && n.trim() !== "") : [],
+    symbol: requireMbbSymbol(source.symbol, "mbbPosition.symbol", scope),
     totalShares: integer(source.totalShares, "mbbPosition.totalShares"),
     settledShares: integer(source.settledShares, "mbbPosition.settledShares"),
     pendingShares: integer(source.pendingShares, "mbbPosition.pendingShares"),
@@ -369,13 +419,13 @@ export function parseMbbPosition(value: unknown): MbbPosition {
 
 // --- decision ---------------------------------------------------------------
 
-function decisionTrigger(value: unknown, index: number): MbbDecisionTrigger {
+function decisionTrigger(value: unknown, index: number, scope: EquityParseScope): MbbDecisionTrigger {
   const label = `mbbDecision.triggers[${index}]`;
   const source = object(value, label);
   requireKeys(source, label, ["name", "timeframe", "condition", "direction", "priceLevelVnd", "withinPriceBand", "nonFillRisk"]);
   return {
     name: nonBlank(source.name, `${label}.name`),
-    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`),
+    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`, scope),
     condition: nonBlank(source.condition, `${label}.condition`),
     direction: nullableNonBlank(source.direction, `${label}.direction`),
     priceLevelVnd: nullableFinite(source.priceLevelVnd, `${label}.priceLevelVnd`),
@@ -401,6 +451,8 @@ function positionSummary(value: unknown): MbbPositionSummary {
     unrealizedPnlVnd: nullableFinite(source.unrealizedPnlVnd, `${label}.unrealizedPnlVnd`),
     unrealizedPnlPct: nullableFinite(source.unrealizedPnlPct, `${label}.unrealizedPnlPct`),
     netProceedsIfSellableNowVnd: nullableFinite(source.netProceedsIfSellableNowVnd, `${label}.netProceedsIfSellableNowVnd`),
+    costBasisComparable: source.costBasisComparable === undefined ? null : nullableBool(source.costBasisComparable, `${label}.costBasisComparable`),
+    costBasisNote: source.costBasisNote === undefined ? null : nullableNonBlank(source.costBasisNote, `${label}.costBasisNote`),
   };
 }
 
@@ -439,19 +491,19 @@ function marketContext(value: unknown): MbbMarketContext {
   };
 }
 
-function timeframeFreshness(value: unknown, index: number): MbbTimeframeFreshness {
+function timeframeFreshness(value: unknown, index: number, scope: EquityParseScope): MbbTimeframeFreshness {
   const label = `mbbDecision.dataFreshness[${index}]`;
   const source = object(value, label);
   requireKeys(source, label, ["timeframe", "latestOpenTimeMs", "latestExpectedFinalizedOpenMs", "isStale"]);
   return {
-    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`),
+    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`, scope),
     latestOpenTimeMs: nullableInteger(source.latestOpenTimeMs, `${label}.latestOpenTimeMs`),
     latestExpectedFinalizedOpenMs: nullableInteger(source.latestExpectedFinalizedOpenMs, `${label}.latestExpectedFinalizedOpenMs`),
     isStale: bool(source.isStale, `${label}.isStale`),
   };
 }
 
-export function parseMbbDecision(value: unknown): MbbDecision {
+export function parseMbbDecision(value: unknown, scope: EquityParseScope = MBB_PARSE_SCOPE): MbbDecision {
   const source = object(value, "mbbDecision");
   requireKeys(source, "mbbDecision", [
     "symbol", "action", "reasons", "triggers", "invalidation", "position", "buyMore",
@@ -469,17 +521,17 @@ export function parseMbbDecision(value: unknown): MbbDecision {
   if (!Array.isArray(source.triggers)) throw new Error(`${ERR}: mbbDecision.triggers must be an array`);
   if (!Array.isArray(source.dataFreshness)) throw new Error(`${ERR}: mbbDecision.dataFreshness must be an array`);
   return {
-    symbol: requireMbbSymbol(source.symbol, "mbbDecision.symbol"),
+    symbol: requireMbbSymbol(source.symbol, "mbbDecision.symbol", scope),
     action: action as MbbDecisionAction,
     reasons: stringArray(source.reasons, "mbbDecision.reasons"),
-    triggers: source.triggers.map(decisionTrigger),
+    triggers: source.triggers.map((item, index) => decisionTrigger(item, index, scope)),
     invalidation: nullableNonBlank(source.invalidation, "mbbDecision.invalidation"),
     position: positionSummary(source.position),
     buyMore: buyMoreCapacity(source.buyMore),
     market: marketContext(source.market),
     evidenceStatus: nonBlank(source.evidenceStatus, "mbbDecision.evidenceStatus"),
     priceBasis,
-    dataFreshness: source.dataFreshness.map(timeframeFreshness),
+    dataFreshness: source.dataFreshness.map((item, index) => timeframeFreshness(item, index, scope)),
     generatedAtUtc: nonBlank(source.generatedAtUtc, "mbbDecision.generatedAtUtc"),
   };
 }
@@ -496,7 +548,7 @@ function gapRange(value: unknown, label: string): MbbGapRange {
   };
 }
 
-function timeframeCoverage(value: unknown, index: number): MbbTimeframeCoverage {
+function timeframeCoverage(value: unknown, index: number, scope: EquityParseScope): MbbTimeframeCoverage {
   const label = `mbbCoverage.timeframes[${index}]`;
   const source = object(value, label);
   requireKeys(source, label, [
@@ -508,7 +560,7 @@ function timeframeCoverage(value: unknown, index: number): MbbTimeframeCoverage 
   const coveragePct = finite(source.coveragePct, `${label}.coveragePct`);
   if (coveragePct < 0 || coveragePct > 100) throw new Error(`${ERR}: ${label}.coveragePct must be within [0, 100]`);
   return {
-    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`),
+    timeframe: mbbTimeframe(source.timeframe, `${label}.timeframe`, scope),
     totalBars: integer(source.totalBars, `${label}.totalBars`),
     firstOpenUtc: nullableNonBlank(source.firstOpenUtc, `${label}.firstOpenUtc`),
     lastOpenUtc: nullableNonBlank(source.lastOpenUtc, `${label}.lastOpenUtc`),
@@ -526,7 +578,7 @@ function timeframeCoverage(value: unknown, index: number): MbbTimeframeCoverage 
   };
 }
 
-export function parseMbbCoverageReport(value: unknown): MbbCoverageReport {
+export function parseMbbCoverageReport(value: unknown, scope: EquityParseScope = MBB_PARSE_SCOPE): MbbCoverageReport {
   const source = object(value, "mbbCoverage");
   requireKeys(source, "mbbCoverage", [
     "symbol", "provider", "crossCheckProvider", "priceBasis", "venue", "sourceTimezone",
@@ -534,14 +586,14 @@ export function parseMbbCoverageReport(value: unknown): MbbCoverageReport {
   ]);
   if (!Array.isArray(source.timeframes)) throw new Error(`${ERR}: mbbCoverage.timeframes must be an array`);
   return {
-    symbol: requireMbbSymbol(source.symbol, "mbbCoverage.symbol"),
+    symbol: requireMbbSymbol(source.symbol, "mbbCoverage.symbol", scope),
     provider: nonBlank(source.provider, "mbbCoverage.provider"),
     crossCheckProvider: nonBlank(source.crossCheckProvider, "mbbCoverage.crossCheckProvider"),
     priceBasis: nonBlank(source.priceBasis, "mbbCoverage.priceBasis"),
     venue: nonBlank(source.venue, "mbbCoverage.venue"),
     sourceTimezone: nonBlank(source.sourceTimezone, "mbbCoverage.sourceTimezone"),
     generatedAtUtc: nonBlank(source.generatedAtUtc, "mbbCoverage.generatedAtUtc"),
-    timeframes: source.timeframes.map(timeframeCoverage),
+    timeframes: source.timeframes.map((item, index) => timeframeCoverage(item, index, scope)),
     limitations: stringArray(source.limitations, "mbbCoverage.limitations"),
   };
 }

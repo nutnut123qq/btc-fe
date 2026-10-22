@@ -20,6 +20,20 @@ import {
   type MbbTimeframe,
   type UpdateMbbPositionRequest,
 } from "./mbb";
+import type { EquityParseScope } from "./mbb";
+import {
+  classifyEquityUnavailable,
+  equityLegacyPath,
+  equityNewPath,
+  parseEquityBaseRates,
+  parseEquityCatalog,
+  parseEquityContext,
+  parseEquityObservations,
+  type EquityOptional,
+  type EquitySymbol,
+} from "./equity";
+import { parseForecastJournal, parseLlmRuns } from "./equityJournal";
+import { parseResearchNotes, parseSourceDocuments } from "./equityResearch";
 
 const API_BASE = "";
 
@@ -1444,4 +1458,155 @@ export async function putMbbPosition(body: UpdateMbbPositionRequest) {
 export async function getMbbDataQuality(signal?: AbortSignal) {
   const res = await fetch(`${API_BASE}/api/mbb/data-quality`, { signal, cache: "no-store" });
   return parseMbbCoverageReport(await getJson(res));
+}
+
+// --- Equity lane (EQX, spec §2) ---
+// MBB keeps /api/mbb/* for the surfaces it already had; BID and every new-only
+// surface (base-rates/context) go through /api/equities/{symbol}/*. Equity
+// pages never touch crypto/Binance endpoints.
+
+export async function getInstrumentCatalog(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/instruments`, { signal, cache: "no-store" });
+  return parseEquityCatalog(await getJson(res));
+}
+
+/**
+ * Equity GET body reader: a 429 (backend "expensive" policy, 10 req/min/IP —
+ * conditions/dossier/LLM POST) is an honest rate-limit state, not a generic error.
+ */
+export const EQUITY_RATE_LIMITED_MESSAGE = "Đang bị giới hạn tần suất (HTTP 429), thử lại sau ít phút.";
+
+async function getEquityJson(res: Response) {
+  if (res.status === 429) throw new Error(EQUITY_RATE_LIMITED_MESSAGE);
+  return getJson(res);
+}
+
+function equityTimeframeGuard(scope: EquityParseScope, timeframe: string) {
+  if (!scope.timeframes.includes(timeframe)) {
+    throw new Error(`Timeframe ${timeframe} không hỗ trợ cho ${scope.symbol} (chỉ ${scope.timeframes.join("/")}).`);
+  }
+}
+
+export async function getEquityCandles(scope: EquityParseScope & { symbol: EquitySymbol }, timeframe: MbbTimeframe, signal?: AbortSignal, limit = 500) {
+  equityTimeframeGuard(scope, timeframe);
+  const params = new URLSearchParams({ timeframe, limit: String(limit) });
+  const res = await fetch(`${API_BASE}${equityLegacyPath(scope.symbol, "candles")}?${params}`, { signal, cache: "no-store" });
+  return parseMbbCandles(await getJson(res));
+}
+
+export async function getEquityConditions(scope: EquityParseScope & { symbol: EquitySymbol }, timeframe: MbbTimeframe, signal?: AbortSignal) {
+  equityTimeframeGuard(scope, timeframe);
+  const params = new URLSearchParams({ timeframe });
+  const res = await fetch(`${API_BASE}${equityLegacyPath(scope.symbol, "conditions")}?${params}`, { signal, cache: "no-store" });
+  return parseCurrentConditionsResponse(await getEquityJson(res));
+}
+
+export async function getEquityDataQuality(scope: EquityParseScope & { symbol: EquitySymbol }, signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}${equityLegacyPath(scope.symbol, "data-quality")}`, { signal, cache: "no-store" });
+  return parseMbbCoverageReport(await getJson(res), scope);
+}
+
+// AdminGuard'd personal reads: a server 401 maps to the same ADMIN_AUTH_REQUIRED
+// sentinel as a missing key so the UI falls back to its locked state.
+async function getAdminJson(res: Response) {
+  if (res.status === 401) throw new Error("ADMIN_AUTH_REQUIRED");
+  return getEquityJson(res);
+}
+
+/** Observations reveal holdings-driven decisions — AdminGuard'd like decision/position. */
+export async function getEquityObservations(scope: EquityParseScope & { symbol: EquitySymbol }, timeframe: MbbTimeframe, signal?: AbortSignal, take = 20) {
+  equityTimeframeGuard(scope, timeframe);
+  const params = new URLSearchParams({ timeframe, take: String(take) });
+  const res = await authenticatedFetch("admin", `${API_BASE}${equityLegacyPath(scope.symbol, "observations")}?${params}`, { signal, cache: "no-store" });
+  return parseEquityObservations(await getAdminJson(res), scope, timeframe);
+}
+
+export async function getEquityDecision(scope: EquityParseScope & { symbol: EquitySymbol }, signal?: AbortSignal) {
+  const res = await authenticatedFetch("admin", `${API_BASE}${equityLegacyPath(scope.symbol, "decision")}`, { signal, cache: "no-store" });
+  return parseMbbDecision(await getAdminJson(res), scope);
+}
+
+export async function getEquityPosition(scope: EquityParseScope & { symbol: EquitySymbol }, signal?: AbortSignal) {
+  const res = await authenticatedFetch("admin", `${API_BASE}${equityLegacyPath(scope.symbol, "position")}`, { signal, cache: "no-store" });
+  return parseMbbPosition(await getAdminJson(res), scope);
+}
+
+/** Full-replacement position write for one symbol (AdminGuard) — never touches another symbol's lots. */
+export async function putEquityPosition(scope: EquityParseScope & { symbol: EquitySymbol }, body: UpdateMbbPositionRequest) {
+  const res = await adminFetch(`${API_BASE}${equityLegacyPath(scope.symbol, "position")}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return parseMbbPosition(await getAdminJson(res), scope);
+}
+
+async function getEquityOptional<T>(url: string, parse: (value: unknown) => T, signal?: AbortSignal): Promise<EquityOptional<T>> {
+  const res = await fetch(url, { signal, cache: "no-store" });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const unavailable = classifyEquityUnavailable(res.status, text);
+    if (unavailable) return { status: "unavailable", httpStatus: res.status, code: unavailable.code };
+    if (res.status === 429) throw new Error(EQUITY_RATE_LIMITED_MESSAGE);
+    throw new Error(safeApiErrorMessage(text, res.status));
+  }
+  return { status: "ok", data: parse(await res.json()) };
+}
+
+export async function getEquityBaseRates(symbol: EquitySymbol, signal?: AbortSignal) {
+  return getEquityOptional(`${API_BASE}${equityNewPath(symbol, "base-rates")}`, (value) => parseEquityBaseRates(value, symbol), signal);
+}
+
+export async function getEquityContext(symbol: EquitySymbol, signal?: AbortSignal) {
+  return getEquityOptional(`${API_BASE}${equityNewPath(symbol, "context")}`, (value) => parseEquityContext(value, symbol), signal);
+}
+
+export async function getEquityForecastJournal(symbol: EquitySymbol, signal?: AbortSignal, take = 50) {
+  const params = new URLSearchParams({ take: String(take) });
+  return getEquityOptional(`${API_BASE}${equityNewPath(symbol, "forecast-journal")}?${params}`, (value) => parseForecastJournal(value, symbol), signal);
+}
+
+export async function getEquityLlmRuns(symbol: EquitySymbol, signal?: AbortSignal, take = 10) {
+  const params = new URLSearchParams({ take: String(take) });
+  return getEquityOptional(`${API_BASE}${equityNewPath(symbol, "llm-runs")}?${params}`, (value) => parseLlmRuns(value, symbol), signal);
+}
+
+// EQX v2 §B: the in-app LLM layer is disabled (backend POST /llm-runs answers 503
+// LLM_DISABLED). The UI has no call that creates a run; old runs stay readable above.
+
+/**
+ * Shared cash pool for every equity symbol (EQX v2 §A3) — one pool, so the same cash can
+ * never back buy-more on MBB and BID at once. AdminGuard + mutation-contract gate.
+ */
+export async function putEquityCash(availableCashVnd: number) {
+  const res = await adminFetch(`${API_BASE}/api/equities/cash`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ availableCashVnd }),
+  });
+  if (res.status === 401) throw new Error("ADMIN_AUTH_REQUIRED");
+  if (res.status === 404) throw new Error("Backend hiện tại chưa hỗ trợ quỹ tiền mặt chung (PUT /api/equities/cash).");
+  const body = await getJson(res);
+  const value = body && typeof body === "object" ? (body as Record<string, unknown>).availableCashVnd : undefined;
+  return { availableCashVnd: typeof value === "number" && Number.isFinite(value) ? value : null };
+}
+
+/** Issuer source documents (spec v2 §C1) — public metadata only; the files are never served. */
+export async function getEquitySourceDocuments(symbol: EquitySymbol, signal?: AbortSignal) {
+  return getEquityOptional(`${API_BASE}${equityNewPath(symbol, "source-documents")}`, (value) => parseSourceDocuments(value, symbol), signal);
+}
+
+/** Session research notes (spec v2 §B) — AdminGuard'd (actionView can reveal holdings). */
+export async function getEquityResearchNotes(symbol: EquitySymbol, signal?: AbortSignal, take = 20): Promise<EquityOptional<ReturnType<typeof parseResearchNotes>>> {
+  const params = new URLSearchParams({ take: String(take) });
+  const res = await authenticatedFetch("admin", `${API_BASE}${equityNewPath(symbol, "research-notes")}?${params}`, { signal, cache: "no-store" });
+  if (res.status === 401) throw new Error("ADMIN_AUTH_REQUIRED");
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const unavailable = classifyEquityUnavailable(res.status, text);
+    if (unavailable) return { status: "unavailable", httpStatus: res.status, code: unavailable.code };
+    if (res.status === 429) throw new Error(EQUITY_RATE_LIMITED_MESSAGE);
+    throw new Error(safeApiErrorMessage(text, res.status));
+  }
+  return { status: "ok", data: parseResearchNotes(await res.json(), symbol) };
 }

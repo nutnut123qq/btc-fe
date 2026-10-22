@@ -219,9 +219,10 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-10-mbb-position-decision-v1";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-10-equity-lane-v1";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
+  "2026-10-mbb-position-decision-v1",
   "2026-10-evidence-symbol-scope-v1",
   "2026-10-instrument-catalog-v1",
   "2026-09-research-evidence-v9",
@@ -348,6 +349,9 @@ export function safeApiErrorMessage(body: string, status: number): string {
       GAP_ALREADY_FILLED: "Gap dữ liệu này đã được lấp; không cần retry.",
       CONDITIONS_SOURCE_UNAVAILABLE: "Nguồn phân tích điều kiện (AI service) tạm thời không khả dụng.",
       CONDITIONS_PAYLOAD_INVALID: "Dữ liệu điều kiện hiện tại từ nguồn phân tích không hợp lệ.",
+      // EQX v2 §A3 — buy budgets are checked against the ONE shared cash pool on write.
+      CASH_UNKNOWN: "Chưa nhập quỹ tiền mặt chung — nhập quỹ chung trước khi khai báo ngân sách mua thêm.",
+      BUDGET_EXCEEDS_CASH: "Tổng ngân sách mua thêm của các mã vượt quỹ tiền mặt chung — giảm ngân sách hoặc tăng quỹ chung.",
     };
     if (typeof payload.code === "string" && knownMessages[payload.code]) {
       return knownMessages[payload.code];

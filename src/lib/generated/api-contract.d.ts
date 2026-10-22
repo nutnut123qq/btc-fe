@@ -1495,6 +1495,2669 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/equities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityInstrumentListResponse"];
+                        "text/json": components["schemas"]["EquityInstrumentListResponse"];
+                        "text/plain": components["schemas"]["EquityInstrumentListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/backfill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    timeframe?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbTimeframeSync"];
+                        "text/json": components["schemas"]["MbbTimeframeSync"];
+                        "text/plain": components["schemas"]["MbbTimeframeSync"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/base-rates/rebuild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Client Error */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/context/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityContextSyncReport"];
+                        "text/json": components["schemas"]["EquityContextSyncReport"];
+                        "text/plain": components["schemas"]["EquityContextSyncReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/corporate-actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["EquityCorporateActionImport"][];
+                    "application/json": components["schemas"]["EquityCorporateActionImport"][];
+                    "text/json": components["schemas"]["EquityCorporateActionImport"][];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityImportReport"];
+                        "text/json": components["schemas"]["EquityImportReport"];
+                        "text/plain": components["schemas"]["EquityImportReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/documents/pipeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    budget?: number;
+                    dryRun?: boolean;
+                    extractScope?: string;
+                    maxDocs?: number;
+                    mode?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityPipelineRunDto"];
+                        "text/json": components["schemas"]["EquityPipelineRunDto"];
+                        "text/plain": components["schemas"]["EquityPipelineRunDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/documents/pipeline/{runId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    runId: string;
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityPipelineRunDto"];
+                        "text/json": components["schemas"]["EquityPipelineRunDto"];
+                        "text/plain": components["schemas"]["EquityPipelineRunDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["EquityEventImport"][];
+                    "application/json": components["schemas"]["EquityEventImport"][];
+                    "text/json": components["schemas"]["EquityEventImport"][];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityImportReport"];
+                        "text/json": components["schemas"]["EquityImportReport"];
+                        "text/plain": components["schemas"]["EquityImportReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/forecasts/record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityForecastRecordReport"];
+                        "text/json": components["schemas"]["EquityForecastRecordReport"];
+                        "text/plain": components["schemas"]["EquityForecastRecordReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/fundamentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["EquityFundamentalImport"][];
+                    "application/json": components["schemas"]["EquityFundamentalImport"][];
+                    "text/json": components["schemas"]["EquityFundamentalImport"][];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityImportReport"];
+                        "text/json": components["schemas"]["EquityImportReport"];
+                        "text/plain": components["schemas"]["EquityImportReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/observe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ObserveReport"];
+                        "text/json": components["schemas"]["ObserveReport"];
+                        "text/plain": components["schemas"]["ObserveReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/recompute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                        "text/json": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                        "text/plain": components["schemas"]["MbbTechnicalRecomputeReport"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/source-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["EquitySourceDocumentRegistration"];
+                    "application/json": components["schemas"]["EquitySourceDocumentRegistration"];
+                    "text/json": components["schemas"]["EquitySourceDocumentRegistration"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                        "text/json": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                        "text/plain": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                    };
+                };
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                        "text/json": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                        "text/plain": components["schemas"]["EquitySourceDocumentRegistrationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Client Error */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/admin/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbSyncReport"];
+                        "text/json": components["schemas"]["MbbSyncReport"];
+                        "text/plain": components["schemas"]["MbbSyncReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/base-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityBaseRatesResponse"];
+                        "text/json": components["schemas"]["EquityBaseRatesResponse"];
+                        "text/plain": components["schemas"]["EquityBaseRatesResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/candles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    endTimeMs?: number;
+                    limit?: number;
+                    timeframe?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbCandleDto"][];
+                        "text/json": components["schemas"]["MbbCandleDto"][];
+                        "text/plain": components["schemas"]["MbbCandleDto"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    timeframe?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityContextResponse"];
+                        "text/json": components["schemas"]["EquityContextResponse"];
+                        "text/plain": components["schemas"]["EquityContextResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/data-quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbCoverageReport"];
+                        "text/json": components["schemas"]["MbbCoverageReport"];
+                        "text/plain": components["schemas"]["MbbCoverageReport"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbDecisionDto"];
+                        "text/json": components["schemas"]["MbbDecisionDto"];
+                        "text/plain": components["schemas"]["MbbDecisionDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/documents/pipeline-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    take?: number;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityPipelineRunListResponse"];
+                        "text/json": components["schemas"]["EquityPipelineRunListResponse"];
+                        "text/plain": components["schemas"]["EquityPipelineRunListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/dossier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityDossierResponse"];
+                        "text/json": components["schemas"]["EquityDossierResponse"];
+                        "text/plain": components["schemas"]["EquityDossierResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/financial-facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    asOf?: string;
+                    from?: string;
+                    metric?: string;
+                    periodType?: string;
+                    status?: string;
+                    take?: number;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityFinancialFactsResponse"];
+                        "text/json": components["schemas"]["EquityFinancialFactsResponse"];
+                        "text/plain": components["schemas"]["EquityFinancialFactsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/forecast-journal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    configId?: string;
+                    take?: number;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityForecastJournalResponse"];
+                        "text/json": components["schemas"]["EquityForecastJournalResponse"];
+                        "text/plain": components["schemas"]["EquityForecastJournalResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/fundamentals/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityFundamentalsCoverageResponse"];
+                        "text/json": components["schemas"]["EquityFundamentalsCoverageResponse"];
+                        "text/plain": components["schemas"]["EquityFundamentalsCoverageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/llm-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    take?: number;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityLlmRunListResponse"];
+                        "text/json": components["schemas"]["EquityLlmRunListResponse"];
+                        "text/plain": components["schemas"]["EquityLlmRunListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityLlmRunDto"];
+                        "text/json": components["schemas"]["EquityLlmRunDto"];
+                        "text/plain": components["schemas"]["EquityLlmRunDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                        "text/json": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                        "text/plain": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                    };
+                };
+                /** @description Server Error */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                        "text/json": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                        "text/plain": components["schemas"]["EquityLlmRunErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    take?: number;
+                    timeframe?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbObservationDto"][];
+                        "text/json": components["schemas"]["MbbObservationDto"][];
+                        "text/plain": components["schemas"]["MbbObservationDto"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbPositionDto"];
+                        "text/json": components["schemas"]["MbbPositionDto"];
+                        "text/plain": components["schemas"]["MbbPositionDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["UpdateMbbPositionRequest"];
+                    "application/json": components["schemas"]["UpdateMbbPositionRequest"];
+                    "text/json": components["schemas"]["UpdateMbbPositionRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MbbPositionDto"];
+                        "text/json": components["schemas"]["MbbPositionDto"];
+                        "text/plain": components["schemas"]["MbbPositionDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/research-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    take?: number;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityResearchNoteListResponse"];
+                        "text/json": components["schemas"]["EquityResearchNoteListResponse"];
+                        "text/plain": components["schemas"]["EquityResearchNoteListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["EquityResearchNoteRequest"];
+                    "application/json": components["schemas"]["EquityResearchNoteRequest"];
+                    "text/json": components["schemas"]["EquityResearchNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityResearchNoteDto"];
+                        "text/json": components["schemas"]["EquityResearchNoteDto"];
+                        "text/plain": components["schemas"]["EquityResearchNoteDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/research-readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    asOf?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityResearchReadiness"];
+                        "text/json": components["schemas"]["EquityResearchReadiness"];
+                        "text/plain": components["schemas"]["EquityResearchReadiness"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/research-snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    asOf?: string;
+                };
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityResearchSnapshot"];
+                        "text/json": components["schemas"]["EquityResearchSnapshot"];
+                        "text/plain": components["schemas"]["EquityResearchSnapshot"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/{symbol}/source-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    symbol: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquitySourceDocumentListResponse"];
+                        "text/json": components["schemas"]["EquitySourceDocumentListResponse"];
+                        "text/plain": components["schemas"]["EquitySourceDocumentListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/equities/cash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/*+json": components["schemas"]["UpdateEquityCashRequest"];
+                    "application/json": components["schemas"]["UpdateEquityCashRequest"];
+                    "text/json": components["schemas"]["UpdateEquityCashRequest"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EquityCashDto"];
+                        "text/json": components["schemas"]["EquityCashDto"];
+                        "text/plain": components["schemas"]["EquityCashDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/Execution/account": {
         parameters: {
             query?: never;
@@ -2242,6 +4905,54 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/market-calendar/vn-hose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MarketCalendarResponse"];
+                        "text/json": components["schemas"]["MarketCalendarResponse"];
+                        "text/plain": components["schemas"]["MarketCalendarResponse"];
+                    };
+                };
+                /** @description Server Error */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
                 };
             };
         };
@@ -3343,6 +6054,17 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                     };
                 };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -3402,6 +6124,17 @@ export interface paths {
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
                         "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
                     };
                 };
             };
@@ -3465,6 +6198,17 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                     };
                 };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -3511,6 +6255,17 @@ export interface paths {
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
                         "text/plain": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/json": components["schemas"]["ApiErrorEnvelope"];
+                        "text/plain": components["schemas"]["ApiErrorEnvelope"];
                     };
                 };
             };
@@ -3743,6 +6498,17 @@ export interface paths {
                         "application/json": components["schemas"]["ApiErrorEnvelope"];
                         "text/json": components["schemas"]["ApiErrorEnvelope"];
                         "text/plain": components["schemas"]["ApiErrorEnvelope"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -6091,6 +8857,1098 @@ export interface components {
             reason?: string | null;
             validated?: boolean;
         };
+        EquityBaseRatesArtifactInfo: {
+            /** Format: int64 */
+            dataAsOfOpenTimeMs?: number;
+            datasetSha256?: string | null;
+            generatedAtUtc?: string | null;
+            methodVersion?: string | null;
+            priceBasis?: string | null;
+            protocolVersion?: string | null;
+        };
+        EquityBaseRatesConfigDto: {
+            abstained?: boolean;
+            abstainReasons?: string[] | null;
+            configId?: string | null;
+            decisionUse?: components["schemas"]["EquityBaseRatesDecisionUse"];
+            /** Format: int32 */
+            horizonSessions?: number;
+            research?: components["schemas"]["EquityBaseRatesResearch"];
+            /** Format: double */
+            stopPct?: number;
+            /** Format: double */
+            targetPct?: number;
+            validation?: components["schemas"]["EquityBaseRatesValidation"];
+        };
+        EquityBaseRatesDecisionUse: {
+            /** Format: double */
+            evNetFraction?: number | null;
+            /** Format: double */
+            probStopFirst?: number;
+            /** Format: double */
+            probTargetFirst?: number;
+            /** Format: double */
+            probTimeout?: number;
+        };
+        EquityBaseRatesPrior: {
+            /** Format: double */
+            probStopFirst?: number | null;
+            /** Format: double */
+            probTargetFirst?: number | null;
+            /** Format: double */
+            probTimeout?: number | null;
+        };
+        EquityBaseRatesResearch: {
+            /** Format: double */
+            evNetFraction?: number | null;
+            /** Format: int32 */
+            k?: number | null;
+            label?: string | null;
+            /** Format: int32 */
+            nEligible?: number;
+            prior?: components["schemas"]["EquityBaseRatesPrior"];
+            /** Format: double */
+            probStopFirst?: number;
+            /** Format: double */
+            probTargetFirst?: number;
+            /** Format: double */
+            probTimeout?: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number;
+        };
+        EquityBaseRatesResponse: {
+            artifact?: components["schemas"]["EquityBaseRatesArtifactInfo"];
+            configs?: components["schemas"]["EquityBaseRatesConfigDto"][] | null;
+            contractVersion?: string | null;
+            reasons?: string[] | null;
+            status?: string | null;
+            symbol?: string | null;
+            timeframe?: string | null;
+        };
+        EquityBaseRatesValidation: {
+            /** Format: double */
+            abstentionRate?: number | null;
+            brierDiffCi90?: number[] | null;
+            /** Format: double */
+            brierDiffMean?: number | null;
+            /** Format: double */
+            brierKnn?: number | null;
+            /** Format: double */
+            brierPrior?: number | null;
+            calibrationBins?: components["schemas"]["EquityCalibrationBin"][] | null;
+            /** Format: double */
+            coverage?: number | null;
+            /** Format: double */
+            ece?: number | null;
+            /** Format: double */
+            evNetOosMean?: number | null;
+            /** Format: double */
+            evNetOosWhenPositive?: number | null;
+            gatePassed?: boolean;
+            gateReasons?: string[] | null;
+            /** Format: int32 */
+            nEffective?: number | null;
+            /** Format: int32 */
+            nOos?: number | null;
+        };
+        EquityBuyBudgetDto: {
+            /** Format: double */
+            buyBudgetVnd?: number | null;
+            symbol: string;
+        };
+        EquityCalibrationBin: {
+            /** Format: double */
+            lower?: number;
+            /** Format: double */
+            meanPredicted?: number | null;
+            /** Format: int32 */
+            n?: number;
+            /** Format: double */
+            observedRate?: number | null;
+            /** Format: double */
+            upper?: number;
+        };
+        EquityCapabilitiesDto: {
+            decision?: boolean;
+            ingestion?: boolean;
+            technicalAnalysis?: boolean;
+        };
+        EquityCashDto: {
+            accountId: string;
+            /** Format: double */
+            availableCashVnd?: number | null;
+            budgets: components["schemas"]["EquityBuyBudgetDto"][];
+            budgetsExceedCash: boolean;
+            notes: string[];
+            /** Format: double */
+            totalDeclaredBudgetsVnd: number;
+            /** Format: date-time */
+            updatedAtUtc?: string | null;
+        };
+        EquityContextResponse: {
+            contractVersion?: string | null;
+            corporateActions?: components["schemas"]["EquityCorporateActionsSection"];
+            events?: components["schemas"]["EquityEventsSection"];
+            fundamentals?: components["schemas"]["EquityFundamentalsSection"];
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            limitations?: string[] | null;
+            relativeStrength?: components["schemas"]["EquityRelativeStrengthSection"];
+            symbol?: string | null;
+        };
+        EquityContextSyncReport: {
+            /** Format: int32 */
+            corporateActionsUpserted?: number;
+            errors?: string[] | null;
+            /** Format: int32 */
+            eventsUpserted?: number;
+            /** Format: int32 */
+            fundamentalsUpserted?: number;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            /** Format: int32 */
+            providerRequests?: number;
+            /** Format: int32 */
+            skippedRows?: number;
+            status?: string | null;
+            symbol?: string | null;
+        };
+        EquityCorporateActionDto: {
+            actionType?: string | null;
+            /** Format: double */
+            adjustmentFactor?: number | null;
+            announcedDate?: string | null;
+            availabilityBasis?: string | null;
+            availabilityReason?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string;
+            /** Format: double */
+            cashPerShareVnd?: number | null;
+            exDate?: string | null;
+            provenance?: string | null;
+            /** Format: date-time */
+            publishedAvailableAtUtc?: string | null;
+            ratioText?: string | null;
+            recordDate?: string | null;
+            /** Format: double */
+            shareRatio?: number | null;
+            sourceUrl?: string | null;
+            verificationStatus?: string | null;
+        };
+        EquityCorporateActionImport: {
+            actionType?: string | null;
+            /** Format: double */
+            adjustmentFactor?: number | null;
+            announcedDate?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string | null;
+            /** Format: double */
+            cashPerShareVnd?: number | null;
+            exDate?: string | null;
+            ratioText?: string | null;
+            recordDate?: string | null;
+            /** Format: double */
+            shareRatio?: number | null;
+            sourceUrl?: string | null;
+            verificationStatus?: string | null;
+        };
+        EquityCorporateActionsSection: {
+            items?: components["schemas"]["EquityCorporateActionDto"][] | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        EquityCoverageCatalogInfo: {
+            coreMetrics?: string[] | null;
+            coreMetricsFromCatalog?: boolean;
+            /** Format: int32 */
+            metricCount?: number;
+            reason?: string | null;
+            sha256?: string | null;
+            status?: string | null;
+            version?: string | null;
+        };
+        EquityCoverageCell: {
+            /** Format: int64 */
+            attemptId?: number | null;
+            attemptOutcome?: string | null;
+            consolidation?: string | null;
+            counts?: components["schemas"]["EquityCoverageCellCounts"];
+            /** Format: uuid */
+            documentId?: string | null;
+            /** Format: uuid */
+            extractionId?: string | null;
+            extractorVersion?: string | null;
+            metricGroup?: string | null;
+            missingMetrics?: string[] | null;
+            period?: string | null;
+            periodKind?: string | null;
+            reason?: string | null;
+            source?: string | null;
+            sourceDocumentIds?: string[] | null;
+            stage?: string | null;
+        };
+        EquityCoverageCellCounts: {
+            /** Format: int32 */
+            derived?: number;
+            /** Format: int32 */
+            documents?: number;
+            /** Format: int32 */
+            expectedMetrics?: number;
+            /** Format: int32 */
+            extracted?: number;
+            /** Format: int32 */
+            extractions?: number;
+            /** Format: int32 */
+            facts?: number;
+            /** Format: int32 */
+            quarantined?: number;
+            /** Format: int32 */
+            reviewNeeded?: number;
+            /** Format: int32 */
+            validated?: number;
+            /** Format: int32 */
+            validatedMetrics?: number;
+        };
+        EquityCoverageSummary: {
+            /** Format: int32 */
+            attempts?: number;
+            byPeriodKind?: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            } | null;
+            byStage?: {
+                [key: string]: number;
+            } | null;
+            /** Format: int32 */
+            cells?: number;
+            comparativeOnlyByStage?: {
+                [key: string]: number;
+            } | null;
+            /** Format: int32 */
+            comparativeOnlyCells?: number;
+            /** Format: int32 */
+            documents?: number;
+            /** Format: int32 */
+            extractions?: number;
+            /** Format: int32 */
+            facts?: number;
+            /** Format: int32 */
+            quarantinedFacts?: number;
+            /** Format: int32 */
+            reviewNeededFacts?: number;
+            /** Format: int32 */
+            validatedFacts?: number;
+        };
+        EquityDocumentExtractionStatusDto: {
+            extractorVersion?: string | null;
+            /** Format: int32 */
+            facts?: number;
+            method?: string | null;
+            /** Format: int32 */
+            pageCount?: number | null;
+            /** Format: int32 */
+            pagesOcr?: number | null;
+            status?: string | null;
+            /** Format: int32 */
+            validatedFacts?: number;
+        };
+        EquityDossierResponse: {
+            /** Format: date-time */
+            asOfUtc?: string;
+            baseRates?: components["schemas"]["EquityBaseRatesResponse"];
+            conditions?: {
+                [key: string]: components["schemas"]["JsonNode"];
+            } | null;
+            context?: components["schemas"]["EquityContextResponse"];
+            contractVersion?: string | null;
+            journalSummary?: components["schemas"]["EquityForecastScoringDto"][] | null;
+            latestLlmRun?: components["schemas"]["EquityLlmRunDto"];
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number | null;
+            symbol?: string | null;
+        };
+        EquityEventDto: {
+            availabilityBasis?: string | null;
+            availabilityReason?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string;
+            eventDate?: string | null;
+            eventType?: string | null;
+            provenance?: string | null;
+            /** Format: date-time */
+            publishedAvailableAtUtc?: string | null;
+            sourceUrl?: string | null;
+            title?: string | null;
+        };
+        EquityEventImport: {
+            /** Format: date-time */
+            availableAtUtc?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            sourceUrl?: string | null;
+            title?: string | null;
+        };
+        EquityEventsSection: {
+            items?: components["schemas"]["EquityEventDto"][] | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        EquityFactDocumentRef: {
+            availabilityBasis?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string;
+            docType?: string | null;
+            /** Format: uuid */
+            documentId?: string;
+            provider?: string | null;
+            reportingPeriod?: string | null;
+            /** Format: int32 */
+            revision?: number;
+            sha256?: string | null;
+            title?: string | null;
+            url?: string | null;
+        };
+        EquityFactExtractionRef: {
+            /** Format: uuid */
+            extractionId?: string;
+            extractorVersion?: string | null;
+            /** Format: date-time */
+            finishedAtUtc?: string;
+            method?: string | null;
+            /** Format: int32 */
+            pageCount?: number;
+            /** Format: int32 */
+            pagesOcr?: number;
+            status?: string | null;
+        };
+        EquityFinancialFactDto: {
+            /** Format: date-time */
+            availableAtUtc?: string;
+            columnRole?: string | null;
+            consolidation?: string | null;
+            derivation?: unknown;
+            document?: components["schemas"]["EquityFactDocumentRef"];
+            extraction?: components["schemas"]["EquityFactExtractionRef"];
+            factKey?: string | null;
+            /** Format: int32 */
+            fiscalYear?: number;
+            isDerived?: boolean;
+            location?: string | null;
+            metricCode?: string | null;
+            metricDefinitionVersion?: string | null;
+            metricGroup?: string | null;
+            /** Format: double */
+            normalizedValue?: number | null;
+            /** Format: int32 */
+            page?: number | null;
+            periodEnd?: string | null;
+            periodLabel?: string | null;
+            periodStart?: string | null;
+            periodType?: string | null;
+            rawLabel?: string | null;
+            rawUnitText?: string | null;
+            rawValueText?: string | null;
+            /** Format: double */
+            scale?: number;
+            selected?: boolean;
+            selection?: string | null;
+            statement?: string | null;
+            status?: string | null;
+            unit?: string | null;
+            validation?: unknown;
+            /** Format: double */
+            value?: number;
+        };
+        EquityFinancialFactsResponse: {
+            /** Format: date-time */
+            asOfUtc?: string;
+            contractVersion?: string | null;
+            /** Format: int32 */
+            count?: number;
+            from?: string | null;
+            items?: components["schemas"]["EquityFinancialFactDto"][] | null;
+            metrics?: string[] | null;
+            periodType?: string | null;
+            rules?: string[] | null;
+            statusFilter?: string | null;
+            symbol?: string | null;
+            to?: string | null;
+            truncated?: boolean;
+        };
+        EquityForecastItemDto: {
+            abstained?: boolean;
+            abstainReason?: string | null;
+            /** Format: int64 */
+            availableTimeMs?: number;
+            configId?: string | null;
+            /** Format: date-time */
+            createdAtUtc?: string;
+            forecastId?: string | null;
+            /** Format: int32 */
+            horizonSessions?: number;
+            /** Format: uuid */
+            llmRunId?: string | null;
+            methodVersion?: string | null;
+            modelId?: string | null;
+            outcome?: components["schemas"]["EquityForecastOutcomeDto"];
+            /** Format: double */
+            probStopFirst?: number | null;
+            /** Format: double */
+            probTargetFirst?: number | null;
+            promptVersion?: string | null;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number;
+            source?: string | null;
+            /** Format: double */
+            stopPct?: number;
+            /** Format: double */
+            targetPct?: number;
+            validated?: boolean;
+        };
+        EquityForecastJournalResponse: {
+            contractVersion?: string | null;
+            items?: components["schemas"]["EquityForecastItemDto"][] | null;
+            scoring?: components["schemas"]["EquityForecastScoringDto"][] | null;
+            symbol?: string | null;
+        };
+        EquityForecastOutcomeDto: {
+            /** Format: int64 */
+            entryBarOpenTimeMs?: number;
+            /** Format: double */
+            entryPrice?: number;
+            label?: string | null;
+            /** Format: date-time */
+            resolvedAtUtc?: string;
+            /** Format: int64 */
+            resolvedBarOpenTimeMs?: number;
+            /** Format: double */
+            returnNet?: number;
+        };
+        EquityForecastPairScoreDto: {
+            /** Format: double */
+            brierChallenger?: number | null;
+            /** Format: double */
+            brierDiff?: number | null;
+            /** Format: double */
+            brierQuant?: number | null;
+            /** Format: double */
+            coverageChallenger?: number | null;
+            /** Format: double */
+            coverageQuant?: number | null;
+            /** Format: int32 */
+            nEffective?: number;
+            /** Format: int32 */
+            pairedN?: number;
+            source?: string | null;
+            status?: string | null;
+        };
+        EquityForecastRecordReport: {
+            /** Format: int32 */
+            abstained?: number;
+            /** Format: int32 */
+            alreadyRecorded?: number;
+            detail?: string | null;
+            /** Format: int32 */
+            recorded?: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number | null;
+            status?: string | null;
+            symbol?: string | null;
+        };
+        EquityForecastScoringDto: {
+            /** Format: double */
+            brierDiff?: number | null;
+            /** Format: double */
+            brierLlm?: number | null;
+            /** Format: double */
+            brierQuant?: number | null;
+            configId?: string | null;
+            /** Format: double */
+            coverageLlm?: number | null;
+            /** Format: double */
+            coverageQuant?: number | null;
+            /** Format: int32 */
+            nEffective?: number;
+            /** Format: int32 */
+            pairedN?: number;
+            pairs?: components["schemas"]["EquityForecastPairScoreDto"][] | null;
+            status?: string | null;
+        };
+        EquityFundamentalDto: {
+            /** Format: date-time */
+            asOfUtc?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string | null;
+            /** Format: uuid */
+            documentId?: string | null;
+            metric?: string | null;
+            note?: string | null;
+            period?: string | null;
+            periodEndDate?: string | null;
+            publishedDate?: string | null;
+            source?: string | null;
+            sourceLocation?: string | null;
+            sourceUrl?: string | null;
+            unavailableReason?: string | null;
+            unit?: string | null;
+            /** Format: double */
+            value?: number | null;
+        };
+        EquityFundamentalImport: {
+            /** Format: date-time */
+            availableAtUtc?: string | null;
+            /** Format: uuid */
+            documentId?: string | null;
+            metric?: string | null;
+            period?: string | null;
+            periodEndDate?: string | null;
+            publishedDate?: string | null;
+            source?: string | null;
+            sourceLocation?: string | null;
+            sourceUrl?: string | null;
+            unavailableReason?: string | null;
+            unit?: string | null;
+            /** Format: double */
+            value?: number | null;
+        };
+        EquityFundamentalsCoverageGap: {
+            /** Format: int64 */
+            attemptId?: number | null;
+            consolidation?: string | null;
+            /** Format: uuid */
+            documentId?: string | null;
+            metricGroup?: string | null;
+            missingMetrics?: string[] | null;
+            period?: string | null;
+            periodKind?: string | null;
+            reason?: string | null;
+            source?: string | null;
+            stage?: string | null;
+        };
+        EquityFundamentalsCoverageResponse: {
+            /** Format: date-time */
+            asOfUtc?: string;
+            catalog?: components["schemas"]["EquityCoverageCatalogInfo"];
+            cells?: components["schemas"]["EquityCoverageCell"][] | null;
+            contractVersion?: string | null;
+            firstPeriod?: string | null;
+            lastPeriod?: string | null;
+            rules?: string[] | null;
+            summary?: components["schemas"]["EquityCoverageSummary"];
+            symbol?: string | null;
+        };
+        EquityFundamentalsCoverageSection: {
+            catalog?: components["schemas"]["EquityCoverageCatalogInfo"];
+            firstPeriod?: string | null;
+            /** Format: int32 */
+            gapCount?: number;
+            gaps?: components["schemas"]["EquityFundamentalsCoverageGap"][] | null;
+            gapsTruncated?: boolean;
+            lastPeriod?: string | null;
+            rules?: string[] | null;
+            summary?: components["schemas"]["EquityCoverageSummary"];
+        };
+        EquityFundamentalsSection: {
+            items?: components["schemas"]["EquityFundamentalDto"][] | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        EquityFundamentalsSeriesMetric: {
+            metricCode?: string | null;
+            metricGroup?: string | null;
+            points?: components["schemas"]["EquityFundamentalsSeriesPoint"][] | null;
+        };
+        EquityFundamentalsSeriesPoint: {
+            /** Format: date-time */
+            availableAtUtc?: string | null;
+            columnRole?: string | null;
+            consolidation?: string | null;
+            /** Format: uuid */
+            documentId?: string;
+            factKey?: string | null;
+            isDerived?: boolean;
+            /** Format: double */
+            normalizedValue?: number | null;
+            /** Format: int32 */
+            page?: number | null;
+            period?: string | null;
+            periodEnd?: string | null;
+            periodType?: string | null;
+            /** Format: double */
+            scale?: number | null;
+            selection?: string | null;
+            sourcePeriodType?: string | null;
+            supersededBy?: string[] | null;
+            supersededFactKey?: string | null;
+            supersessionReason?: string | null;
+            unit?: string | null;
+            /** Format: double */
+            value?: number;
+        };
+        EquityFundamentalsSeriesSection: {
+            /** Format: int32 */
+            duplicatesDropped?: number;
+            /** Format: int32 */
+            factCount?: number;
+            metrics?: components["schemas"]["EquityFundamentalsSeriesMetric"][] | null;
+            reason?: string | null;
+            rules?: string[] | null;
+            status?: string | null;
+        };
+        EquityImportReport: {
+            /** Format: int32 */
+            inserted?: number;
+            kind?: string | null;
+            symbol?: string | null;
+            /** Format: int32 */
+            updated?: number;
+        };
+        EquityIngestionStatusDto: {
+            /** Format: int32 */
+            attempts?: number;
+            detail?: string | null;
+            /** Format: date-time */
+            lastAttemptAtUtc?: string | null;
+            /** Format: date-time */
+            lastCompletedAtUtc?: string | null;
+            /** Format: int32 */
+            maxAttempts?: number;
+            /** Format: int64 */
+            sessionOpenTimeMs?: number | null;
+            status?: string | null;
+            timeframes?: components["schemas"]["EquityTimeframeFreshnessDto"][] | null;
+        };
+        EquityInstrumentDto: {
+            activeTimeframes?: string[] | null;
+            assetClass?: string | null;
+            capabilities?: components["schemas"]["EquityCapabilitiesDto"];
+            crossCheckDataProvider?: string | null;
+            currency?: string | null;
+            dataProvider?: string | null;
+            defaultTimeframe?: string | null;
+            ingestion?: components["schemas"]["EquityIngestionStatusDto"];
+            label?: string | null;
+            priceBasis?: string | null;
+            symbol?: string | null;
+            venue?: string | null;
+        };
+        EquityInstrumentListResponse: {
+            contractVersion?: string | null;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            items?: components["schemas"]["EquityInstrumentDto"][] | null;
+            workerActive?: boolean;
+        };
+        EquityLlmRunDto: {
+            /** Format: date-time */
+            createdAtUtc?: string;
+            /** Format: int64 */
+            durationMs?: number;
+            judgeModel?: string | null;
+            output?: unknown;
+            promptVersion?: string | null;
+            reason?: string | null;
+            researchModel?: string | null;
+            /** Format: uuid */
+            runId?: string;
+            schemaVersion?: string | null;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number;
+            status?: string | null;
+            symbol?: string | null;
+        };
+        EquityLlmRunErrorEnvelope: {
+            code?: string | null;
+            item?: components["schemas"]["EquityLlmRunDto"];
+            message?: string | null;
+            requestId?: string | null;
+            retryable?: boolean;
+        };
+        EquityLlmRunListResponse: {
+            items?: components["schemas"]["EquityLlmRunDto"][] | null;
+        };
+        EquityPipelineRunDto: {
+            checkpoint?: unknown;
+            counts?: unknown;
+            error?: string | null;
+            extractScope?: string | null;
+            /** Format: date-time */
+            finishedAtUtc?: string | null;
+            /** Format: date-time */
+            heartbeatAtUtc?: string;
+            logTail?: string | null;
+            mode?: string | null;
+            /** Format: uuid */
+            runId?: string;
+            /** Format: date-time */
+            startedAtUtc?: string;
+            status?: string | null;
+            supervisedByThisProcess?: boolean;
+            symbol?: string | null;
+            trigger?: string | null;
+        };
+        EquityPipelineRunListResponse: {
+            contractVersion?: string | null;
+            items?: components["schemas"]["EquityPipelineRunDto"][] | null;
+            symbol?: string | null;
+        };
+        EquityReadinessCheck: {
+            detail?: string | null;
+            name?: string | null;
+            status?: string | null;
+        };
+        EquityReadinessPurpose: {
+            checks?: components["schemas"]["EquityReadinessCheck"][] | null;
+            reasons?: string[] | null;
+            status?: string | null;
+        };
+        EquityRelativeStrengthSection: {
+            benchmarks?: components["schemas"]["EquityRsBenchmarkDto"][] | null;
+            reason?: string | null;
+            status?: string | null;
+            windows?: number[] | null;
+        };
+        EquityResearchNoteDto: {
+            actionBasis?: string | null;
+            actionView?: string | null;
+            /** Format: int64 */
+            availableTimeMs?: number;
+            body?: unknown;
+            /** Format: date-time */
+            createdAtUtc?: string;
+            direction?: string | null;
+            forecastIds?: string[] | null;
+            /** Format: int32 */
+            horizonSessions?: number;
+            methodVersion?: string | null;
+            mode?: string | null;
+            noteId?: string | null;
+            /** Format: date-time */
+            requestedAsOfUtc?: string;
+            /** Format: int64 */
+            signalBarCloseTimeMs?: number;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number;
+            skillVersion?: string | null;
+            snapshotId?: string | null;
+            snapshotSha256?: string | null;
+            snapshotVerified?: boolean;
+            symbol?: string | null;
+        };
+        EquityResearchNoteListResponse: {
+            contractVersion?: string | null;
+            items?: components["schemas"]["EquityResearchNoteDto"][] | null;
+            symbol?: string | null;
+        };
+        EquityResearchNoteRequest: {
+            actionBasis?: string | null;
+            actionView?: string | null;
+            body?: unknown;
+            direction?: string | null;
+            /** Format: int32 */
+            horizonSessions?: number | null;
+            methodVersion?: string | null;
+            mode?: string | null;
+            requestedAsOf?: string | null;
+            /** Format: int64 */
+            signalBarOpenTimeMs?: number | null;
+            skillVersion?: string | null;
+            snapshotId?: string | null;
+            snapshotSha256?: string | null;
+        };
+        EquityResearchReadiness: {
+            asOfIsLatest?: boolean;
+            contractVersion?: string | null;
+            /** Format: int64 */
+            effectiveCutoffMs?: number;
+            purposes?: {
+                [key: string]: components["schemas"]["EquityReadinessPurpose"];
+            } | null;
+            /** Format: date-time */
+            requestedAsOf?: string;
+            snapshotId?: string | null;
+            snapshotSha256?: string | null;
+            symbol?: string | null;
+        };
+        EquityResearchSnapshot: {
+            asOfIsLatest?: boolean;
+            baseRates?: components["schemas"]["EquityBaseRatesResponse"];
+            calendar?: components["schemas"]["EquitySnapshotCalendar"];
+            conditions?: components["schemas"]["EquitySnapshotConditions"];
+            contextLimitations?: string[] | null;
+            contractVersion?: string | null;
+            corporateActions?: components["schemas"]["EquityCorporateActionsSection"];
+            coverage?: components["schemas"]["EquitySnapshotCoverageDto"][] | null;
+            dataset?: {
+                [key: string]: components["schemas"]["EquitySnapshotDatasetDto"];
+            } | null;
+            /** Format: int64 */
+            effectiveCutoffMs?: number;
+            events?: components["schemas"]["EquityEventsSection"];
+            fundamentals?: components["schemas"]["EquityFundamentalsSection"];
+            fundamentalsCoverage?: components["schemas"]["EquityFundamentalsCoverageSection"];
+            fundamentalsSeries?: components["schemas"]["EquityFundamentalsSeriesSection"];
+            /** Format: date-time */
+            generatedAt?: string;
+            howToGoDeeper?: string[] | null;
+            /** Format: int64 */
+            latestExpectedOpenTimeMsAtAsOf?: number | null;
+            methodVersion?: string | null;
+            pit?: components["schemas"]["EquitySnapshotPit"];
+            priceBasis?: string | null;
+            provider?: string | null;
+            relativeStrength?: components["schemas"]["EquityRelativeStrengthSection"];
+            /** Format: date-time */
+            requestedAsOf?: string;
+            /** Format: int64 */
+            requestedAsOfMs?: number;
+            series?: components["schemas"]["EquitySnapshotSeriesDto"][] | null;
+            signalBar?: components["schemas"]["EquitySnapshotBarDto"];
+            snapshotId?: string | null;
+            snapshotSha256?: string | null;
+            sourceDocuments?: components["schemas"]["EquitySourceDocumentRefDto"][] | null;
+            symbol?: string | null;
+            unavailable?: components["schemas"]["EquitySnapshotUnavailable"][] | null;
+        };
+        EquityRsBenchmarkDto: {
+            /** Format: int32 */
+            alignedSessions?: number;
+            /** Format: int64 */
+            benchmarkLatestOpenTimeMs?: number | null;
+            /** Format: int64 */
+            instrumentLatestOpenTimeMs?: number | null;
+            kind?: string | null;
+            /** Format: int32 */
+            lagSessions?: number | null;
+            /** Format: int64 */
+            lastAlignedOpenTimeMs?: number | null;
+            reason?: string | null;
+            returns?: {
+                [key: string]: components["schemas"]["EquityRsWindowDto"];
+            } | null;
+            status?: string | null;
+            symbol?: string | null;
+        };
+        EquityRsWindowDto: {
+            /** Format: double */
+            benchmark?: number;
+            /** Format: double */
+            excess?: number;
+            /** Format: double */
+            instrument?: number;
+        };
+        EquitySnapshotBarDto: {
+            /** Format: double */
+            close?: number;
+            /** Format: int64 */
+            closeTimeMs?: number;
+            /** Format: double */
+            high?: number;
+            /** Format: double */
+            low?: number;
+            /** Format: double */
+            open?: number;
+            /** Format: int64 */
+            openTimeMs?: number;
+            /** Format: double */
+            volume?: number;
+        };
+        EquitySnapshotCalendar: {
+            barsBeforeCoverage?: {
+                [key: string]: number;
+            } | null;
+            /** Format: int32 */
+            count?: number;
+            coverageFrom?: string | null;
+            coverageTo?: string | null;
+            firstDate?: string | null;
+            lastDate?: string | null;
+            matchesInMemoryCalendar?: boolean | null;
+            nextSessionCheckDate?: string | null;
+            reason?: string | null;
+            sha256?: string | null;
+            source?: string | null;
+            status?: string | null;
+            /** Format: int32 */
+            unverifiedLegacyCount?: number;
+            usedFor?: string | null;
+            venue?: string | null;
+            /** Format: int32 */
+            verifiedCount?: number;
+            versions?: string[] | null;
+        };
+        EquitySnapshotConditions: {
+            payload?: {
+                [key: string]: components["schemas"]["JsonNode"];
+            } | null;
+            reason?: string | null;
+            status?: string | null;
+        };
+        EquitySnapshotCoverageDto: {
+            /** Format: int64 */
+            barCount?: number;
+            /** Format: int64 */
+            expectedBars?: number;
+            /** Format: int64 */
+            lastStoredOpenTimeMs?: number | null;
+            /** Format: int64 */
+            latestExpectedOpenTimeMs?: number | null;
+            /** Format: int64 */
+            missingBars?: number;
+            /** Format: int64 */
+            recentExpectedBars?: number;
+            /** Format: int64 */
+            recentMissingBars?: number;
+            timeframe?: string | null;
+            topGaps?: components["schemas"]["CandleGapRange"][] | null;
+            /** Format: int64 */
+            unexpectedSessionBars?: number;
+            upToDate?: boolean;
+        };
+        EquitySnapshotDatasetDto: {
+            /** Format: int64 */
+            barCount?: number;
+            fingerprintMethod?: string | null;
+            /** Format: int64 */
+            firstOpenTimeMs?: number | null;
+            /** Format: int64 */
+            lastOpenTimeMs?: number | null;
+            maxUpdatedAtUtc?: string | null;
+            sha256?: string | null;
+        };
+        EquitySnapshotPit: {
+            barsUpdatedAfterAsOf?: {
+                [key: string]: number;
+            } | null;
+            limitations?: string[] | null;
+            priceBasis?: string | null;
+            reconstruction?: string | null;
+        };
+        EquitySnapshotSeriesDto: {
+            /** Format: int64 */
+            barCount?: number;
+            endpoint?: string | null;
+            /** Format: int64 */
+            endTimeMs?: number;
+            fingerprint?: string | null;
+            fingerprintMethod?: string | null;
+            /** Format: int32 */
+            pageLimit?: number;
+            timeframe?: string | null;
+        };
+        EquitySnapshotUnavailable: {
+            reason?: string | null;
+            section?: string | null;
+        };
+        EquitySourceDocumentDto: {
+            auditStatus?: string | null;
+            availabilityBasis?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string;
+            /** Format: int64 */
+            byteSize?: number;
+            consolidation?: string | null;
+            contentSha256?: string | null;
+            /** Format: date-time */
+            createdAtUtc?: string;
+            docType?: string | null;
+            /** Format: uuid */
+            documentId?: string;
+            entity?: string | null;
+            /** Format: int32 */
+            extractedMetricCount?: number;
+            extraction?: unknown;
+            /** Format: date-time */
+            fetchedAtUtc?: string;
+            /** Format: date-time */
+            firstSeenAtUtc?: string;
+            hasExtraction?: boolean;
+            mimeType?: string | null;
+            provider?: string | null;
+            /** Format: date-time */
+            publishedAtUtc?: string | null;
+            reportingPeriod?: string | null;
+            /** Format: int32 */
+            revision?: number;
+            sourceUrl?: string | null;
+            storagePath?: string | null;
+            /** Format: uuid */
+            supersedesDocumentId?: string | null;
+            symbol?: string | null;
+            title?: string | null;
+        };
+        EquitySourceDocumentListResponse: {
+            contractVersion?: string | null;
+            items?: components["schemas"]["EquitySourceDocumentDto"][] | null;
+            symbol?: string | null;
+        };
+        EquitySourceDocumentRefDto: {
+            auditStatus?: string | null;
+            availabilityBasis?: string | null;
+            /** Format: date-time */
+            availableAtUtc?: string;
+            consolidation?: string | null;
+            contentSha256?: string | null;
+            docType?: string | null;
+            /** Format: uuid */
+            documentId?: string;
+            /** Format: int32 */
+            extractedMetricCount?: number;
+            extraction?: components["schemas"]["EquityDocumentExtractionStatusDto"];
+            extractionRecorded?: boolean;
+            /** Format: date-time */
+            firstSeenAtUtc?: string;
+            hasExtraction?: boolean;
+            provider?: string | null;
+            /** Format: date-time */
+            publishedAtUtc?: string | null;
+            reportingPeriod?: string | null;
+            /** Format: int32 */
+            revision?: number;
+            sourceUrl?: string | null;
+            /** Format: uuid */
+            supersedesDocumentId?: string | null;
+            title?: string | null;
+        };
+        EquitySourceDocumentRegistration: {
+            auditStatus?: string | null;
+            consolidation?: string | null;
+            contentSha256?: string | null;
+            docType?: string | null;
+            entity?: string | null;
+            extraction?: unknown;
+            /** Format: date-time */
+            fetchedAtUtc?: string | null;
+            /** Format: date-time */
+            firstSeenAtUtc?: string | null;
+            mimeType?: string | null;
+            provider?: string | null;
+            /** Format: date-time */
+            publishedAtUtc?: string | null;
+            publishedDate?: string | null;
+            reportingPeriod?: string | null;
+            sourceUrl?: string | null;
+            storagePath?: string | null;
+            /** Format: uuid */
+            supersedesDocumentId?: string | null;
+            title?: string | null;
+        };
+        EquitySourceDocumentRegistrationResult: {
+            created?: boolean;
+            item?: components["schemas"]["EquitySourceDocumentDto"];
+            publishedAtFilled?: boolean;
+        };
+        EquityTimeframeFreshnessDto: {
+            /** Format: int64 */
+            barCount?: number;
+            /** Format: int64 */
+            latestExpectedFinalizedOpenTimeMs?: number | null;
+            /** Format: int64 */
+            latestStoredOpenTimeMs?: number | null;
+            timeframe?: string | null;
+            upToDate?: boolean;
+        };
         EvaluateEnsembleRequest: {
             symbol?: string | null;
             timeframe?: string | null;
@@ -6362,8 +10220,10 @@ export interface components {
             status?: string | null;
         };
         InstrumentCapabilities: {
+            decision?: boolean;
             execution?: boolean;
             futures?: boolean;
+            ingestion?: boolean;
             liquidation?: boolean;
             news?: boolean;
             orderBook?: boolean;
@@ -6392,6 +10252,14 @@ export interface components {
             /** Format: date-time */
             generatedAtUtc: string;
             items: components["schemas"]["InstrumentDescriptor"][];
+        };
+        JsonNode: {
+            options?: components["schemas"]["JsonNodeOptions"];
+            parent?: components["schemas"]["JsonNode"];
+            root?: components["schemas"]["JsonNode"];
+        };
+        JsonNodeOptions: {
+            propertyNameCaseInsensitive?: boolean;
         };
         KlineDataIssueDto: {
             /** Format: int64 */
@@ -6574,6 +10442,45 @@ export interface components {
             /** Format: int32 */
             verifiedSourceBars?: number;
         };
+        MarketCalendarDayDto: {
+            date?: string | null;
+            kind?: string | null;
+            reason?: string | null;
+            sourceTitle?: string | null;
+            sourceUrl?: string | null;
+            verification?: string | null;
+        };
+        MarketCalendarResponse: {
+            calendarVersion?: string | null;
+            configOverrideDates?: string[] | null;
+            contractVersion?: string | null;
+            coverageFromDate?: string | null;
+            coverageToDate?: string | null;
+            databaseSync?: components["schemas"]["MarketCalendarSyncDto"];
+            days?: components["schemas"]["MarketCalendarDayDto"][] | null;
+            /** Format: date-time */
+            generatedAtUtc?: string;
+            limitations?: string[] | null;
+            /** Format: int32 */
+            unverifiedLegacyDays?: number;
+            venue?: string | null;
+            /** Format: int32 */
+            verifiedDays?: number;
+        };
+        MarketCalendarSyncDto: {
+            /** Format: date-time */
+            atUtc?: string;
+            /** Format: int32 */
+            deleted?: number;
+            error?: string | null;
+            /** Format: int32 */
+            inserted?: number;
+            status?: string | null;
+            /** Format: int32 */
+            unchanged?: number;
+            /** Format: int32 */
+            updated?: number;
+        };
         MarketMetricQuality: {
             /** Format: int64 */
             duplicateOpenTimeRows?: number;
@@ -6669,6 +10576,18 @@ export interface components {
             /** Format: int32 */
             maxBuyableShares: number;
         };
+        MbbCalendarInfo: {
+            calendarVersion?: string | null;
+            configOverrideDates?: string[] | null;
+            coverageFromDate?: string | null;
+            coverageToDate?: string | null;
+            peerSymbols?: string[] | null;
+            source?: string | null;
+            /** Format: int32 */
+            unverifiedLegacyDays?: number;
+            /** Format: int32 */
+            verifiedDays?: number;
+        };
         MbbCandleDto: {
             /** Format: double */
             close?: number;
@@ -6694,7 +10613,39 @@ export interface components {
             /** Format: double */
             volume?: number;
         };
+        MbbCashContext: {
+            /** Format: double */
+            buyBudgetVnd?: number | null;
+            cashSource: string;
+            /** Format: double */
+            sharedCashVnd?: number | null;
+            /** Format: double */
+            spendableVnd?: number | null;
+            /** Format: double */
+            totalDeclaredBudgetsVnd: number;
+        };
+        MbbClassifiedGapRange: {
+            classification?: string | null;
+            /** Format: int64 */
+            endOpenTimeMs?: number;
+            /** Format: int64 */
+            missingBars?: number;
+            /** Format: int64 */
+            startOpenTimeMs?: number;
+        };
+        MbbCorporateActionApplication: {
+            actionType: string;
+            /** Format: int32 */
+            affectedLots: number;
+            exDate: string;
+            reason?: string | null;
+            /** Format: double */
+            shareRatio?: number | null;
+            status: string;
+            verificationStatus: string;
+        };
         MbbCoverageReport: {
+            calendar?: components["schemas"]["MbbCalendarInfo"];
             crossCheckProvider?: string | null;
             /** Format: date-time */
             generatedAtUtc?: string;
@@ -6709,6 +10660,7 @@ export interface components {
         MbbDecisionDto: {
             action: string;
             buyMore?: components["schemas"]["MbbBuyMoreCapacity"];
+            cash?: components["schemas"]["MbbCashContext"];
             dataFreshness: components["schemas"]["MbbTimeframeFreshness"][];
             evidenceStatus: string;
             /** Format: date-time */
@@ -6779,6 +10731,7 @@ export interface components {
             signalBarCloseTimeMs?: number;
             /** Format: int64 */
             signalBarOpenTimeMs?: number;
+            symbol?: string | null;
             timeframe?: string | null;
         };
         MbbPositionDto: {
@@ -6786,12 +10739,20 @@ export interface components {
             availableCashVnd: number;
             /** Format: double */
             avgCostPerShareVnd?: number | null;
+            /** Format: double */
+            buyBudgetVnd?: number | null;
+            cashNotes?: string[] | null;
+            cashSource?: string | null;
             lots: components["schemas"]["MbbPositionLotDto"][];
             /** Format: int32 */
             pendingShares: number;
             /** Format: int32 */
             settledShares: number;
+            /** Format: double */
+            sharedCashVnd?: number | null;
             symbol: string;
+            /** Format: double */
+            totalDeclaredBudgetsVnd?: number | null;
             /** Format: int32 */
             totalShares: number;
             /** Format: date-time */
@@ -6812,6 +10773,9 @@ export interface components {
         MbbPositionSummary: {
             /** Format: double */
             avgCostPerShareVnd?: number | null;
+            corporateActions?: components["schemas"]["MbbCorporateActionApplication"][] | null;
+            costBasisComparable?: boolean;
+            costBasisNote?: string | null;
             /** Format: double */
             lastPriceVnd?: number | null;
             /** Format: double */
@@ -6854,12 +10818,18 @@ export interface components {
             timeframe?: string | null;
         };
         MbbTimeframeCoverage: {
+            /** Format: int64 */
+            belowCalendarCoverageMissingBars?: number;
+            /** Format: int64 */
+            calendarCoverageExpiredMissingBars?: number;
+            calendarFlags?: string[] | null;
             /** Format: double */
             coveragePct?: number;
             /** Format: int64 */
             expectedBars?: number;
             /** Format: date-time */
             firstOpenUtc?: string | null;
+            freshnessReason?: string | null;
             /** Format: int64 */
             gapRangeCount?: number;
             /** Format: int64 */
@@ -6872,14 +10842,23 @@ export interface components {
             /** Format: date-time */
             latestExpectedFinalizedOpenUtc?: string | null;
             /** Format: int64 */
+            marketWideMissingBars?: number;
+            /** Format: int64 */
             missingBars?: number;
+            /** Format: int64 */
+            noPeerDataMissingBars?: number;
+            /** Format: int64 */
+            symbolMissingBars?: number;
             timeframe?: string | null;
+            topClassifiedGaps?: components["schemas"]["MbbClassifiedGapRange"][] | null;
             topGaps?: components["schemas"]["CandleGapRange"][] | null;
             /** Format: int64 */
             totalBars?: number;
             /** Format: int64 */
             unexpectedSessionBars?: number;
             unexpectedSessionOpenTimeMs?: number[] | null;
+            /** Format: int64 */
+            unverifiedNonTradingDaysInRange?: number;
         };
         MbbTimeframeFreshness: {
             isStale: boolean;
@@ -6887,6 +10866,7 @@ export interface components {
             latestExpectedFinalizedOpenMs?: number | null;
             /** Format: int64 */
             latestOpenTimeMs?: number | null;
+            reason?: string | null;
             timeframe: string;
         };
         MbbTimeframeSync: {
@@ -6905,6 +10885,9 @@ export interface components {
             missingExpectedBars?: number;
             /** Format: int32 */
             rejectedInvalidBars?: number;
+            /** Format: int32 */
+            revisionRefetchRequests?: number;
+            revisionRefetchStatus?: string | null;
             /** Format: int32 */
             skippedFormingBars?: number;
             timeframe?: string | null;
@@ -6935,10 +10918,13 @@ export interface components {
             /** Format: int32 */
             fillsResolved?: number;
             /** Format: int32 */
+            forecastOutcomesResolved?: number | null;
+            /** Format: int32 */
             outcomesResolved?: number;
             /** Format: int64 */
             signalBarOpenTimeMs?: number | null;
             status?: string | null;
+            symbol?: string | null;
             timeframe?: string | null;
         };
         OrderBookDepthDto: {
@@ -7641,6 +11627,10 @@ export interface components {
             topTransitions?: components["schemas"]["ArchetypeTransitionDto"][] | null;
             validated?: boolean;
         };
+        UpdateEquityCashRequest: {
+            /** Format: double */
+            availableCashVnd?: number | null;
+        };
         UpdateMbbPositionLotItem: {
             acquireDate: string;
             /** Format: double */
@@ -7650,7 +11640,9 @@ export interface components {
         };
         UpdateMbbPositionRequest: {
             /** Format: double */
-            availableCashVnd: number;
+            availableCashVnd?: number | null;
+            /** Format: double */
+            buyBudgetVnd?: number | null;
             lots: components["schemas"]["UpdateMbbPositionLotItem"][];
         };
         UpdatePriceAlertSettingsDto: {

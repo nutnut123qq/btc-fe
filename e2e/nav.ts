@@ -5,6 +5,7 @@ import { expect, type Page } from "@playwright/test";
 const GROUP_LABEL_BY_TAB: Readonly<Record<string, string | null>> = {
   "BTC/USDT": "Thị trường",
   "MBB": "Thị trường",
+  "Cổ phiếu": "Thị trường",
   "Tin tức": "Tin tức & AI",
   "AI": "Tin tức & AI",
   "Nghiên cứu": "Nghiên cứu",
