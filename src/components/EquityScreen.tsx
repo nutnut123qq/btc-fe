@@ -313,6 +313,8 @@ function EquitySymbolView({
   const [context, setContext] = useState<PanelState<EquityOptional<EquityContext>>>({ kind: "loading" });
   const [journal, setJournal] = useState<PanelState<EquityOptional<ForecastJournal>>>({ kind: "loading" });
   const [llmRuns, setLlmRuns] = useState<PanelState<EquityOptional<LlmRun[]>>>({ kind: "loading" });
+  // Legacy LLM history is read-only and collapsed; it is only fetched once opened.
+  const [llmOpen, setLlmOpen] = useState(false);
   const [sourceDocuments, setSourceDocuments] = useState<PanelState<EquityOptional<SourceDocument[]>>>({ kind: "loading" });
   const [researchNotes, setResearchNotes] = useState<PanelState<EquityOptional<ResearchNote[]>> | { kind: "locked" }>({ kind: "loading" });
 
@@ -591,9 +593,11 @@ function EquitySymbolView({
     void loadBaseRates();
     void loadContext();
     void loadJournal();
-    void loadLlmRuns();
     void loadSourceDocuments();
-  }, [loadQuality, loadBaseRates, loadContext, loadJournal, loadLlmRuns, loadSourceDocuments, reloadEpoch]);
+  }, [loadQuality, loadBaseRates, loadContext, loadJournal, loadSourceDocuments, reloadEpoch]);
+  useEffect(() => {
+    if (llmOpen) void loadLlmRuns();
+  }, [llmOpen, loadLlmRuns, reloadEpoch]);
 
   const reloadAll = () => {
     void loadCandles(timeframe);
@@ -605,7 +609,7 @@ function EquitySymbolView({
     void loadBaseRates();
     void loadContext();
     void loadJournal();
-    void loadLlmRuns();
+    if (llmOpen) void loadLlmRuns();
     void loadResearchNotes();
     void loadSourceDocuments();
   };
@@ -1185,7 +1189,22 @@ function EquitySymbolView({
 
       <ResearchNotesPanel symbol={symbol} state={researchNotes} onReload={() => void loadResearchNotes()} />
 
-      <LlmRunsPanel symbol={symbol} state={llmRuns} onReload={() => void loadLlmRuns()} quantFor={quantFor} />
+      <details
+        className="rounded border border-slate-800 bg-slate-900/40"
+        open={llmOpen}
+        onToggle={(event) => setLlmOpen(event.currentTarget.open)}
+        data-testid={`${sym}-llm-history`}
+      >
+        <summary className="cursor-pointer select-none px-3 py-2.5 text-[13px] font-medium text-slate-300 hover:text-slate-100">
+          Lịch sử phân tích LLM cũ ({symbol})
+          <span className="ml-2 text-[11px] font-normal text-slate-500">chỉ đọc · lớp LLM trong app đã ngừng · không ảnh hưởng quyết định</span>
+        </summary>
+        {llmOpen && (
+          <div className="border-t border-slate-800 p-2">
+            <LlmRunsPanel symbol={symbol} state={llmRuns} onReload={() => void loadLlmRuns()} quantFor={quantFor} />
+          </div>
+        )}
+      </details>
 
       <EquityObservationsPanel symbol={symbol} timeframe={timeframe} state={observations} onReload={() => void loadObservations(timeframe)} />
 

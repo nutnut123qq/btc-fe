@@ -339,7 +339,7 @@ export function safeApiErrorMessage(body: string, status: number): string {
   try {
     const payload = JSON.parse(body) as { code?: unknown };
     const knownMessages: Record<string, string> = {
-      LLM_NOT_CONFIGURED: "Giải thích LLM chưa được cấu hình; các chức năng định lượng vẫn hoạt động.",
+      LLM_NOT_CONFIGURED: "Giải thích LLM chưa được cấu hình.",
       AI_SERVICE_UNAVAILABLE: "Dịch vụ giải thích AI tạm thời không khả dụng.",
       AI_SERVICE_TIMEOUT: "Dịch vụ giải thích AI phản hồi quá lâu.",
       AI_ANALYSIS_ERROR: "Phân tích AI chưa thể hoàn tất.",

@@ -11,6 +11,8 @@ import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/li
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 import { CapabilityStateBadge } from "./CapabilityStateBadge";
 import { ruleEvidenceView } from "@/lib/evidencePresentation";
+import { begin, fail, idle, loadView, succeed, type Loaded } from "@/lib/loadState";
+import { LoadNotice } from "./LoadNotice";
 
 import type { CapabilityState, DiscoveryRun, RuleDiscoveryRunResponse, SequenceRule } from "@/lib/types";
 
@@ -24,11 +26,17 @@ export function DiscoveryScreen() {
   const [symbol] = useState<string>(ACTIVE_SYMBOL);
   const [timeframe, setTimeframe] = useState<ActiveTimeframe>(DEFAULT_TIMEFRAME);
   const [running, setRunning] = useState(false);
-  const [rules, setRules] = useState<SequenceRule[]>([]);
+  // Catalog read scoped to symbol|timeframe: empty copy only after a successful
+  // empty response for the current scope; a failed read renders LoadNotice.
+  const [rulesState, setRulesState] = useState<Loaded<SequenceRule[]>>(() => idle());
+  const rules = rulesState.data ?? [];
+  const rulesView = loadView(rulesState);
+  const loading = rulesState.pending;
+  // Never advise pressing "Chạy Discovery" while that button is disabled.
+  const canRunDiscovery = adminUnlocked && !running;
   // Run ledger cho (symbol,timeframe) đang chọn — chỉ fetch khi danh mục rỗng.
   // null = chưa fetch hoặc fetch lỗi → empty-state giữ copy trung lập.
   const [runsInfo, setRunsInfo] = useState<{ symbol: string; timeframe: string; runs: DiscoveryRun[] } | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RuleDiscoveryRunResponse | null>(null);
   const [evaluating, setEvaluating] = useState(false);
@@ -36,11 +44,11 @@ export function DiscoveryScreen() {
   const [evalResult, setEvalResult] = useState<{ bars?: number; signals?: Array<{ ruleName: string; message: string }> } | null>(null);
 
   const loadRules = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    const scope = `${symbol}|${timeframe}`;
+    setRulesState((prev) => begin(prev, scope));
     try {
       const data = await getDiscoveredRules({ symbol, timeframe });
-      setRules(data);
+      setRulesState((prev) => succeed(prev, data, Date.now(), scope));
       if (data.length === 0) {
         try {
           const runs = await getDiscoveryRuns({ symbol, timeframe, take: 1 });
@@ -52,9 +60,7 @@ export function DiscoveryScreen() {
         setRunsInfo(null);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lỗi tải rules");
-    } finally {
-      setLoading(false);
+      setRulesState((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [symbol, timeframe]);
 
@@ -111,7 +117,7 @@ export function DiscoveryScreen() {
             Quét {symbol.replace("USDT", "/USDT")} {timeframe} — survivor experimental, không phải promotion.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-1.5 text-[11px] text-slate-400">
             Khung
             <select
@@ -189,11 +195,17 @@ export function DiscoveryScreen() {
         <div className="border-y border-slate-800/60 px-1 py-3 text-xs text-slate-400">Đang tải rules…</div>
       )}
 
-      {rules.length === 0 && !loading && (
+      {rulesView !== "loading" && <LoadNotice state={rulesState} what="danh mục rules" />}
+
+      {rulesView === "empty" && !loading && (
         <div className="border-y border-slate-800/60 px-1 py-3 text-xs text-slate-400">
           {runsInfo && runsInfo.symbol === symbol && runsInfo.timeframe === timeframe ? (
             runsInfo.runs.length === 0 ? (
-              <>Không có lần quét nào được ghi ở khung {timeframe} — nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.</>
+              canRunDiscovery ? (
+                <>Không có lần quét nào được ghi ở khung {timeframe} — nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.</>
+              ) : (
+                <>Không có lần quét nào được ghi ở khung {timeframe}.</>
+              )
             ) : (
               <>
                 Lần quét gần nhất {formatTimestamp(runsInfo.runs[0].createdAtUtc)} ·{" "}
@@ -201,7 +213,11 @@ export function DiscoveryScreen() {
               </>
             )
           ) : (
-            <>Chưa có rule tự động nào — nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.</>
+            canRunDiscovery ? (
+              <>Chưa có rule tự động nào — nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử.</>
+            ) : (
+              <>Chưa có rule tự động nào ở khung {timeframe}.</>
+            )
           )}
         </div>
       )}

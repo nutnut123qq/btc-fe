@@ -44,3 +44,29 @@ test("page wraps the screen in Suspense as required for useSearchParams prerende
   assert.match(page, /<Suspense/);
   assert.match(page, /<ResearchEvidenceScreen \/>/);
 });
+
+test("F02: dossier list says 'empty' only after a successful catalog read", () => {
+  // A rejected catalog request is unknown, not an empty catalog.
+  assert.match(screen, /const listView = loadView\(catalogState, \(\) => visibleItems\.length === 0\)/);
+  assert.match(screen, /listView === "empty" && <div[^>]*>Chưa có hồ sơ bằng chứng nào/);
+  assert.match(screen, /listView === "error" && <div role="alert"[^>]*>Chưa đọc được danh mục hồ sơ/);
+  assert.doesNotMatch(screen, /!loading && visibleItems\.length === 0/);
+  // Pipeline status must not claim "catalog did not publish" when the catalog was never read.
+  assert.match(screen, /\{!known \? <LoadNotice state=\{catalogState\}/);
+});
+
+test("F09: admin/ops panels live in one closed technical disclosure after the reading flow", () => {
+  const start = screen.indexOf('data-testid="research-technical-admin"');
+  const end = screen.indexOf("</details>", start);
+  assert.ok(start > 0 && end > start);
+  const disclosure = screen.slice(start, end);
+  assert.match(screen, /<details className="[^"]*" data-testid="research-technical-admin">/);
+  assert.doesNotMatch(screen, /data-testid="research-technical-admin"[^>]*\bopen\b/);
+  assert.match(disclosure, /Chi tiết kỹ thuật & thao tác quản trị/);
+  for (const panel of ["<EvidencePipelineStatus", "<DataQualityAdministration/>", "<TechnicalEvidenceAdministration/>", "<CausalSmartMoneyAdministration/>", "<CapabilityMatrix"]) {
+    assert.ok(disclosure.includes(panel), `${panel} must be inside the technical disclosure`);
+    assert.equal(screen.split(panel).length - 1, 1, `${panel} must be rendered exactly once`);
+  }
+  // Data coverage (data/source/as-of) stays in the reading flow, ahead of the disclosure.
+  assert.ok(screen.indexOf("<TechnicalDataCoverage audit=") < start);
+});

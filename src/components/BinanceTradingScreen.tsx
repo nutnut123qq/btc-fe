@@ -28,6 +28,10 @@ import {
   type TechnicalReplayEvent,
 } from "@/lib/technicalReplay";
 import { TechnicalReplayControls, TechnicalReplayPanel, TechnicalReplayStatus, useMinWidth } from "./TechnicalReplayPanel";
+import { backoffDelayMs } from "@/lib/reconnect";
+
+const TICKER_POLL_MS = 4_000;
+const TICKER_MAX_BACKOFF_MS = 60_000;
 
 // Code-splitting with dynamic imports to optimize First Contentful Paint & bundle size
 const BtcCandlestickChart = dynamic(
@@ -58,7 +62,6 @@ import {
 
 const TIMEFRAMES = ACTIVE_TIMEFRAMES.map((timeframe) => ({ label: timeframe, value: timeframe }));
 
-type RightTab = "trades" | "depth";
 type BottomTab = "market_trades" | "smart_money";
 
 export function BinanceTradingScreen() {
@@ -106,17 +109,18 @@ export function BinanceTradingScreen() {
   }, []);
 
   // Tabs
-  const [rightTab, setRightTab] = useState<RightTab>("trades");
   const [asideOpen, setAsideOpen] = useState<boolean>(false);
   const [bottomTab, setBottomTab] = useState<BottomTab>("market_trades");
+
+  const wideAside = useMinWidth(1280);
 
   // Active Ticker
   const activeTicker = tickers.find(
     (t) => t.symbol.toUpperCase() === selectedSymbol.toUpperCase()
   ) || null;
 
-  // Poll tickers
-  const fetchTickers = useCallback(async () => {
+  // Poll tickers; returns false on failure so the poller can back off.
+  const fetchTickers = useCallback(async (): Promise<boolean> => {
     try {
       const data = await getMarketTickers();
       if (Array.isArray(data)) {
@@ -128,19 +132,40 @@ export function BinanceTradingScreen() {
           receivedAtMs,
         })));
       }
-    } catch (e) {
-      console.error("Failed to load tickers", e);
+      return true;
+    } catch {
+      return false;
     }
   }, []);
 
+  // Sequential poll (never overlapping), exponential backoff while REST fails, paused
+  // while the tab is hidden. One warning per outage instead of one error per tick.
   useEffect(() => {
-    void fetchTickers();
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        void fetchTickers();
-      }
-    }, 4000);
-    return () => clearInterval(interval);
+    let cancelled = false;
+    let inFlight = false;
+    let failures = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tick = async () => {
+      timer = null;
+      if (cancelled || inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      const ok = await fetchTickers();
+      inFlight = false;
+      if (cancelled) return;
+      if (!ok && failures === 0) console.warn("REST tickers unavailable; retrying with backoff");
+      failures = ok ? 0 : failures + 1;
+      timer = setTimeout(() => void tick(), backoffDelayMs(failures, TICKER_POLL_MS, TICKER_MAX_BACKOFF_MS));
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && !timer && !inFlight) void tick();
+    };
+    void tick();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [fetchTickers]);
 
   // Live WebSocket Ticker Stream
@@ -375,7 +400,6 @@ export function BinanceTradingScreen() {
               error={replayError}
               unavailableOverlays={[
                 ...(technicalReplay?.coverage.filter((item) => item.availability === "unavailable").map((item) => item.layerKey) ?? []),
-                ...(replayError ? ["Technical replay"] : []),
               ]}
             />
 
@@ -548,22 +572,6 @@ export function BinanceTradingScreen() {
               >
                 <PanelRightOpen className="w-4 h-4" />
               </button>
-              <button
-                type="button"
-                onClick={() => { setRightTab("trades"); setAsideOpen(true); }}
-                className="p-2 rounded text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
-                aria-label="Mở khớp lệnh realtime"
-              >
-                <ArrowDownUp className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => { setRightTab("depth"); setAsideOpen(true); }}
-                className="p-2 rounded text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition-colors"
-                aria-label="Mở sổ lệnh"
-              >
-                <Layers className="w-4 h-4" />
-              </button>
             </div>
           )}
 
@@ -581,48 +589,17 @@ export function BinanceTradingScreen() {
           </div>
           <div className="rounded border border-slate-800 bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-400">
             <strong className="block text-[13px] font-semibold text-slate-200">Realtime market data</strong>
-            Khớp lệnh và sổ lệnh bên dưới cập nhật theo thời gian thực, không thuộc cutoff {technicalReplay?.effectiveAsOfTimeMs ? new Date(technicalReplay.effectiveAsOfTimeMs).toLocaleString("vi-VN") : "Technical Replay"} và không phải layer bằng chứng lịch sử.
+            Sổ lệnh bên dưới (và khớp lệnh ở tab dưới biểu đồ) cập nhật theo thời gian thực, không thuộc cutoff {technicalReplay?.effectiveAsOfTimeMs ? new Date(technicalReplay.effectiveAsOfTimeMs).toLocaleString("vi-VN") : "Technical Replay"} và không phải layer bằng chứng lịch sử.
           </div>
 
-          {/* Right Tabs Header — segmented control */}
-          <div className="flex divide-x divide-slate-800 overflow-hidden rounded border border-slate-800 text-[11px]">
-            <button
-              type="button"
-              aria-pressed={rightTab === "trades"}
-              onClick={() => setRightTab("trades")}
-              className={`flex flex-1 items-center justify-center gap-1 py-1.5 font-medium transition-colors ${
- rightTab === "trades"
- ? "bg-teal-500/15 text-teal-300"
- : "bg-slate-950 text-slate-400 hover:text-slate-200"
- }`}
-            >
-              <ArrowDownUp className="w-3 h-3" /> Khớp
-            </button>
-            <button
-              type="button"
-              aria-pressed={rightTab === "depth"}
-              onClick={() => setRightTab("depth")}
-              className={`flex flex-1 items-center justify-center gap-1 py-1.5 font-medium transition-colors ${
- rightTab === "depth"
- ? "bg-teal-500/15 text-teal-300"
- : "bg-slate-950 text-slate-400 hover:text-slate-200"
- }`}
-            >
-              <Layers className="w-3 h-3" /> Sổ
-            </button>
-          </div>
-
-          {/* Right Tab Content */}
-          <div className="h-[600px] @container">
-            {rightTab === "trades" && (
-              <MarketTradesWidget symbol={selectedSymbol} limit={35} />
-            )}
-
-            {rightTab === "depth" && (
+          {/* Order book only: the realtime trade tape lives once, in the bottom tab panel
+              (a second tape here duplicated it on every breakpoint below xl). Not mounted
+              while hidden on xl, so it holds no stream subscription there. */}
+          {(!wideAside || asideOpen) && (
+            <div className="h-[600px] @container">
               <OrderBookWidget symbol={selectedSymbol} limit={11} />
-            )}
-
-          </div>
+            </div>
+          )}
           </div>
         </aside>
       </div>

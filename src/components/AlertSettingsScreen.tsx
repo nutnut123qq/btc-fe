@@ -17,6 +17,10 @@ const ALERT_USER_ID = "default";
 
 export function AlertSettingsScreen({ contractCompatible = false }: { contractCompatible?: boolean }) {
   const [loading, setLoading] = useState(true);
+  // The form only renders values from a successful read; defaults are never shown as real settings.
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [labOpen, setLabOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -30,7 +34,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setLoadError(null);
     try {
       const data: AlertSettingsDto | null = await getAlertSettings(ALERT_USER_ID);
       if (data) {
@@ -46,8 +50,9 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
         setKlineInterval(DEFAULT_TIMEFRAME);
         setCooldownMinutes(30);
       }
+      setSettingsLoaded(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Không tải được cấu hình alert");
+      setLoadError(e instanceof Error ? e.message : "Không tải được cấu hình alert");
     } finally {
       setLoading(false);
     }
@@ -157,9 +162,22 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         <section className="space-y-4 lg:col-span-7">
-          {loading && <p className="text-sm text-slate-500">Đang tải…</p>}
+          {loading && !settingsLoaded && <p className="text-sm text-slate-500">Đang tải…</p>}
 
-          {!loading && (
+          {loadError && (
+            <div role="alert" className="flex flex-wrap items-center gap-2 border-l-2 border-rose-600/70 bg-rose-950/20 px-3 py-2 text-xs text-rose-300">
+              <span>
+                {settingsLoaded
+                  ? `Làm mới cấu hình thất bại: ${loadError.replace(/[.\s]+$/, "")}. Biểu mẫu đang hiển thị lần tải thành công trước.`
+                  : `Không tải được cấu hình cảnh báo: ${loadError.replace(/[.\s]+$/, "")}. Chưa hiển thị biểu mẫu để không nhầm giá trị mặc định với cấu hình thật.`}
+              </span>
+              <button type="button" onClick={() => void load()} disabled={loading} className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:border-slate-600 disabled:opacity-50">
+                Thử lại
+              </button>
+            </div>
+          )}
+
+          {settingsLoaded && (
             <>
               <section className="overflow-hidden rounded border border-slate-800 bg-slate-900">
                 <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 px-3 py-1">
@@ -343,13 +361,29 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
         </aside>
       </div>
 
-      <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
-        <DataManagementPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
-      </ErrorBoundary>
+      {/* Lab tooling is opt-in: closed by default and not mounted (no audit requests) until opened. */}
+      <details
+        className="rounded border border-slate-800 bg-slate-900/40"
+        open={labOpen}
+        onToggle={(event) => setLabOpen(event.currentTarget.open)}
+        data-testid="settings-lab"
+      >
+        <summary className="cursor-pointer select-none px-3 py-2.5 text-[13px] font-medium text-slate-300 hover:text-slate-100">
+          Công cụ kỹ thuật (Lab): kiểm tra dữ liệu, indexer, RAG
+          <span className="ml-2 text-[11px] font-normal text-slate-500">dành cho quản trị — không cần cho việc đặt cảnh báo</span>
+        </summary>
+        {labOpen && (
+          <div className="space-y-4 border-t border-slate-800 p-3">
+            <ErrorBoundary fallbackTitle="Lỗi tải Bảng Quản trị Dữ liệu & Kiểm toán">
+              <DataManagementPanel adminUnlocked={adminUnlocked} contractCompatible={contractCompatible} />
+            </ErrorBoundary>
 
-      <ErrorBoundary fallbackTitle="Lỗi tải bản đồ năng lực kỹ thuật">
-        <TechnicalCapabilitiesPanel />
-      </ErrorBoundary>
+            <ErrorBoundary fallbackTitle="Lỗi tải bản đồ năng lực kỹ thuật">
+              <TechnicalCapabilitiesPanel />
+            </ErrorBoundary>
+          </div>
+        )}
+      </details>
     </div>
   );
 }

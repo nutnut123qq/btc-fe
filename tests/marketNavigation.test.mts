@@ -8,7 +8,9 @@ const shellPagesSource = readFileSync(new URL("../src/components/ShellPages.tsx"
 
 test("primary market navigation mounts only canonical Technical Replay", () => {
   assert.match(marketSource, /<BinanceTradingScreen\s*\/>/);
-  assert.match(marketSource, /Technical Replay là bề mặt kỹ thuật chuẩn/);
+  assert.match(marketSource, /Phân tích kỹ thuật BTC trên nến đã đóng/);
+  // F09: the default flow describes what the user sees, not the implementation name.
+  assert.doesNotMatch(marketSource, /bề mặt kỹ thuật chuẩn/);
 
   for (const legacyWidget of [
     "RegimeBadge",

@@ -11,8 +11,9 @@ export function TelegramSettingsPanel({
   adminUnlocked?: boolean;
   contractCompatible?: boolean;
 }) {
-  const [configured, setConfigured] = useState(false);
-  const [enabled, setEnabled] = useState(false);
+  // null = status not verified (never loaded or the last load failed) — never shown as "chưa cấu hình".
+  const [status, setStatus] = useState<{ configured: boolean; enabled: boolean } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -22,10 +23,11 @@ export function TelegramSettingsPanel({
     setTestResult(null);
     try {
       const data = await getTelegramStatus();
-      setConfigured(data.configured);
-      setEnabled(data.enabled);
+      setStatus({ configured: data.configured, enabled: data.enabled });
+      setLoadError(null);
     } catch (e) {
-      console.error("Failed to load Telegram status", e);
+      setStatus(null);
+      setLoadError(e instanceof Error ? e.message : "Không tải được trạng thái Telegram");
     } finally {
       setLoading(false);
     }
@@ -60,6 +62,9 @@ export function TelegramSettingsPanel({
     );
   }
 
+  const configured = status?.configured === true;
+  const enabled = status?.enabled === true;
+
   return (
     <section className="overflow-hidden rounded border border-slate-800 bg-slate-900 text-xs">
       <header className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-800 bg-slate-850/60 px-3 py-1">
@@ -67,9 +72,9 @@ export function TelegramSettingsPanel({
           <MessageCircle className="h-3.5 w-3.5 text-slate-500" /> Telegram Bot
         </h3>
         <div className="flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1.5 text-slate-400">
+          <span className="flex items-center gap-1.5 text-slate-400" data-telegram-status={status === null ? "unverified" : configured ? "configured" : "not-configured"}>
             <span className={`h-1.5 w-1.5 rounded-full ${configured ? "bg-slate-400" : "bg-slate-700"}`} aria-hidden="true" />
-            {configured ? "đã cấu hình" : "chưa cấu hình"}
+            {status === null ? "chưa xác minh" : configured ? "đã cấu hình" : "chưa cấu hình"}
           </span>
           {enabled && (
             <span className="flex items-center gap-1.5 text-teal-300">
@@ -81,6 +86,14 @@ export function TelegramSettingsPanel({
       </header>
 
       <div className="space-y-3 p-3 sm:p-4">
+        {loadError && (
+          <div role="alert" className="flex flex-wrap items-center gap-2 text-xs text-rose-300">
+            <span>Không tải được trạng thái Telegram: {loadError.replace(/[.\s]+$/, "")}. Chưa biết bot đã được cấu hình hay chưa.</span>
+            <button type="button" onClick={() => void load()} className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:border-slate-600">
+              Thử lại
+            </button>
+          </div>
+        )}
         <p className="text-[13px] text-slate-400">
           Bot Telegram gửi cảnh báo giá, tín hiệu ML và paper trading trực tiếp tới điện thoại của bạn.
         </p>

@@ -10,7 +10,8 @@ interface ArchetypeRankingsViewProps {
   horizon: string;
   timeframeOptions: string[];
   windowSizes: number[];
-  rankings: ArchetypeRankingDto[];
+  /** null = no successful load for the current filters; never rendered as empty. */
+  rankings: ArchetypeRankingDto[] | null;
   loading: boolean;
   onTimeframeChange: (tf: string) => void;
   onWindowSizeChange: (ws: number) => void;
@@ -83,9 +84,9 @@ export function ArchetypeRankingsView({
         <div className="flex justify-center py-12">
           <RefreshCw className="h-6 w-6 animate-spin text-teal-500" />
         </div>
-      ) : (
+      ) : rankings ? (
         <ArchetypeRankingsTable rankings={rankings} />
-      )}
+      ) : null}
     </div>
   );
 }

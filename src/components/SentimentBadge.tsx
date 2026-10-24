@@ -27,6 +27,8 @@ interface SentimentBadgeProps {
 export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: SentimentBadgeProps) {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [sentiment, setSentiment] = useState<SentimentSnapshotDto | null>(null);
+  // "Not loaded" is not "no snapshot": only a successful null response proves there is none.
+  const [readState, setReadState] = useState<"loading" | "ok" | "failed">("loading");
   const [refreshing, setRefreshing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -34,8 +36,9 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
     try {
       const data = await getCurrentSentiment(symbol);
       setSentiment(data);
-    } catch (err) {
-      console.error("Failed to load sentiment", err);
+      setReadState("ok");
+    } catch {
+      setReadState("failed");
     }
   }, [symbol]);
 
@@ -104,9 +107,14 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
   };
 
   if (!sentiment) {
+    const text = readState === "ok"
+      ? (compact ? "Tâm lý: chưa có dữ liệu" : "Chưa có snapshot tâm lý.")
+      : readState === "failed"
+        ? (compact ? "Tâm lý: chưa tải được" : "Chưa tải được dữ liệu tâm lý (lỗi kết nối) — chưa biết có snapshot hay không.")
+        : (compact ? "Tâm lý: đang tải…" : "Đang tải dữ liệu tâm lý…");
     return compact
-      ? <div className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs text-slate-400">Tâm lý: chưa có dữ liệu</div>
-      : <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-xs text-slate-400">Chưa có snapshot tâm lý.</div>;
+      ? <div className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs text-slate-400">{text}</div>
+      : <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-xs text-slate-400" role={readState === "failed" ? "alert" : undefined}>{text}</div>;
   }
 
   const score = sentiment.aggregatedSentiment;

@@ -137,7 +137,9 @@ export function SystemStatusPanel() {
                 ))}
               </div>
             ) : (
-              <span className="text-slate-500">Không có dữ liệu freshness.</span>
+              <span className="text-slate-500">
+                {freshness ? "Endpoint trả danh sách freshness rỗng." : loading ? "Đang tải…" : "Chưa tải được freshness — chưa xác minh độ mới dữ liệu."}
+              </span>
             )}
           </div>
 
@@ -179,7 +181,9 @@ export function SystemStatusPanel() {
                 })}
               </div>
             ) : (
-              <span className="text-slate-500">Không có worker heartbeat.</span>
+              <span className="text-slate-500">
+                {workers ? "Endpoint trả danh sách worker rỗng." : loading ? "Đang tải…" : "Chưa tải được worker heartbeat — chưa xác minh tác vụ nền."}
+              </span>
             )}
           </div>
         </div>

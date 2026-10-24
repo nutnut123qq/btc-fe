@@ -19,9 +19,8 @@ export function MarkovMatrixView({
   arcTransLoading,
   onSelectArc,
 }: MarkovMatrixViewProps) {
-  if (!matrix) {
-    return <div className="py-12 text-center text-slate-400">Không có dữ liệu</div>;
-  }
+  // No successful load for these filters — the screen's error banner explains; never claim "no data".
+  if (!matrix) return null;
 
   if (!hasTransitionMatrixData(matrix)) {
     return <div className="py-12 text-center text-slate-400">Chưa có dữ liệu chuyển đổi cho cấu hình này</div>;

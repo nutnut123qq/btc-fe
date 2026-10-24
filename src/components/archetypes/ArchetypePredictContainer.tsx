@@ -78,9 +78,9 @@ export function ArchetypePredictContainer({
           <div className="flex justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-teal-500" />
           </div>
-        ) : (
+        ) : nextPred && seqPred ? (
           <ArchetypePredictView nextPred={nextPred} seqPred={seqPred} />
-        )}
+        ) : null /* no successful load for these filters — banner explains; not "no forecast" */}
       </div>
     </div>
   );

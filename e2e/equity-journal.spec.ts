@@ -5,7 +5,12 @@ import { apiPaths, mockBackend, screenshot, symbolGroup, withAdmin } from "./equ
 // /co-phieu against the shared mocked backend. EQX v2 §B: the in-app LLM layer is
 // disabled — no control may create a run.
 
-const llmPanel = (page: Page, symbol: "mbb" | "bid") => page.getByTestId(`${symbol}-llm`);
+// Legacy LLM history is collapsed by default (F09) and only fetched once opened.
+async function llmPanel(page: Page, symbol: "mbb" | "bid") {
+  const history = page.getByTestId(`${symbol}-llm-history`);
+  if ((await history.getAttribute("open")) === null) await history.locator("summary").click();
+  return page.getByTestId(`${symbol}-llm`);
+}
 const createButton = (page: Page) => page.getByRole("button", { name: /Tạo phân tích LLM|Đang chạy…/ });
 const posts = (requests: string[]) => requests.filter((r) => r.startsWith("POST ") && r.includes("/llm-runs"));
 
@@ -28,7 +33,10 @@ test.describe("/co-phieu journal + LLM", () => {
     await expect(insufficient.getByText("Brier quant")).toHaveCount(0);
     await expect(journal.getByTestId("journal-scoring-tb-p10-s6-h60").getByText(/Chưa có cặp dự báo/)).toBeVisible();
 
-    const llm = llmPanel(page, "bid");
+    // Collapsed by default: no request for the legacy LLM history until it is opened.
+    await expect(page.getByTestId("bid-llm-history")).not.toHaveAttribute("open", "");
+    expect(apiPaths(requests).some((path) => path.endsWith("/llm-runs"))).toBe(false);
+    const llm = await llmPanel(page, "bid");
     await expect(llm.locator('[data-testid="llm-run"][data-status="succeeded"]')).toHaveCount(2);
     await expect(llm.getByTestId("llm-veto").first()).toContainText("chỉ là cảnh báo — không đổi quyết định đề xuất");
     // The veto is advisory only — the decision card keeps its own action and never shows it.
@@ -61,7 +69,7 @@ test.describe("/co-phieu journal + LLM", () => {
     const errors = await mockBackend(page, requests);
     await withAdmin(page);
     await page.goto("/co-phieu?symbol=MBB");
-    const mbb = llmPanel(page, "mbb");
+    const mbb = await llmPanel(page, "mbb");
     await expect(mbb.getByTestId("mbb-llm-empty")).toBeVisible();
     await expect(mbb.getByTestId("mbb-llm-disabled-note"))
       .toHaveText("Lớp LLM trong app đã ngừng — nghiên cứu được thực hiện qua session (skill investment-research).");
@@ -69,8 +77,9 @@ test.describe("/co-phieu journal + LLM", () => {
 
     // Switch symbol and lock: still no way to create a run anywhere on the page.
     await symbolGroup(page).getByRole("button", { name: "BID" }).click();
-    await expect(llmPanel(page, "bid").locator('[data-testid="llm-run"]')).toHaveCount(3);
-    await expect(llmPanel(page, "bid").getByTestId("bid-llm-disabled-note")).toBeVisible();
+    const bid = await llmPanel(page, "bid");
+    await expect(bid.locator('[data-testid="llm-run"]')).toHaveCount(3);
+    await expect(bid.getByTestId("bid-llm-disabled-note")).toBeVisible();
     await expect(createButton(page)).toHaveCount(0);
     await page.getByRole("button", { name: "Khóa lại" }).click();
     await expect(page.getByTestId("bid-position-locked")).toBeVisible();
@@ -87,6 +96,7 @@ test.describe("/co-phieu journal + LLM", () => {
     await withAdmin(page);
     await page.goto("/co-phieu?symbol=BID");
     await expect(page.getByTestId("bid-journal-unavailable")).toBeVisible();
+    await llmPanel(page, "bid");
     await expect(page.getByTestId("bid-llm-unavailable")).toBeVisible();
     await expect(page.getByTestId("bid-decision").getByText("Chờ", { exact: true })).toBeVisible();
     // The page never fetches the dossier (it burns "expensive" quota).

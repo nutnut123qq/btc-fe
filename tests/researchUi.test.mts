@@ -64,6 +64,15 @@ test("transition and prediction helpers preserve honest empty states", () => {
 
 test("LLM state treats null as unknown and permits an explicit fallback only", () => {
   assert.equal(getLlmUiState(null), "unknown");
+  // A failed capability check is "unverified", never "off".
+  assert.equal(getLlmUiState(null, true), "unverified");
+  assert.equal(getLlmUiState({
+    mlInference: false,
+    llmExplanation: false,
+    provider: "unavailable",
+    reason: "AI service is unavailable.",
+    fallbackExplanation: true,
+  }), "unavailable");
   assert.equal(canUseAiExplanation(null), false);
   assert.equal(getLlmUiState({
     mlInference: true,
@@ -83,7 +92,7 @@ test("LLM state treats null as unknown and permits an explicit fallback only", (
 
 test("research labels never fabricate live execution or a model", () => {
   assert.equal(AI_ANALYSIS_SYMBOL, "BTCUSDT");
-  assert.equal(PAPER_JOURNAL_LABEL, "Nhật ký Paper BTC");
+  assert.equal(PAPER_JOURNAL_LABEL, "Mô phỏng lịch sử BTC");
   assert.equal(PAPER_JOURNAL_LABEL.includes("Binance"), false);
   assert.equal(SIMULATION_LABEL, "SIMULATION");
   assert.equal(getPaperModelLabel(null), "Chưa gắn model");

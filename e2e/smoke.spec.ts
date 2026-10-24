@@ -69,7 +69,7 @@ test("production build loads the primary screen without console errors", async (
 test("backend-unavailable mode remains read-only and console-clean", async ({ page }) => {
   const errors = await mockBackend(page, false);
   await page.goto("/");
-  await expect(page.getByText(/Không kiểm tra được API contract; mutation đã bị khóa/)).toBeVisible();
+  await expect(page.getByText(/Không kiểm tra được API contract/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Bitcoin AI Analyst" })).toBeVisible();
   await page.waitForTimeout(750);
   expect(errors).toEqual([]);

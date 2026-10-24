@@ -118,6 +118,7 @@ export function SymbolWatchlistPanel({
           <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2 top-1/2 -translate-y-1/2" />
           <input
             type="text"
+            aria-label="Tìm mã trong danh sách theo dõi"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm BTC"

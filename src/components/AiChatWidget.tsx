@@ -140,7 +140,7 @@ export function AiChatWidget({ capabilities, dismissedByModal = false }: { capab
               m.id === aiMsgId
                 ? {
                     ...m,
-                    text: "Giải thích tạm thời không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.",
+                    text: "Giải thích tạm thời không khả dụng.",
                     evidenceTags: [],
                   }
                 : m
@@ -155,7 +155,7 @@ export function AiChatWidget({ capabilities, dismissedByModal = false }: { capab
           m.id === aiMsgId
             ? {
                 ...m,
-                text: "Giải thích tạm thời không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.",
+                text: "Giải thích tạm thời không khả dụng.",
                 evidenceTags: [],
               }
             : m
@@ -214,9 +214,11 @@ export function AiChatWidget({ capabilities, dismissedByModal = false }: { capab
                 >
                   {llmState === "unknown"
                     ? "Đang kiểm tra khả năng giải thích"
-                    : llmState === "off"
-                      ? "LLM OFF · dùng giải thích định lượng dự phòng"
-                      : "Giải thích từ dữ liệu nghiên cứu"}
+                    : llmState === "on"
+                      ? "Giải thích từ dữ liệu nghiên cứu"
+                      : canExplain
+                        ? "LLM OFF · dùng giải thích định lượng dự phòng"
+                        : "Giải thích chưa dùng được"}
                 </p>
               </div>
             </div>
@@ -277,11 +279,11 @@ export function AiChatWidget({ capabilities, dismissedByModal = false }: { capab
           </div>
 
           {/* Capability-unavailable amber state (honest, mirrors header subtitle) */}
-          {llmState === "off" && (
+          {llmState !== "on" && llmState !== "unknown" && (
             <div className="mx-3 mb-2 flex shrink-0 items-start gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[11px] leading-snug text-amber-200/90">
               <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-amber-400" />
               <span>
-                Giải thích LLM tạm không khả dụng. Dữ liệu định lượng không bị ảnh hưởng.
+                Giải thích LLM tạm không khả dụng.
               </span>
             </div>
           )}

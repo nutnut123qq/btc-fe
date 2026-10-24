@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef, useCallback, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useState, useRef, useCallback, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowUpRight, ArrowDownRight, ChevronRight } from "lucide-react";
 import { getBacktestRuns, getBacktestRunDetail, runEnsembleBacktest, optimizeEnsembleWeights } from "@/lib/api";
 import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
+import { begin, fail, idle, isStale, loadView, succeed, type Loaded } from "@/lib/loadState";
+import { LoadNotice } from "./LoadNotice";
 import type { BacktestRunSummary, BacktestTradeItem, WeightOptimizationResultDto, EquityCurvePoint } from "@/lib/types";
 import { createChart, AreaSeries, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
@@ -111,7 +113,11 @@ export function BacktestScreen() {
   const adminUnlocked = Boolean(getSessionKey("admin"));
   const [selectedSymbol] = useState<string>(ACTIVE_SYMBOL);
   const [activeTab, setActiveTab] = useState<"ml" | "ensemble">("ml");
-  const [runs, setRuns] = useState<BacktestRunSummary[]>([]);
+  // includeLegacy is the list scope: a toggle never shows the other filter's rows,
+  // and the empty copy only follows a successful response for the current filter.
+  const [runsState, setRunsState] = useState<Loaded<BacktestRunSummary[]>>(() => idle());
+  const runs = runsState.data ?? [];
+  const runsView = loadView(runsState);
   const [selected, setSelected] = useState<(BacktestRunSummary & { trades: BacktestTradeItem[]; metricsJson?: string; equityCurveJson?: string }) | null>(null);
   const [includeLegacy, setIncludeLegacy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -128,6 +134,7 @@ export function BacktestScreen() {
   const [ensMinConf, setEnsMinConf] = useState(0.55);
   const [ensFee, setEnsFee] = useState(5);
   const [ensCapital, setEnsCapital] = useState(10000);
+  const ensFieldId = useId();
   const [ensLoading, setEnsLoading] = useState(false);
   const [ensResult, setEnsResult] = useState<(BacktestRunSummary & { trades: BacktestTradeItem[]; equityCurve: EquityCurvePoint[] }) | null>(null);
   const [ensError, setEnsError] = useState("");
@@ -148,15 +155,13 @@ export function BacktestScreen() {
   const selectedStatus = selected ? runStatusOf(selected) : null;
 
   const loadRuns = useCallback(async () => {
-    setLoading(true);
-    setError("");
+    const scope = `${selectedSymbol}|${includeLegacy ? "lab" : "valid"}`;
+    setRunsState((prev) => begin(prev, scope));
     try {
       const data = await getBacktestRuns(selectedSymbol, undefined, 50, includeLegacy);
-      setRuns(data.items ?? []);
+      setRunsState((prev) => succeed(prev, data.items ?? [], Date.now(), scope));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load backtests");
-    } finally {
-      setLoading(false);
+      setRunsState((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [selectedSymbol, includeLegacy]);
 
@@ -376,6 +381,7 @@ export function BacktestScreen() {
                 {error}
               </div>
             )}
+            {(runsView === "error" || isStale(runsState)) && <LoadNotice state={runsState} what="danh sách backtest" />}
 
             {/* Desktop: bảng phẳng */}
             <div className="hidden overflow-x-auto md:block">
@@ -424,7 +430,7 @@ export function BacktestScreen() {
                       </tr>
                     );
                   })}
-                  {runs.length === 0 && !loading && (
+                  {runsView === "empty" && !loading && (
                     <tr>
                       <td colSpan={8} className="px-4 py-3 font-sans text-xs text-slate-400">
                         {includeLegacy
@@ -433,7 +439,7 @@ export function BacktestScreen() {
                       </td>
                     </tr>
                   )}
-                  {runs.length === 0 && loading && (
+                  {runs.length === 0 && (loading || runsView === "loading") && (
                     <tr>
                       <td colSpan={8} className="px-4 py-3 font-sans text-xs text-slate-500">Đang tải…</td>
                     </tr>
@@ -475,14 +481,14 @@ export function BacktestScreen() {
                   </button>
                 );
               })}
-              {runs.length === 0 && !loading && (
+              {runsView === "empty" && !loading && (
                 <div className="px-4 py-3 text-xs text-slate-400">
                   {includeLegacy
                     ? "Không có backtest nào khớp bộ lọc hiện tại (đang bật Lab: Legacy/Invalid)."
                     : "Không có backtest Valid. Bật bộ lọc Lab để xem Legacy/Invalid."}
                 </div>
               )}
-              {runs.length === 0 && loading && (
+              {runs.length === 0 && (loading || runsView === "loading") && (
                 <div className="px-4 py-3 text-xs text-slate-500">Đang tải…</div>
               )}
             </div>
@@ -638,24 +644,24 @@ export function BacktestScreen() {
             <div className="p-3">
               <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Timeframe</label>
-                  <select value={ensTimeframe} onChange={e => setEnsTimeframe(e.target.value as ActiveTimeframe)} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-200">
+                  <label htmlFor={`${ensFieldId}-tf`} className="mb-1 block text-[11px] text-slate-400">Timeframe</label>
+                  <select id={`${ensFieldId}-tf`} value={ensTimeframe} onChange={e => setEnsTimeframe(e.target.value as ActiveTimeframe)} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-200">
                     {ACTIVE_TIMEFRAMES.map((timeframe) => (
                       <option key={timeframe} value={timeframe}>{timeframe}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Min Conf</label>
-                  <input type="number" step="0.01" value={ensMinConf} onChange={e => setEnsMinConf(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
+                  <label htmlFor={`${ensFieldId}-conf`} className="mb-1 block text-[11px] text-slate-400">Min Conf</label>
+                  <input type="number" step="0.01" id={`${ensFieldId}-conf`} value={ensMinConf} onChange={e => setEnsMinConf(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Fee Bps</label>
-                  <input type="number" value={ensFee} onChange={e => setEnsFee(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
+                  <label htmlFor={`${ensFieldId}-fee`} className="mb-1 block text-[11px] text-slate-400">Fee Bps</label>
+                  <input type="number" id={`${ensFieldId}-fee`} value={ensFee} onChange={e => setEnsFee(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Capital</label>
-                  <input type="number" value={ensCapital} onChange={e => setEnsCapital(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
+                  <label htmlFor={`${ensFieldId}-capital`} className="mb-1 block text-[11px] text-slate-400">Capital</label>
+                  <input type="number" id={`${ensFieldId}-capital`} value={ensCapital} onChange={e => setEnsCapital(Number(e.target.value))} className="w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1.5 font-mono text-xs tabular-nums text-slate-200" />
                 </div>
               </div>
 

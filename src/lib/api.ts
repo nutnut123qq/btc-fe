@@ -937,8 +937,8 @@ export async function evaluateEnsemblePaperTrade(symbol = "BTCUSDT", timeframe =
 }
 
 // --- AI Chat / Explainer API ---
-export async function getAiCapabilities() {
-  const res = await fetch(`${API_BASE}/api/ai-chat/capabilities`);
+export async function getAiCapabilities(signal?: AbortSignal) {
+  const res = await fetch(`${API_BASE}/api/ai-chat/capabilities`, { signal });
   const data: unknown = await getJson(res);
   const record = requireRecord(data, "AI capabilities");
   return {

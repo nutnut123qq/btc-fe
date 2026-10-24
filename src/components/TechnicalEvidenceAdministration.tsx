@@ -13,15 +13,23 @@ import {
   type TechnicalEvidenceRebuildResult,
 } from "@/lib/technicalEvidenceAdmin";
 import { LatestRequestGate } from "@/lib/technicalReplay";
+import { begin, idle, settle, type Loaded } from "@/lib/loadState";
+import { LoadNotice } from "./LoadNotice";
 
 const COVERAGE_READ_TIMEOUT_MS = 30_000;
+
+type CoverageByTimeframe = Record<ActiveTimeframe, Loaded<TechnicalEvidenceCoverage>>;
+
+function byTimeframe(pick: (timeframe: ActiveTimeframe, index: number) => Loaded<TechnicalEvidenceCoverage>): CoverageByTimeframe {
+  return Object.fromEntries(ACTIVE_TIMEFRAMES.map((timeframe, index) => [timeframe, pick(timeframe, index)])) as CoverageByTimeframe;
+}
 
 function time(value: number | null): string {
   return value == null ? "—" : new Date(value).toLocaleString("vi-VN");
 }
 
 export function TechnicalEvidenceAdministration() {
-  const [coverage, setCoverage] = useState<TechnicalEvidenceCoverage[]>([]);
+  const [coverage, setCoverage] = useState<CoverageByTimeframe>(() => byTimeframe((timeframe) => idle(timeframe)));
   const [selectedTimeframe, setSelectedTimeframe] = useState<ActiveTimeframe>("4h");
   const [maxCandles, setMaxCandles] = useState(25);
   const [preview, setPreview] = useState<TechnicalEvidenceRebuildPreview | null>(null);
@@ -33,17 +41,20 @@ export function TechnicalEvidenceAdministration() {
   const loadCoverage = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setCoverage((prev) => byTimeframe((timeframe) => begin(prev[timeframe])));
     const settled = await Promise.allSettled(ACTIVE_TIMEFRAMES.map((timeframe) => getTechnicalEvidenceCoverage(timeframe, AbortSignal.timeout(COVERAGE_READ_TIMEOUT_MS))));
-    const available = settled.filter((item): item is PromiseFulfilledResult<TechnicalEvidenceCoverage> => item.status === "fulfilled").map((item) => item.value);
-    setCoverage(available);
-    if (available.length !== ACTIVE_TIMEFRAMES.length) setError(`Coverage endpoint chỉ trả ${available.length}/${ACTIVE_TIMEFRAMES.length} timeframe; phần thiếu vẫn là unavailable.`);
+    // A rejected timeframe is "not read", never a measured 0; each row reports its own failure.
+    setCoverage((prev) => byTimeframe((timeframe, index) => settle(prev[timeframe], settled[index])));
     setLoading(false);
   }, []);
 
   useEffect(() => { const timer = window.setTimeout(() => void loadCoverage(), 0); return () => window.clearTimeout(timer); }, [loadCoverage]);
 
+  // Gating uses only coverage from the latest successful read; stale data after a failed refresh stays display-only.
+  const selectedState = coverage[selectedTimeframe];
+  const selectedCoverage = selectedState.error === null ? selectedState.data : null;
+
   const run = async (dryRun: boolean) => {
-    const selectedCoverage = coverage.find((item) => item.timeframe === selectedTimeframe) ?? null;
     const applicablePreview = isTechnicalEvidencePreviewApplicable(preview, selectedTimeframe, maxCandles, selectedCoverage) ? preview : null;
     if (!dryRun) {
       if (!applicablePreview) return;
@@ -73,7 +84,6 @@ export function TechnicalEvidenceAdministration() {
     }
   };
 
-  const selectedCoverage = coverage.find((item) => item.timeframe === selectedTimeframe) ?? null;
   const previewMatches = isTechnicalEvidencePreviewApplicable(preview, selectedTimeframe, maxCandles, selectedCoverage);
   const invalidatePreview = () => {
     rebuildGate.current.begin();
@@ -84,8 +94,9 @@ export function TechnicalEvidenceAdministration() {
     <div className="flex min-w-0 flex-wrap items-start justify-between gap-3 border-b border-slate-800/60 px-4 py-3"><div className="min-w-0"><h3 id="technical-evidence-admin-title" className="flex items-center gap-2 text-[13px] font-semibold text-slate-200"><Database className="h-4 w-4 shrink-0 text-slate-500"/> Quản trị sparse replay evidence</h3><p className="mt-0.5 text-xs leading-5 text-slate-500">Chỉ materialize envelope có event. Legacy không bị xóa/ghi đè; trạng thái không-event được dựng lại on demand.</p></div><button type="button" onClick={() => void loadCoverage()} disabled={loading} className="inline-flex min-h-10 shrink-0 items-center rounded bg-slate-950/60 px-2 text-slate-400 hover:text-slate-200 disabled:opacity-50" aria-label="Làm mới sparse evidence coverage"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}/></button></div>
     {error && <div role="alert" className="mx-4 mt-3 rounded bg-rose-900/30 p-3 text-xs text-rose-300">{error}</div>}
     <div className="divide-y divide-slate-800/50">{ACTIVE_TIMEFRAMES.map((timeframe) => {
-      const item = coverage.find((row) => row.timeframe === timeframe);
-      return <article key={timeframe} className="min-w-0 max-w-full overflow-hidden px-4 py-2.5 text-xs"><div className="flex min-w-0 items-baseline justify-between gap-2"><strong className="shrink-0 font-mono text-[13px] text-slate-100">{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-rose-300"}`}>{item?.checkpointStatus ?? "không khả dụng"}</span></div>{item ? <><dl className="mt-1.5 grid min-w-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-3 text-xs [&>dt]:py-1 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300"><dt>Coverage bắt đầu</dt><dd>{time(item.coverageStartCloseTimeMs)}</dd><dt>Checkpoint</dt><dd>{time(item.lastProcessedCloseTimeMs)}</dd><dt>Backfill lịch sử</dt><dd>{item.historicalBackfill ? "có" : "không"}</dd><dt>Bản ghi sparse</dt><dd>{item.sparseRecordCount.toLocaleString("vi-VN")}</dd><dt>Lưu trữ</dt><dd>{item.storagePolicy}</dd></dl><details className="mt-1.5 min-w-0 max-w-full overflow-hidden text-[11px] text-slate-400"><summary className="cursor-pointer">Bản ghi theo layer</summary><ul className="mt-1 divide-y divide-slate-800/40">{Object.entries(item.recordsByLayer).map(([key, count]) => <li key={key} className="flex min-w-0 justify-between gap-2 py-1"><span className="min-w-0 break-all">{key}</span><span className="shrink-0 font-mono tabular-nums">{count?.toLocaleString("vi-VN")}</span></li>)}</ul></details><div title={item.moduleContractSha256} className="mt-1.5 max-w-full truncate font-mono text-[10px] text-slate-500">{item.moduleContractVersion} · {item.moduleContractSha256}</div></> : <p className="mt-1.5 break-words text-rose-300">Không có contract-hash coverage.</p>}</article>;
+      const state = coverage[timeframe];
+      const item = state.data;
+      return <article key={timeframe} className="min-w-0 max-w-full overflow-hidden px-4 py-2.5 text-xs"><div className="flex min-w-0 items-baseline justify-between gap-2"><strong className="shrink-0 font-mono text-[13px] text-slate-100">{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-slate-500"}`}>{item?.checkpointStatus ?? "—"}</span></div><LoadNotice state={state} what={`độ phủ sparse ${timeframe}`}/>{item ? <><dl className="mt-1.5 grid min-w-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-3 text-xs [&>dt]:py-1 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300"><dt>Coverage bắt đầu</dt><dd>{time(item.coverageStartCloseTimeMs)}</dd><dt>Checkpoint</dt><dd>{time(item.lastProcessedCloseTimeMs)}</dd><dt>Backfill lịch sử</dt><dd>{item.historicalBackfill ? "có" : "không"}</dd><dt>Bản ghi sparse</dt><dd>{item.sparseRecordCount.toLocaleString("vi-VN")}</dd><dt>Lưu trữ</dt><dd>{item.storagePolicy}</dd></dl><details className="mt-1.5 min-w-0 max-w-full overflow-hidden text-[11px] text-slate-400"><summary className="cursor-pointer">Bản ghi theo layer</summary><ul className="mt-1 divide-y divide-slate-800/40">{Object.entries(item.recordsByLayer).map(([key, count]) => <li key={key} className="flex min-w-0 justify-between gap-2 py-1"><span className="min-w-0 break-all">{key}</span><span className="shrink-0 font-mono tabular-nums">{count?.toLocaleString("vi-VN")}</span></li>)}</ul></details><div title={item.moduleContractSha256} className="mt-1.5 max-w-full truncate font-mono text-[10px] text-slate-500">{item.moduleContractVersion} · {item.moduleContractSha256}</div></> : null}</article>;
     })}</div>
     <div className="min-w-0 max-w-full overflow-hidden border-t border-slate-800/60 px-4 py-3">
       <div className="flex min-w-0 max-w-full flex-wrap items-end gap-3"><label className="text-[11px] font-medium text-slate-500">Timeframe<select value={selectedTimeframe} onChange={(event) => { invalidatePreview(); setSelectedTimeframe(event.target.value as ActiveTimeframe); }} className="mt-1 block min-h-10 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200">{ACTIVE_TIMEFRAMES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label className="text-[11px] font-medium text-slate-500">Giới hạn batch (1–100)<input type="number" min={1} max={TECHNICAL_EVIDENCE_REBUILD_MAX_CANDLES} value={maxCandles} onChange={(event) => { invalidatePreview(); setMaxCandles(Math.max(1, Math.min(TECHNICAL_EVIDENCE_REBUILD_MAX_CANDLES, Number(event.target.value) || 1))); }} className="mt-1 block min-h-10 w-24 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs tabular-nums text-slate-200"/></label><button type="button" onClick={() => void run(true)} disabled={loading} className="min-h-10 rounded bg-teal-950/30 px-3 py-2 text-xs font-semibold text-teal-300 disabled:opacity-50">1. Ước tính dry-run</button><button type="button" onClick={() => void run(false)} disabled={loading || !previewMatches} className="min-h-10 rounded bg-slate-800/40 px-3 py-2 text-xs font-semibold text-slate-300 disabled:cursor-not-allowed disabled:opacity-40">2. Apply batch đã preview</button></div>

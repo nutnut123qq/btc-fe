@@ -78,3 +78,13 @@ test("rebuild result keeps dry-run estimate separate from explicit writes", () =
   assert.doesNotThrow(() => assertTechnicalEvidenceRebuildCap(result, 25));
   assert.throws(() => assertTechnicalEvidenceRebuildCap({ ...result, candidateCandles: 26 }, 25), /exceeds the requested candle cap/);
 });
+
+test("F02: sparse coverage keeps per-timeframe load state; a rejected read is never counted as a measured 0/3", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../src/components/TechnicalEvidenceAdministration.tsx", import.meta.url), "utf8");
+  assert.match(source, /settle\(prev\[timeframe\], settled\[index\]\)/);
+  assert.match(source, /<LoadNotice state=\{state\}/);
+  assert.doesNotMatch(source, /chỉ trả \$\{available\.length\}/);
+  // Rebuild gating still sees only coverage from the latest successful read.
+  assert.match(source, /const selectedCoverage = selectedState\.error === null \? selectedState\.data : null;/);
+});

@@ -100,9 +100,9 @@ const pins: Array<{
   },
   {
     specSource: productionSpec,
-    specNeedle: '"Paper BTC"',
+    specNeedle: '"Quan sát forward BTC"',
     componentPath: "PaperTradeScreen.tsx",
-    componentNeedle: />Paper BTC<\//,
+    componentNeedle: />Quan sát forward BTC<\//,
   },
   {
     specSource: productionSpec,

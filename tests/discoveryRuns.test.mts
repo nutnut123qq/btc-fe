@@ -64,6 +64,26 @@ test("empty state copy covers never-run vs ran-but-zero-survivors vs neutral", (
   assert.match(screen, /runsInfo\.runs\[0\]\.trialCount\}<\/span> candidates/);
   assert.match(screen, /hiện chưa có rule nào trong danh mục/);
   assert.doesNotMatch(screen, /qua gate/);
-  // (c) Neutral fallback (pending/error) keeps the pre-existing copy verbatim.
+  // (c) Neutral fallback (catalog read succeeded empty, ledger read failed)
+  // keeps the pre-existing copy verbatim.
   assert.match(screen, /Chưa có rule tự động nào — nhấn &quot;Chạy Discovery&quot; để quét dữ liệu lịch sử\./);
+});
+
+test("empty copy only follows a successful empty catalog read; a failed read is not 'no rules'", () => {
+  // F02 live audit: HTTP 530 rendered "Chưa có rule tự động nào" — failure must
+  // render LoadNotice, and the empty block is gated on the success-only view.
+  assert.match(screen, /const rulesView = loadView\(rulesState\)/);
+  assert.match(screen, /\{rulesView === "empty" && !loading && \(/);
+  assert.match(screen, /<LoadNotice state=\{rulesState\} what="danh mục rules" \/>/);
+  assert.match(screen, /setRulesState\(\(prev\) => fail\(prev, e, Date\.now\(\), scope\)\)/);
+  assert.doesNotMatch(screen, /\{rules\.length === 0 && !loading && \(/);
+});
+
+test("empty copy never advises pressing the Discovery button while it is disabled", () => {
+  // The button is disabled={running || !adminUnlocked}; advice is gated on the inverse.
+  assert.match(screen, /disabled=\{running \|\| !adminUnlocked\}/);
+  assert.match(screen, /const canRunDiscovery = adminUnlocked && !running;/);
+  assert.equal(screen.match(/canRunDiscovery \? \(/g)?.length, 2);
+  assert.match(screen, /<>Không có lần quét nào được ghi ở khung \{timeframe\}\.<\/>/);
+  assert.match(screen, /<>Chưa có rule tự động nào ở khung \{timeframe\}\.<\/>/);
 });

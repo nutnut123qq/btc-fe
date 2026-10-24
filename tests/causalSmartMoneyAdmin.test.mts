@@ -92,3 +92,13 @@ test("causal coverage is read-only while rebuild remains AdminGuard protected an
   assert.match(componentSource, /UI không tự lặp/);
   assert.doesNotMatch(componentSource, /while\s*\(|setInterval\s*\(/);
 });
+
+test("F02: causal coverage keeps per-timeframe load state; a rejected read is never counted as a measured 0/3", () => {
+  const componentSource = readFileSync(new URL("../src/components/CausalSmartMoneyAdministration.tsx", import.meta.url), "utf8");
+  assert.match(componentSource, /settle\(prev\[timeframe\], settled\[index\]\)/);
+  assert.match(componentSource, /<LoadNotice state=\{state\}/);
+  assert.doesNotMatch(componentSource, /chỉ trả \$\{available\.length\}/);
+  assert.match(componentSource, /const selectedCoverage = selectedState\.error === null \? selectedState\.data : null;/);
+  // Stale responses are still dropped before they can touch state.
+  assert.match(componentSource, /if \(!coverageGate\.current\.isCurrent\(requestId\)\) return;\s*\n\s*\/\/[^\n]*\n\s*setCoverage\(\(prev\) => byTimeframe\(\(timeframe, index\) => settle/);
+});

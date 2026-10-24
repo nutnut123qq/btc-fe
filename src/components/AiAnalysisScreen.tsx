@@ -50,11 +50,17 @@ function forecastTone(forecast: string) {
   return "text-amber-300";
 }
 
-export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitiesDto | null }) {
+export function AiAnalysisScreen({
+  capabilities,
+  capabilityCheckFailed = false,
+}: {
+  capabilities: AiCapabilitiesDto | null;
+  capabilityCheckFailed?: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalysisResult | null>(null);
-  const llmState = getLlmUiState(capabilities);
+  const llmState = getLlmUiState(capabilities, capabilityCheckFailed);
   const llmUnavailable = llmState !== "on";
 
   const analyze = async () => {
@@ -98,7 +104,9 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
             ? "Đang phân tích…"
             : llmState === "unknown"
               ? "Đang kiểm tra LLM"
-              : llmUnavailable
+              : llmState === "unverified"
+                ? "Chưa xác minh được LLM"
+                : llmUnavailable
                 ? "Giải thích LLM chưa khả dụng"
                 : "Phân tích BTC"}
         </button>
@@ -115,9 +123,22 @@ export function AiAnalysisScreen({ capabilities }: { capabilities: AiCapabilitie
           Đang kiểm tra khả năng giải thích LLM…
         </div>
       )}
-      {llmState === "off" && (
-        <div className="mt-3 border border-amber-900/60 bg-amber-950/30 px-3 py-2.5 text-xs text-amber-200" role="status">
-          LLM OFF — phân tích đa tác tử chưa khả dụng; dữ liệu và mô hình định lượng vẫn hoạt động bình thường.
+      {llmState === "unverified" && (
+        <div className="mt-3 border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-xs text-slate-300" role="status" data-llm-state="unverified">
+          Chưa xác minh được trạng thái LLM và mô hình vì không kết nối được máy chủ. Hệ thống sẽ tự kiểm tra lại khi kết nối phục hồi.
+        </div>
+      )}
+      {llmState === "unavailable" && (
+        <div className="mt-3 border border-amber-900/60 bg-amber-950/30 px-3 py-2.5 text-xs text-amber-200" role="status" data-llm-state="unavailable">
+          Máy chủ phản hồi nhưng dịch vụ AI không phản hồi — phân tích đa tác tử chưa chạy được.
+        </div>
+      )}
+      {llmState === "off" && capabilities && (
+        <div className="mt-3 border border-amber-900/60 bg-amber-950/30 px-3 py-2.5 text-xs text-amber-200" role="status" data-llm-state="off">
+          LLM OFF — phân tích đa tác tử chưa khả dụng (tắt theo cấu hình).{" "}
+          {capabilities.mlInference
+            ? "Dịch vụ AI báo có model định lượng sẵn sàng."
+            : "Dịch vụ AI báo chưa có model định lượng hợp lệ để suy luận (đang quarantine hoặc thiếu artifact)."}
         </div>
       )}
 

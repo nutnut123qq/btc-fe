@@ -213,6 +213,8 @@ test.describe("equity live stack", () => {
       await expect(page.getByTestId("bid-journal-unavailable")).toBeVisible();
     }
 
+    // Legacy LLM history is collapsed by default and fetched only when opened (F09).
+    await page.getByTestId("bid-llm-history").locator("summary").click();
     const runsRes = await llmRuns;
     const runsBody = await capture("bid-llm-runs", runsRes) as { items: Array<{ status: string }> };
     if (runsRes.status() === 200) {
@@ -402,6 +404,8 @@ test.describe("equity live stack", () => {
     if (originalBid.buyBudgetVnd !== undefined) expect(restored.buyBudgetVnd ?? null).toBe(originalBid.buyBudgetVnd ?? null);
 
     // EQX v2 §B: the in-app LLM layer is disabled — the UI offers no way to create a run.
+    const llmHistory = page.getByTestId("bid-llm-history");
+    if ((await llmHistory.getAttribute("open")) === null) await llmHistory.locator("summary").click();
     const llm = page.getByTestId("bid-llm");
     await expect(llm.getByTestId("bid-llm-disabled-note")).toContainText("Lớp LLM trong app đã ngừng");
     await expect(llm.getByRole("button", { name: /Tạo phân tích LLM/ })).toHaveCount(0);

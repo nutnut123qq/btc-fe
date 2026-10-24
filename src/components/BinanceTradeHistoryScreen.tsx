@@ -21,6 +21,8 @@ import {
   PAPER_JOURNAL_LABEL,
 } from "@/lib/researchUi";
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
+import { begin, formatClock, idle, isStale, loadView, metric, settle, type Loaded } from "@/lib/loadState";
+import { LoadNotice } from "./LoadNotice";
 
 function formatUsdt(val: number | null | undefined): string {
   if (val === null || val === undefined) return "--";
@@ -41,11 +43,7 @@ function formatTime(ms: number | null | undefined): string {
 }
 
 export function BinanceTradeHistoryScreen() {
-  const [summary, setSummary] = useState<PortfolioSummaryResponse | null>(null);
-  const [tradesData, setTradesData] = useState<PaginatedPaperTrades | null>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string>("");
 
   // Filters State
   const [selectedSymbol, setSelectedSymbol] = useState<string>(ACTIVE_SYMBOL);
@@ -55,12 +53,20 @@ export function BinanceTradeHistoryScreen() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
+  // Each filter/page combination is its own scope: a switch never shows the previous page's rows or count.
+  const tradesScope = [selectedSymbol, selectedSide, selectedStatus, selectedTf, currentPage, pageSize].join("|");
+  const [summaryLoad, setSummaryLoad] = useState<Loaded<PortfolioSummaryResponse>>(() => idle<PortfolioSummaryResponse>());
+  const [tradesLoad, setTradesLoad] = useState<Loaded<PaginatedPaperTrades>>(() => idle<PaginatedPaperTrades>(tradesScope));
+  const trades = tradesLoad.scope === tradesScope ? tradesLoad : idle<PaginatedPaperTrades>(tradesScope);
+  const tradesView = loadView(trades);
+  const summary = summaryLoad.data;
+  const tradesData = trades.data;
+
   // Public market prices used only to mark open simulated positions.
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   // Auto-refresh timer state
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(30); // 30s default
-  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
 
   // Binance public ticker is market data, not a user-data or execution stream.
   useEffect(() => {
@@ -76,7 +82,8 @@ export function BinanceTradeHistoryScreen() {
   const loadData = useCallback(
     async (isManual = false) => {
       if (isManual) setRefreshing(true);
-      setError("");
+      setSummaryLoad((prev) => begin(prev));
+      setTradesLoad((prev) => begin(prev, tradesScope));
 
       try {
         const filterParams: PaperTradeFilterParams = {
@@ -88,22 +95,20 @@ export function BinanceTradeHistoryScreen() {
           pageSize: pageSize,
         };
 
-        const [sumRes, tradesRes] = await Promise.all([
+        // Settled separately so a summary failure never hides a good trade list (and vice versa).
+        const [sumRes, tradesRes] = await Promise.allSettled([
           getPortfolioSummary(),
           getMultiAssetPaperTrades(filterParams),
         ]);
 
-        setSummary(sumRes);
-        setTradesData(tradesRes);
-        setLastRefreshedAt(new Date());
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Không thể tải nhật ký Paper");
+        const now = Date.now();
+        setSummaryLoad((prev) => settle(prev, sumRes, now));
+        setTradesLoad((prev) => settle(prev, tradesRes, now, tradesScope));
       } finally {
-        setLoading(false);
         setRefreshing(false);
       }
     },
-    [selectedSymbol, selectedSide, selectedStatus, selectedTf, currentPage, pageSize]
+    [selectedSymbol, selectedSide, selectedStatus, selectedTf, currentPage, pageSize, tradesScope]
   );
 
   useEffect(() => {
@@ -185,6 +190,7 @@ export function BinanceTradeHistoryScreen() {
       </div>
 
       {/* ── 3. METRIC STRIP (flat label-value pairs, secondary) ── */}
+      <LoadNotice state={summaryLoad} what="tổng quan danh mục mô phỏng" className="border border-slate-800 rounded bg-slate-900" />
       {summary && (
         <div className="border border-slate-800 rounded bg-slate-900">
           <div className="flex flex-wrap lg:flex-nowrap divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
@@ -279,6 +285,7 @@ export function BinanceTradeHistoryScreen() {
         <div>
           <label className="block text-[10px] text-slate-500 mb-0.5">Mã tài sản</label>
           <select
+            aria-label="Mã tài sản"
             value={selectedSymbol}
             onChange={(e) => {
               setSelectedSymbol(e.target.value);
@@ -293,6 +300,7 @@ export function BinanceTradeHistoryScreen() {
         <div>
           <label className="block text-[10px] text-slate-500 mb-0.5">Chiều lệnh</label>
           <select
+            aria-label="Chiều lệnh"
             value={selectedSide}
             onChange={(e) => {
               setSelectedSide(e.target.value as "all" | "long" | "short");
@@ -309,6 +317,7 @@ export function BinanceTradeHistoryScreen() {
         <div>
           <label className="block text-[10px] text-slate-500 mb-0.5">Trạng thái</label>
           <select
+            aria-label="Trạng thái"
             value={selectedStatus}
             onChange={(e) => {
               setSelectedStatus(e.target.value as "all" | "open" | "closed");
@@ -325,6 +334,7 @@ export function BinanceTradeHistoryScreen() {
         <div>
           <label className="block text-[10px] text-slate-500 mb-0.5">Khung thời gian</label>
           <select
+            aria-label="Khung thời gian"
             value={selectedTf}
             onChange={(e) => {
               setSelectedTf(e.target.value);
@@ -353,19 +363,19 @@ export function BinanceTradeHistoryScreen() {
           <h2 className="text-xs font-semibold text-slate-300">
             Danh sách giao dịch mô phỏng{" "}
             <span className="font-mono tabular-nums text-slate-500">
-              ({tradesData?.totalCount || 0} lệnh)
+              ({metric(trades, (t) => t.totalCount)} lệnh)
             </span>
           </h2>
-          <div className="text-[10px] text-slate-500 font-mono tabular-nums">
-            Cập nhật {lastRefreshedAt.toLocaleTimeString("vi-VN")}
-          </div>
+          {/* As-of = last successful load for this filter; a failed refresh never moves it. */}
+          {trades.succeededAt !== null && (
+            <div className="text-[10px] text-slate-500 font-mono tabular-nums">
+              Cập nhật {formatClock(trades.succeededAt)}
+            </div>
+          )}
         </div>
 
-        {error && (
-          <div className="px-3 py-2 bg-rose-500/10 border-b border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            <span>{error}</span>
-          </div>
+        {isStale(trades) && (
+          <LoadNotice state={trades} what="danh sách giao dịch mô phỏng" className="border-b border-amber-500/30 bg-amber-500/10" />
         )}
 
         {/* contained scroll region — never page-level overflow */}
@@ -387,14 +397,20 @@ export function BinanceTradeHistoryScreen() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
-              {loading ? (
+              {tradesView === "loading" ? (
                 <tr>
                   <td colSpan={11} className="py-12 text-center text-slate-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-teal-400" />
-                    Đang nạp nhật ký Paper...
+                    Đang tải danh sách giao dịch mô phỏng...
                   </td>
                 </tr>
-              ) : !tradesData || tradesData.items.length === 0 ? (
+              ) : tradesView === "error" || !tradesData ? (
+                <tr>
+                  <td colSpan={11} className="py-6 text-center">
+                    <LoadNotice state={trades} what="danh sách giao dịch mô phỏng" />
+                  </td>
+                </tr>
+              ) : tradesView === "empty" ? (
                 <tr>
                   <td colSpan={11} className="py-12 text-center text-slate-400">
                     Không tìm thấy lệnh nào phù hợp với bộ lọc đã chọn.
@@ -611,6 +627,7 @@ export function BinanceTradeHistoryScreen() {
               <div className="flex items-center gap-1">
                 <span>Số dòng:</span>
                 <select
+                  aria-label="Số dòng mỗi trang"
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value));

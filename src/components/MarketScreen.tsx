@@ -19,10 +19,10 @@ export function MarketScreen({ onOpenEvidence }: Props) {
       >
         <ShieldCheck className="h-4 w-4 shrink-0 text-teal-400" aria-hidden="true" />
         <h2 id="canonical-technical-title" className="shrink-0 text-[13px] font-semibold text-slate-200">
-          Technical Replay là bề mặt kỹ thuật chuẩn
+          Phân tích kỹ thuật BTC trên nến đã đóng
         </h2>
         <p className="hidden min-w-0 flex-1 truncate text-xs text-slate-400 lg:block">
-          BTCUSDT 1h/4h/1d từ nến đã đóng, cùng nguồn, cùng mốc as-of · snapshot legacy chưa kiểm chứng point-in-time đã bị cách ly
+          Biểu đồ, mẫu nến và cấu trúc giá 1h/4h/1d tính tại đúng một mốc thời gian (as-of) — không dùng dữ liệu tương lai
         </p>
         <Link
           href="/mbb"

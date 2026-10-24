@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -28,21 +29,21 @@ import { AlertsDrawer } from "./AlertsDrawer";
 import { AiChatWidget } from "./AiChatWidget";
 import { getAiCapabilities, getAppMeta, getUnreadCount, setApiContractCompatibility } from "@/lib/api";
 import type { AiCapabilitiesDto } from "@/lib/types";
-import { getLlmUiState, PAPER_JOURNAL_LABEL } from "@/lib/researchUi";
+import { FORWARD_JOURNAL_LABEL, getLlmUiState, LLM_STATE_LABEL, PAPER_JOURNAL_LABEL } from "@/lib/researchUi";
+import { backoffDelayMs, isRestorableHref } from "@/lib/reconnect";
 import { EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible } from "@/lib/apiContract";
 import type { ApiContractState } from "@/lib/apiContract";
 
 const TABS = [
   { key: "market", label: "BTC/USDT", icon: LineChart },
   { key: "equity", label: "Cổ phiếu", icon: Landmark },
-  { key: "mbb", label: "MBB", icon: Landmark },
   { key: "archetype", label: "Mẫu nến", icon: Shapes },
   { key: "news", label: "Tin tức", icon: Newspaper },
   { key: "ai", label: "AI", icon: Bot },
   { key: "rules", label: "Rules nến", icon: Layers },
   { key: "predict", label: "Dự đoán", icon: TrendingUp },
   { key: "research", label: "Nghiên cứu", icon: FileCheck2 },
-  { key: "paper", label: "Paper", icon: LineChart },
+  { key: "paper", label: FORWARD_JOURNAL_LABEL, icon: LineChart },
   { key: "binanceHistory", label: PAPER_JOURNAL_LABEL, icon: ListOrdered },
   { key: "backtest", label: "Backtest", icon: BarChart3 },
   { key: "settings", label: "Cảnh báo", icon: Settings },
@@ -58,7 +59,6 @@ const TAB_BY_KEY: ReadonlyMap<TabKey, (typeof TABS)[number]> = new Map(
 export const TAB_PATH: Record<TabKey, string> = {
   market: "/",
   equity: "/co-phieu",
-  mbb: "/mbb",
   archetype: "/mau-nen",
   news: "/tin-tuc",
   ai: "/ai",
@@ -71,16 +71,23 @@ export const TAB_PATH: Record<TabKey, string> = {
   settings: "/canh-bao",
 };
 
-const PATH_TAB: ReadonlyMap<string, TabKey> = new Map(
-  (Object.entries(TAB_PATH) as [TabKey, string][]).map(([key, path]) => [path, key] as const),
-);
+// /mbb is a compatibility alias of the equity screen (no separate nav entry).
+const PATH_TAB: ReadonlyMap<string, TabKey> = new Map([
+  ...(Object.entries(TAB_PATH) as [TabKey, string][]).map(([key, path]) => [path, key] as const),
+  ["/mbb", "equity"] as const,
+]);
+const RESTORABLE_PATHS: ReadonlySet<string> = new Set(PATH_TAB.keys());
+const NAV_MEMORY_KEY = "btc.nav.lastHrefByTab.v1";
+const META_TIMEOUT_MS = 10_000;
+const VERIFY_RETRY_BASE_MS = 5_000;
+const VERIFY_RETRY_MAX_MS = 60_000;
 
 // 5 top-level nav groups. The child strip of the group containing the active
 // tab is always visible directly below the header (desktop inline nav +
 // mobile bottom bar share the same derived strip).
 const NAV_GROUPS = [
-  { key: "market", label: "Thị trường", children: ["market", "equity", "mbb"] },
-  { key: "newsAi", label: "Tin tức & AI", children: ["news", "ai"] },
+  { key: "market", label: "Thị trường", children: ["market", "equity"] },
+  { key: "newsAi", label: "Tin tức", children: ["news", "ai"] },
   { key: "research", label: "Nghiên cứu", children: ["research", "archetype", "rules", "backtest"] },
   { key: "simulation", label: "Mô phỏng", children: ["predict", "paper", "binanceHistory"] },
   { key: "system", label: "Hệ thống", children: ["settings"] },
@@ -93,13 +100,20 @@ const ALERT_USER_ID = "default";
 
 type ShellSignals = {
   aiCapabilities: AiCapabilitiesDto | null;
+  /** True when the last capability check failed: capabilities are unverified, not "off". */
+  capabilityCheckFailed: boolean;
   contractState: ApiContractState;
 };
 
 const ShellSignalsContext = createContext<ShellSignals>({
   aiCapabilities: null,
+  capabilityCheckFailed: false,
   contractState: "checking",
 });
+
+function groupOf(tab: TabKey): NavGroup | undefined {
+  return NAV_GROUPS.find((g) => (g.children as readonly TabKey[]).includes(tab));
+}
 
 export function useShellSignals(): ShellSignals {
   return useContext(ShellSignalsContext);
@@ -109,26 +123,51 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const activeTab: TabKey = PATH_TAB.get(pathname) ?? "market";
-  const [lastChildByGroup, setLastChildByGroup] = useState<Partial<Record<NavGroupKey, TabKey>>>({});
+  const lastChildByGroup = useRef<Partial<Record<NavGroupKey, TabKey>>>({});
+  const lastHrefByTab = useRef<Partial<Record<TabKey, string>>>({});
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [aiCapabilities, setAiCapabilities] = useState<AiCapabilitiesDto | null>(null);
+  const [capabilityCheckFailed, setCapabilityCheckFailed] = useState(false);
   const [contractState, setContractState] = useState<ApiContractState>("checking");
-  const llmState = getLlmUiState(aiCapabilities);
+  const [verifying, setVerifying] = useState(false);
+  const llmState = getLlmUiState(aiCapabilities, capabilityCheckFailed);
   const groupButtonRefs = useRef<Partial<Record<NavGroupKey, HTMLButtonElement | null>>>({});
   const groupButtonRefsMobile = useRef<Partial<Record<NavGroupKey, HTMLButtonElement | null>>>({});
   const chipButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
   const focusChipAfterOpen = useRef(false);
   const pendingChipFocus = useRef<TabKey | null>(null);
 
+  // Remembers the full href (path + query, e.g. ?symbol=BID) of the screen being left,
+  // so returning through the nav restores the same symbol/filter instead of a default.
+  const rememberCurrentLocation = () => {
+    const { pathname: path, search } = window.location;
+    const tab = PATH_TAB.get(path);
+    if (!tab) return;
+    lastHrefByTab.current[tab] = path + search;
+    const group = groupOf(tab);
+    if (group) lastChildByGroup.current[group.key] = tab;
+    try {
+      sessionStorage.setItem(NAV_MEMORY_KEY, JSON.stringify(lastHrefByTab.current));
+    } catch {}
+  };
+
+  const hrefForTab = (key: TabKey): string => {
+    const href = lastHrefByTab.current[key];
+    return isRestorableHref(href, RESTORABLE_PATHS) && PATH_TAB.get(href.split(/[?#]/, 1)[0]) === key
+      ? href
+      : TAB_PATH[key];
+  };
+
   const handleTabChange = (key: TabKey) => {
-    router.push(TAB_PATH[key]);
+    rememberCurrentLocation();
+    router.push(hrefForTab(key));
   };
 
   const activateGroup = (group: NavGroup) => {
     const children = group.children as readonly TabKey[];
-    const target = lastChildByGroup[group.key] ?? children[0];
-    setLastChildByGroup((prev) => ({ ...prev, [group.key]: target }));
+    const target = (children.includes(activeTab) ? activeTab : lastChildByGroup.current[group.key]) ?? children[0];
+    lastChildByGroup.current[group.key] = target;
     handleTabChange(target);
     if (focusChipAfterOpen.current) {
       focusChipAfterOpen.current = false;
@@ -137,9 +176,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   const selectChild = (groupKey: NavGroupKey, childKey: TabKey) => {
-    setLastChildByGroup((prev) => ({ ...prev, [groupKey]: childKey }));
+    lastChildByGroup.current[groupKey] = childKey;
     handleTabChange(childKey);
   };
+
+  // Restore nav memory for this browser tab (survives reload). Holds only in-app paths
+  // with their public query string, validated before use — never secrets.
+  useEffect(() => {
+    try {
+      const raw: unknown = JSON.parse(sessionStorage.getItem(NAV_MEMORY_KEY) ?? "{}");
+      if (!raw || typeof raw !== "object") return;
+      for (const [tab, href] of Object.entries(raw as Record<string, unknown>)) {
+        if (!TAB_BY_KEY.has(tab as TabKey) || !isRestorableHref(href, RESTORABLE_PATHS)) continue;
+        lastHrefByTab.current[tab as TabKey] = href;
+        const group = groupOf(tab as TabKey);
+        if (group && !lastChildByGroup.current[group.key]) lastChildByGroup.current[group.key] = tab as TabKey;
+      }
+    } catch {}
+  }, []);
 
   const handleGroupKeyDown = (event: KeyboardEvent<HTMLButtonElement>, group: NavGroup) => {
     if (event.key === "Enter" && group.children.length > 1) {
@@ -213,44 +267,79 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
-    const loadMeta = async () => {
-      try {
-        return await getAppMeta(AbortSignal.timeout(5_000));
-      } catch {
-        return getAppMeta(AbortSignal.timeout(10_000));
-      }
-    };
-    void loadMeta()
-      .then((meta) => {
-        const compatible = isApiContractCompatible(meta);
-        setApiContractCompatibility(compatible);
-        if (mounted) setContractState(compatible ? "compatible" : "mismatch");
-      })
-      .catch(() => {
-        setApiContractCompatibility(false);
-        if (mounted) setContractState("unavailable");
-      });
-    return () => {
-      mounted = false;
-    };
+  // Contract + capability verification. Re-runs with backoff while the API is unreachable
+  // or mismatched, on reconnect/visibility, and on demand; never overlaps itself.
+  // Mutations stay locked (fail-closed) until a compatible contract is confirmed.
+  const mountedRef = useRef(true);
+  const verifyInFlight = useRef(false);
+  const verifyFailures = useRef(0);
+  const verifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const verifyHealthy = useRef(false);
+  // Timer callbacks re-enter through a ref (a callback cannot reference itself).
+  const verifyRef = useRef<() => Promise<void>>(async () => {});
+
+  const verify = useCallback(async () => {
+    if (verifyInFlight.current) return;
+    verifyInFlight.current = true;
+    if (verifyTimer.current) clearTimeout(verifyTimer.current);
+    verifyTimer.current = null;
+    const [metaResult, capabilityResult] = await Promise.allSettled([
+      getAppMeta(AbortSignal.timeout(META_TIMEOUT_MS)),
+      getAiCapabilities(AbortSignal.timeout(META_TIMEOUT_MS)),
+    ]);
+    verifyInFlight.current = false;
+    if (!mountedRef.current) return;
+
+    const compatible = metaResult.status === "fulfilled" && isApiContractCompatible(metaResult.value);
+    setApiContractCompatibility(compatible);
+    setContractState(metaResult.status === "rejected" ? "unavailable" : compatible ? "compatible" : "mismatch");
+    if (capabilityResult.status === "fulfilled") {
+      setAiCapabilities(capabilityResult.value);
+      setCapabilityCheckFailed(false);
+    } else {
+      setAiCapabilities(null);
+      setCapabilityCheckFailed(true);
+    }
+
+    verifyHealthy.current = compatible && capabilityResult.status === "fulfilled";
+    verifyFailures.current = verifyHealthy.current ? 0 : verifyFailures.current + 1;
+    if (!verifyHealthy.current) {
+      const delay = backoffDelayMs(verifyFailures.current - 1, VERIFY_RETRY_BASE_MS, VERIFY_RETRY_MAX_MS);
+      verifyTimer.current = setTimeout(() => {
+        verifyTimer.current = null;
+        // A hidden tab waits for visibilitychange instead of polling in the background.
+        if (document.visibilityState === "visible") void verifyRef.current();
+      }, delay);
+    }
   }, []);
 
   useEffect(() => {
-    void getAiCapabilities()
-      .then(setAiCapabilities)
-      .catch(() => setAiCapabilities({
-        mlInference: false,
-        llmExplanation: false,
-        provider: "unavailable",
-        reason: "Không thể kiểm tra dịch vụ giải thích.",
-        fallbackExplanation: false,
-      }));
-  }, []);
+    verifyRef.current = verify;
+  }, [verify]);
+
+  // State updates in verify() happen only after its awaited requests; calling through
+  // the ref keeps the effect free of synchronous setState.
+  useEffect(() => {
+    mountedRef.current = true;
+    void verifyRef.current();
+    const recheckIfUnhealthy = () => {
+      if (!verifyHealthy.current && document.visibilityState === "visible" && !verifyTimer.current) void verifyRef.current();
+    };
+    const onOnline = () => {
+      if (!verifyHealthy.current) void verifyRef.current();
+    };
+    document.addEventListener("visibilitychange", recheckIfUnhealthy);
+    window.addEventListener("online", onOnline);
+    return () => {
+      mountedRef.current = false;
+      if (verifyTimer.current) clearTimeout(verifyTimer.current);
+      document.removeEventListener("visibilitychange", recheckIfUnhealthy);
+      window.removeEventListener("online", onOnline);
+    };
+  }, [verify]);
 
   return (
-    <ShellSignalsContext.Provider value={{ aiCapabilities, contractState }}>
+    <ShellSignalsContext.Provider value={{ aiCapabilities, capabilityCheckFailed, contractState }}>
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
         <header inert={alertsOpen} className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
           <div className="max-w-[1600px] mx-auto px-4 h-11 flex items-center gap-4">
@@ -294,14 +383,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex-1 lg:hidden" />
 
             <div className="flex items-center gap-1 shrink-0">
-              {llmState === "unknown" && (
-                <span className="hidden sm:inline-flex rounded bg-slate-900 px-2 py-1 text-xs text-slate-400">
-                  LLM · đang kiểm tra
-                </span>
-              )}
-              {llmState === "off" && (
-                <span className="hidden sm:inline-flex rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
-                  LLM OFF · định lượng vẫn hoạt động
+              {llmState !== "on" && (
+                <span
+                  data-testid="llm-state"
+                  data-llm-state={llmState}
+                  className={`hidden sm:inline-flex rounded px-2 py-1 text-xs ${
+                    llmState === "off" ? "bg-amber-500/10 text-amber-300" : "bg-slate-900 text-slate-400"
+                  }`}
+                >
+                  {LLM_STATE_LABEL[llmState]}
                 </span>
               )}
               <button
@@ -356,12 +446,32 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
 
           {contractState !== "compatible" && (
-            <div className="border-t border-amber-900/60 bg-amber-950/40 px-4 py-1.5 text-center text-xs text-amber-200" role="alert">
-              {contractState === "checking"
-                ? "Đang kiểm tra API contract; mutation tạm khóa."
-                : contractState === "mismatch"
-                  ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); mutation đã bị khóa.`
-                  : "Không kiểm tra được API contract; mutation đã bị khóa, các màn chỉ đọc vẫn có thể hoạt động."}
+            <div
+              data-testid="connection-banner"
+              data-contract-state={contractState}
+              className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-amber-900/60 bg-amber-950/40 px-4 py-1.5 text-center text-xs text-amber-200"
+              role="alert"
+            >
+              <span>
+                {contractState === "checking"
+                  ? "Đang kiểm tra API contract và kết nối máy chủ; các thao tác ghi tạm khóa."
+                  : contractState === "mismatch"
+                    ? `API contract không khớp (frontend cần ${EXPECTED_API_CONTRACT_VERSION}); các thao tác ghi đã bị khóa.`
+                    : "Không kiểm tra được API contract (mất kết nối máy chủ); dữ liệu và trạng thái hệ thống chưa xác minh, các thao tác ghi đã bị khóa."}
+              </span>
+              {contractState !== "checking" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVerifying(true);
+                    void verify().finally(() => setVerifying(false));
+                  }}
+                  disabled={verifying}
+                  className="rounded border border-amber-700/60 px-2 py-0.5 text-amber-100 hover:bg-amber-900/40 disabled:opacity-60"
+                >
+                  {verifying ? "Đang thử kết nối lại…" : "Thử kết nối lại"}
+                </button>
+              )}
             </div>
           )}
         </header>
@@ -408,9 +518,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AlertsDrawer open={alertsOpen} onClose={() => setAlertsOpen(false)} />
         {/* Whole chat surface (launcher + panel) is inert while the alerts
             modal is open; an already-open chat is dismissed by the modal. */}
-        <div inert={alertsOpen}>
-          <AiChatWidget capabilities={aiCapabilities} dismissedByModal={alertsOpen} />
-        </div>
+        {/* The floating chat is offered only while the LLM layer is verified on;
+            otherwise it would advertise a feature that cannot be used. */}
+        {llmState === "on" && (
+          <div inert={alertsOpen}>
+            <AiChatWidget capabilities={aiCapabilities} dismissedByModal={alertsOpen} />
+          </div>
+        )}
       </div>
     </ShellSignalsContext.Provider>
   );

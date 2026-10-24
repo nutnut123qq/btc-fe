@@ -426,8 +426,8 @@ test.describe("/mbb lane", () => {
     await page.waitForURL((url) => url.pathname === "/");
     await expect(page.getByRole("complementary", { name: /Dữ liệu thị trường realtime/ })).toBeVisible({ timeout: 30_000 });
 
-    // And back via the same nav group.
-    await openMainTab(page, "MBB");
+    // And back via the same nav group: the equity entry restores the alias it was left on.
+    await openMainTab(page, "Cổ phiếu");
     await page.waitForURL("**/mbb");
     await expect(page.getByRole("heading", { name: "MBB — MB Bank" })).toBeVisible();
   });

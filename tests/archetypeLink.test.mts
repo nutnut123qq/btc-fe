@@ -101,6 +101,29 @@ test("closing the modal clears ?arc instead of setting state directly", () => {
   assert.doesNotMatch(modalBlock[0], /setDetail\(null\)/);
 });
 
+test("list/matrix/forecast reads render empty only from success; failures never claim 'no data'", () => {
+  // F02 live audit: rankings/transitions showed "Không có dữ liệu" next to a load error.
+  const rankingsView = readFileSync(new URL("../src/components/archetypes/ArchetypeRankingsView.tsx", import.meta.url), "utf8");
+  const galleryView = readFileSync(new URL("../src/components/archetypes/ArchetypeGalleryView.tsx", import.meta.url), "utf8");
+  const matrixView = readFileSync(new URL("../src/components/archetypes/MarkovMatrixView.tsx", import.meta.url), "utf8");
+  const predictContainer = readFileSync(new URL("../src/components/archetypes/ArchetypePredictContainer.tsx", import.meta.url), "utf8");
+  for (const name of ["Gallery", "Rankings", "Matrix", "Prediction"]) {
+    assert.ok(screen.includes(`set${name}((prev) => fail(prev, e, Date.now(), scope))`), `${name} failure not routed to fail()`);
+  }
+  assert.match(screen, /archetypes=\{gallery\.data\}/);
+  assert.match(screen, /rankings=\{rankings\.data\}/);
+  assert.match(screen, /matrix=\{matrix\.data\}/);
+  assert.match(rankingsView, /\) : rankings \? \(\s*<ArchetypeRankingsTable rankings=\{rankings\} \/>\s*\) : null\}/);
+  assert.match(galleryView, /archetypes \? `\$\{archetypes\.length\} mẫu` : "— mẫu"/);
+  assert.match(galleryView, /\) : archetypes \? \(/);
+  assert.match(matrixView, /if \(!matrix\) return null;/);
+  assert.doesNotMatch(matrixView, />Không có dữ liệu</);
+  assert.match(predictContainer, /\) : nextPred && seqPred \? \(/);
+  // "Data below is the last good load" is only said when stale data is actually on screen.
+  assert.match(screen, /return isStale\(state\)\s*\? `\$\{message\} Dữ liệu bên dưới là lần tải thành công gần nhất/);
+  assert.equal(screen.match(/Dữ liệu bên dưới là lần tải thành công gần nhất/g)?.length, 1);
+});
+
 test("page wraps the screen in Suspense as required for useSearchParams prerendering", () => {
   assert.match(page, /<Suspense/);
   assert.match(page, /<ArchetypeScreen \/>/);

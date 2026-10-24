@@ -204,6 +204,7 @@ export function DataManagementPanel({
 
         <div className="flex items-center gap-2">
           <select
+            aria-label="Mã dữ liệu cần kiểm tra"
             value={selectedSymbol}
             onChange={(e) => {
               setSelectedSymbol(e.target.value);
@@ -216,6 +217,7 @@ export function DataManagementPanel({
           </select>
 
           <select
+            aria-label="Khung thời gian cần kiểm tra"
             value={selectedTf}
             onChange={(e) => setSelectedTf(e.target.value as ActiveTimeframe)}
             className="h-10 rounded border border-slate-800 bg-slate-950 px-2.5 font-mono text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
@@ -483,6 +485,7 @@ export function DataManagementPanel({
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
+              aria-label="Từ khóa kiểm thử tìm kiếm tin tức (RAG)"
               value={ragQuery}
               onChange={(e) => setRagQuery(e.target.value)}
               placeholder="Nhập từ khóa tìm kiếm tin tức pgvector..."

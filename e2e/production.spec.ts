@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { openMainTab } from "./nav";
 
 const productionUrl = process.env.PLAYWRIGHT_BASE_URL;
-const requireLlm = process.env.PLAYWRIGHT_REQUIRE_LLM !== "0";
+// The in-app LLM layer is off by design; opt in explicitly when verifying an LLM-on stack.
+const requireLlm = process.env.PLAYWRIGHT_REQUIRE_LLM === "1";
 
 type HistoricalAnalogOutcome = {
   barsAhead: number;
@@ -222,8 +223,8 @@ test.describe("production dashboard", () => {
     await openTab(page, "Dự đoán", /Dự đoán ML 3 nhãn/);
     await expect(page.locator("main").getByRole("button", { name: "Dự đoán", exact: true })).toBeDisabled();
     await expect(page.getByText(/Chưa có model tương thích đã qua promotion gate/)).toBeVisible({ timeout: 30_000 });
-    await openTab(page, "Paper", "Paper BTC");
-    await openTab(page, "Nhật ký Paper BTC", /Danh sách giao dịch mô phỏng/);
+    await openTab(page, "Quan sát forward", "Quan sát forward BTC");
+    await openTab(page, "Mô phỏng lịch sử BTC", /Danh sách giao dịch mô phỏng/);
     await openTab(page, "Backtest", /Kết quả backtest chiến lược/);
     await openTab(page, "Cảnh báo", /Ngưỡng giá BTC/);
 

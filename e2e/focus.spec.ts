@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { EXPECTED_API_CONTRACT_VERSION } from "../src/lib/apiContract";
 
-async function routeAppApis(page: import("@playwright/test").Page) {
+// The floating chat only exists while the LLM layer is verified on (F09); chat focus
+// tests opt in with llmOn, everything else runs in the default LLM-off posture.
+async function routeAppApis(page: import("@playwright/test").Page, { llmOn = false }: { llmOn?: boolean } = {}) {
   await page.routeWebSocket(/stream\.binance\.com/, () => {});
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
@@ -18,9 +20,9 @@ async function routeAppApis(page: import("@playwright/test").Page) {
     if (url.pathname === "/api/ai-chat/capabilities") {
       await route.fulfill({ json: {
         mlInference: false,
-        llmExplanation: false,
-        provider: "none",
-        reason: "E2E degraded mode",
+        llmExplanation: llmOn,
+        provider: llmOn ? "e2e" : "none",
+        reason: llmOn ? null : "E2E degraded mode",
         fallbackExplanation: true,
       } });
       return;
@@ -128,7 +130,7 @@ test("alerts drawer traps focus, makes the background inert, and returns focus",
 });
 
 test("ai chat stays non-modal: Escape closes and focus returns to the launcher", async ({ page }) => {
-  await routeAppApis(page);
+  await routeAppApis(page, { llmOn: true });
   await page.goto("/");
 
   const launcher = page.getByRole("button", { name: "Trợ lý AI Chat", exact: true });
@@ -149,7 +151,7 @@ for (const viewport of [
 ]) {
   test(`alerts modal disables the whole AI chat surface (${viewport.name})`, async ({ page }) => {
     await page.setViewportSize(viewport.size);
-    await routeAppApis(page);
+    await routeAppApis(page, { llmOn: true });
     await page.goto("/");
 
     const bell = page.getByRole("button", { name: "Thông báo", exact: true });

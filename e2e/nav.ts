@@ -4,17 +4,16 @@ import { expect, type Page } from "@playwright/test";
 // Map each tab label to its top-level group label (null = single-child group).
 const GROUP_LABEL_BY_TAB: Readonly<Record<string, string | null>> = {
   "BTC/USDT": "Thị trường",
-  "MBB": "Thị trường",
   "Cổ phiếu": "Thị trường",
-  "Tin tức": "Tin tức & AI",
-  "AI": "Tin tức & AI",
+  "Tin tức": "Tin tức",
+  "AI": "Tin tức",
   "Nghiên cứu": "Nghiên cứu",
   "Mẫu nến": "Nghiên cứu",
   "Rules nến": "Nghiên cứu",
   "Backtest": "Nghiên cứu",
   "Dự đoán": "Mô phỏng",
-  "Paper": "Mô phỏng",
-  "Nhật ký Paper BTC": "Mô phỏng",
+  "Quan sát forward": "Mô phỏng",
+  "Mô phỏng lịch sử BTC": "Mô phỏng",
   "Cảnh báo": "Hệ thống",
 };
 

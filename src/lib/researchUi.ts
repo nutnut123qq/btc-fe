@@ -8,7 +8,8 @@ import type {
 } from "./types";
 
 export const AI_ANALYSIS_SYMBOL = "BTCUSDT";
-export const PAPER_JOURNAL_LABEL = "Nhật ký Paper BTC";
+export const PAPER_JOURNAL_LABEL = "Mô phỏng lịch sử BTC";
+export const FORWARD_JOURNAL_LABEL = "Quan sát forward";
 export const SIMULATION_LABEL = "SIMULATION";
 
 export const CAPABILITY_LABELS: Record<CapabilityState, string> = {
@@ -81,12 +82,24 @@ export function formatLift(
   return `${percentagePoints > 0 ? "+" : ""}${percentagePoints.toFixed(1)} pp`;
 }
 
-export type LlmUiState = "unknown" | "on" | "off";
+// unknown = still checking; unverified = the capability check itself failed (no claim
+// either way); unavailable = backend answered but the AI service did not; off = the
+// AI service reports the LLM layer is not configured/enabled.
+export type LlmUiState = "unknown" | "unverified" | "unavailable" | "on" | "off";
 
-export function getLlmUiState(capabilities: AiCapabilitiesDto | null): LlmUiState {
-  if (!capabilities) return "unknown";
-  return capabilities.llmExplanation ? "on" : "off";
+export function getLlmUiState(capabilities: AiCapabilitiesDto | null, checkFailed = false): LlmUiState {
+  if (!capabilities) return checkFailed ? "unverified" : "unknown";
+  if (capabilities.llmExplanation) return "on";
+  return capabilities.provider === "unavailable" ? "unavailable" : "off";
 }
+
+export const LLM_STATE_LABEL: Record<LlmUiState, string> = {
+  unknown: "LLM · đang kiểm tra",
+  unverified: "LLM · chưa xác minh (mất kết nối)",
+  unavailable: "LLM · dịch vụ AI không phản hồi",
+  off: "LLM OFF · tắt theo cấu hình",
+  on: "LLM ON",
+};
 
 export function canUseAiExplanation(capabilities: AiCapabilitiesDto | null): boolean {
   return capabilities !== null

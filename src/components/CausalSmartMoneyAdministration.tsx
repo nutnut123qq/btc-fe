@@ -16,15 +16,23 @@ import {
 } from "@/lib/causalSmartMoneyAdmin";
 import { ACTIVE_TIMEFRAMES, type ActiveTimeframe } from "@/lib/timeframe";
 import { LatestRequestGate } from "@/lib/technicalReplay";
+import { begin, idle, settle, type Loaded } from "@/lib/loadState";
+import { LoadNotice } from "./LoadNotice";
 
 const COVERAGE_READ_TIMEOUT_MS = 30_000;
+
+type CoverageByTimeframe = Record<ActiveTimeframe, Loaded<CausalSmartMoneyCoverage>>;
+
+function byTimeframe(pick: (timeframe: ActiveTimeframe, index: number) => Loaded<CausalSmartMoneyCoverage>): CoverageByTimeframe {
+  return Object.fromEntries(ACTIVE_TIMEFRAMES.map((timeframe, index) => [timeframe, pick(timeframe, index)])) as CoverageByTimeframe;
+}
 
 function time(value: number | null): string {
   return value == null ? "—" : new Date(value).toLocaleString("vi-VN");
 }
 
 export function CausalSmartMoneyAdministration() {
-  const [coverage, setCoverage] = useState<CausalSmartMoneyCoverage[]>([]);
+  const [coverage, setCoverage] = useState<CoverageByTimeframe>(() => byTimeframe((timeframe) => idle(timeframe)));
   const [selectedTimeframe, setSelectedTimeframe] = useState<ActiveTimeframe>("4h");
   const [maxCandles, setMaxCandles] = useState(1_000);
   const [preview, setPreview] = useState<CausalSmartMoneyRebuildPreview | null>(null);
@@ -39,17 +47,13 @@ export function CausalSmartMoneyAdministration() {
     const requestId = coverageGate.current.begin();
     setCoverageLoading(true);
     setError(null);
+    setCoverage((prev) => byTimeframe((timeframe) => begin(prev[timeframe])));
     const settled = await Promise.allSettled(
       ACTIVE_TIMEFRAMES.map((timeframe) => getCausalSmartMoneyCoverage(timeframe, AbortSignal.timeout(COVERAGE_READ_TIMEOUT_MS))),
     );
     if (!coverageGate.current.isCurrent(requestId)) return;
-    const available = settled
-      .filter((item): item is PromiseFulfilledResult<CausalSmartMoneyCoverage> => item.status === "fulfilled")
-      .map((item) => item.value);
-    setCoverage(available);
-    if (available.length !== ACTIVE_TIMEFRAMES.length) {
-      setError(`Causal coverage chỉ trả ${available.length}/${ACTIVE_TIMEFRAMES.length} timeframe; phần thiếu vẫn là unavailable.`);
-    }
+    // A rejected timeframe is "not read", never a measured 0; each row reports its own failure.
+    setCoverage((prev) => byTimeframe((timeframe, index) => settle(prev[timeframe], settled[index])));
     setCoverageLoading(false);
   }, []);
 
@@ -64,7 +68,9 @@ export function CausalSmartMoneyAdministration() {
     };
   }, [loadCoverage]);
 
-  const selectedCoverage = coverage.find((item) => item.timeframe === selectedTimeframe) ?? null;
+  // Gating uses only coverage from the latest successful read; stale data after a failed refresh stays display-only.
+  const selectedState = coverage[selectedTimeframe];
+  const selectedCoverage = selectedState.error === null ? selectedState.data : null;
   const previewMatches = isCausalSmartMoneyPreviewApplicable(preview, selectedTimeframe, maxCandles, selectedCoverage);
 
   const invalidatePreview = () => {
@@ -130,10 +136,12 @@ export function CausalSmartMoneyAdministration() {
 
       <div className="divide-y divide-slate-800/50">
         {ACTIVE_TIMEFRAMES.map((timeframe) => {
-          const item = coverage.find((row) => row.timeframe === timeframe);
+          const state = coverage[timeframe];
+          const item = state.data;
           return (
             <article key={timeframe} className="min-w-0 max-w-full overflow-hidden px-4 py-2.5 text-xs">
-              <div className="flex min-w-0 items-baseline justify-between gap-2"><strong className="shrink-0 font-mono text-[13px] text-slate-100">{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-rose-300"}`}>{item?.checkpointStatus ?? "không khả dụng"}</span></div>
+              <div className="flex min-w-0 items-baseline justify-between gap-2"><strong className="shrink-0 font-mono text-[13px] text-slate-100">{timeframe}</strong><span className={`min-w-0 break-all text-right ${item ? "text-slate-300" : "text-slate-500"}`}>{item?.checkpointStatus ?? "—"}</span></div>
+              <LoadNotice state={state} what={`độ phủ causal SMC ${timeframe}`} />
               {item ? <>
                 <dl className="mt-1.5 grid min-w-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-3 text-xs [&>dt]:py-1 [&>dt]:text-slate-500 [&>dd]:min-w-0 [&>dd]:break-words [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-mono [&>dd]:tabular-nums [&>dd]:text-slate-300">
                   <dt>Coverage bắt đầu</dt><dd>{time(item.coverageStartOpenTimeMs)}</dd>
@@ -150,7 +158,7 @@ export function CausalSmartMoneyAdministration() {
                 <details className="mt-1.5 min-w-0 max-w-full overflow-hidden text-[11px] text-slate-400"><summary className="cursor-pointer">Loại event đã lưu ({Object.keys(item.eventsByType).length})</summary><ul className="mt-1 divide-y divide-slate-800/40">{Object.entries(item.eventsByType).map(([key, value]) => <li key={key} className="flex min-w-0 justify-between gap-2 py-1"><span className="min-w-0 break-all">{key}</span><span className="shrink-0 font-mono tabular-nums">{value.toLocaleString("vi-VN")}</span></li>)}</ul></details>
                 <div className="mt-1.5 max-w-full break-all font-mono text-[10px] text-slate-500">{item.calculationVersion}</div>
                 <div className="mt-1 max-w-full break-words text-[11px] text-slate-500">Legacy: {item.legacyStorageStatus}</div>
-              </> : <p className="mt-1.5 break-words text-rose-300">Không có causal coverage contract cho khung này.</p>}
+              </> : null}
             </article>
           );
         })}

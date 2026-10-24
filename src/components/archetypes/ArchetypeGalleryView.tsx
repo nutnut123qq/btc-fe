@@ -11,7 +11,8 @@ interface ArchetypeGalleryViewProps {
   windowSize: number;
   sortBy: string;
   windowSizes: number[];
-  archetypes: ArchetypeDto[];
+  /** null = no successful load for the current filters; never rendered as empty. */
+  archetypes: ArchetypeDto[] | null;
   loading: boolean;
   onTimeframeChange: (tf: string) => void;
   onWindowSizeChange: (ws: number) => void;
@@ -35,7 +36,7 @@ export function ArchetypeGalleryView({
     <div className="rounded border border-slate-800 bg-slate-900">
       <div className="flex h-9 items-center justify-between gap-2 border-b border-slate-800 bg-slate-850/60 px-3">
         <span className="truncate text-[13px] font-semibold text-slate-200">Thư viện mẫu nến (audit)</span>
-        <span className="shrink-0 font-mono text-[11px] tabular-nums text-slate-400">{archetypes.length} mẫu</span>
+        <span className="shrink-0 font-mono text-[11px] tabular-nums text-slate-400">{archetypes ? `${archetypes.length} mẫu` : "— mẫu"}</span>
       </div>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-2 border-b border-slate-800 px-3 py-2.5">
         <div>
@@ -86,7 +87,7 @@ export function ArchetypeGalleryView({
         <div className="flex justify-center py-12">
           <RefreshCw className="h-6 w-6 animate-spin text-teal-500" />
         </div>
-      ) : (
+      ) : archetypes ? (
         <div className="space-y-3 p-3">
           {archetypes.map((arc) => (
             <div key={arc.id} className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -106,7 +107,7 @@ export function ArchetypeGalleryView({
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

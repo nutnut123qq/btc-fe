@@ -393,5 +393,7 @@ test("equity screen: URL-driven symbol, per-symbol remount, no crypto/Binance wi
   assert.doesNotMatch(screenSource, /binanceWs|BinanceTicker|getKlines|\/api\/market/);
   assert.match(shellSource, /equity: "\/co-phieu"/);
   assert.match(shellSource, /\{ key: "equity", label: "Cổ phiếu"/);
-  assert.match(shellSource, /mbb: "\/mbb"/);
+  // /mbb stays a working alias of the equity screen, without a duplicate nav entry (F09).
+  assert.match(shellSource, /\["\/mbb", "equity"\]/);
+  assert.doesNotMatch(shellSource, /\{ key: "mbb", label:/);
 });

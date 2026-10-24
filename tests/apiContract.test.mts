@@ -30,7 +30,7 @@ test("authenticatedFetch fails closed outside an authenticated browser session",
 test("safeApiErrorMessage hides provider details", () => {
   assert.equal(
     safeApiErrorMessage('{"code":"LLM_NOT_CONFIGURED","message":"BLACKBOX_API_KEY missing"}', 503),
-    "Giải thích LLM chưa được cấu hình; các chức năng định lượng vẫn hoạt động.",
+    "Giải thích LLM chưa được cấu hình.",
   );
   assert.equal(
     safeApiErrorMessage("provider stack trace with secret", 500),

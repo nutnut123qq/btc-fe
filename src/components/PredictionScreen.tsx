@@ -10,6 +10,8 @@ import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL, ACTIVE_SYMBOL_LABEL } from "@/lib/marketScope";
 import { GlossaryTerm } from "./GlossaryTerm";
+import { LoadNotice } from "./LoadNotice";
+import { begin, fail, idle, loadView, metric, succeed, type Loaded } from "@/lib/loadState";
 
 const SYMBOL_OPTIONS = [
   { value: ACTIVE_SYMBOL, label: ACTIVE_SYMBOL_LABEL },
@@ -92,25 +94,30 @@ export function PredictionScreen() {
   const [windowSize, setWindowSize] = useState(5);
   const [horizon, setHorizon] = useState("4h");
   const [modelName, setModelName] = useState("");
-  const [models, setModels] = useState<AvailableModel[]>([]);
-  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelList, setModelList] = useState<Loaded<AvailableModel[]>>(() => idle<AvailableModel[]>());
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
-  const [history, setHistory] = useState<ModelPredictionItem[]>([]);
-  const [accuracy, setAccuracy] = useState<PredictionAccuracySummaryDto | null>(null);
   const [includeLegacy, setIncludeLegacy] = useState(false);
+  // Evaluation + history belong to one symbol/timeframe/filter; a switch never inherits old numbers.
+  const evalScope = `${symbol}|${timeframe}|${includeLegacy}`;
+  const [historyLoad, setHistory] = useState<Loaded<ModelPredictionItem[]>>(() => idle<ModelPredictionItem[]>(evalScope));
+  const [accuracyLoad, setAccuracy] = useState<Loaded<PredictionAccuracySummaryDto>>(() => idle<PredictionAccuracySummaryDto>(evalScope));
+  const history = historyLoad.scope === evalScope ? historyLoad : idle<ModelPredictionItem[]>(evalScope);
+  const accuracy = accuracyLoad.scope === evalScope ? accuracyLoad : idle<PredictionAccuracySummaryDto>(evalScope);
+  const historyItems = history.data ?? [];
+  const historyView = loadView(history);
   const [loading, setLoading] = useState(false);
   const [auditing, setAuditing] = useState(false);
   const [error, setError] = useState("");
   const [lastAttemptAt, setLastAttemptAt] = useState<number | null>(null);
 
   const loadModels = async () => {
+    setModelList((prev) => begin(prev));
     try {
       const data = await getAvailableModels();
-      setModels(data.models ?? []);
+      setModelList((prev) => succeed(prev, data.models ?? []));
     } catch (e) {
       console.error(e);
-    } finally {
-      setModelsLoaded(true);
+      setModelList((prev) => fail(prev, e));
     }
   };
 
@@ -137,21 +144,25 @@ export function PredictionScreen() {
   };
 
   const loadHistory = useCallback(async () => {
+    const scope = `${symbol}|${timeframe}|${includeLegacy}`;
+    setHistory((prev) => begin(prev, scope));
     try {
       const data = await getPredictionHistory(symbol, timeframe, 50, includeLegacy);
-      setHistory(data.items ?? []);
+      setHistory((prev) => succeed(prev, data.items ?? [], Date.now(), scope));
     } catch (e) {
       console.error(e);
+      setHistory((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [symbol, timeframe, includeLegacy]);
 
   const loadAccuracy = useCallback(async () => {
+    const scope = `${symbol}|${timeframe}|${includeLegacy}`;
+    setAccuracy((prev) => begin(prev, scope));
     try {
       const data = await getPredictionAccuracy(symbol, timeframe, includeLegacy);
-      setAccuracy(data);
+      setAccuracy((prev) => succeed(prev, data, Date.now(), scope));
     } catch (e) {
-      setAccuracy(null);
-      setError(e instanceof Error ? e.message : "Không tải được prediction evaluation");
+      setAccuracy((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [symbol, timeframe, includeLegacy]);
 
@@ -177,7 +188,7 @@ export function PredictionScreen() {
     void loadAccuracy();
   }, [loadHistory, loadAccuracy]);
 
-  const compatibleModels = models.filter((model) =>
+  const compatibleModels = (modelList.data ?? []).filter((model) =>
     model.symbol === symbol
     && model.timeframe === timeframe
     && model.window_size === windowSize
@@ -185,7 +196,8 @@ export function PredictionScreen() {
   );
   const availableModelNames = Array.from(new Set(compatibleModels.map((m) => m.model_name))).filter(Boolean);
   const canPredict = compatibleModels.some((model) => !modelName || model.model_name === modelName || model.file === modelName);
-  const modelUnavailable = modelsLoaded && !canPredict;
+  // "Unavailable" is a conclusion only a successfully loaded model list can prove.
+  const modelUnavailable = modelList.data !== null && !canPredict;
   const reasonCode = error ? extractReasonCode(error) : null;
 
   const selectClass = "rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-xs text-slate-200 focus:border-teal-500 focus:outline-none";
@@ -259,7 +271,19 @@ export function PredictionScreen() {
 
         {/* PRIMARY: availability / result block — đứng đầu trên mobile */}
         <div className="order-1 md:order-2 space-y-3">
-          {modelUnavailable ? (
+          {modelList.data === null ? (
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50">
+              <LoadNotice state={modelList} what="danh sách model" />
+              {modelList.error !== null && !modelList.pending && (
+                <div className="flex flex-wrap items-center gap-2 px-3 pb-3 text-[11px] text-slate-500">
+                  <span>Chưa biết cấu hình này có model khả dụng hay không, nên nút Dự đoán tạm khóa.</span>
+                  <button type="button" onClick={() => void loadModels()} className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:border-slate-600">
+                    Thử tải lại danh sách model
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : modelUnavailable ? (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -364,27 +388,29 @@ export function PredictionScreen() {
         </div>
 
         <div className="mt-2 rounded border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-200/90">
-          {accuracy?.promotionReason ?? <GlossaryTerm term="promotion-gate">Prediction evaluation chưa qua promotion gate.</GlossaryTerm>}
+          {accuracy.data?.promotionReason ?? <GlossaryTerm term="promotion-gate">Prediction evaluation chưa qua promotion gate.</GlossaryTerm>}
         </div>
+
+        <LoadNotice state={accuracy} what="prediction evaluation" className="mt-2 rounded border border-slate-800" />
 
         <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
           <div className="rounded border border-slate-800 bg-slate-950/60 px-3 py-2">
             <div className="text-[10px] text-slate-400"><GlossaryTerm term="raw-legacy">Raw legacy</GlossaryTerm> · <GlossaryTerm term="directional-accuracy">accuracy</GlossaryTerm></div>
-            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-100">{accuracy?.winRatePct ?? 0}%</div>
-            <div className="font-mono text-[10px] tabular-nums text-slate-500">n={accuracy?.evaluatedCount ?? 0}/{accuracy?.totalPredictions ?? 0}</div>
+            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-100">{metric(accuracy, (a) => a.winRatePct, (v) => `${v}%`)}</div>
+            <div className="font-mono text-[10px] tabular-nums text-slate-500">n={metric(accuracy, (a) => a.evaluatedCount)}/{metric(accuracy, (a) => a.totalPredictions)}</div>
           </div>
           <div className="rounded border border-slate-800 bg-slate-950/60 px-3 py-2">
             <div className="text-[10px] text-slate-400">Raw đúng / sai / chờ</div>
-            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-200">{accuracy?.trueCount ?? 0} / {accuracy?.falseCount ?? 0} / {accuracy?.pendingCount ?? 0}</div>
+            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-200">{metric(accuracy, (a) => a.trueCount)} / {metric(accuracy, (a) => a.falseCount)} / {metric(accuracy, (a) => a.pendingCount)}</div>
           </div>
           <div className="rounded border border-slate-800 bg-slate-950/60 px-3 py-2">
             <div className="text-[10px] text-slate-400"><GlossaryTerm term="canonical-audit">Canonical</GlossaryTerm> · <GlossaryTerm term="directional-accuracy">accuracy</GlossaryTerm></div>
-            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-100">{accuracy?.canonicalWinRatePct ?? 0}%</div>
-            <div className="font-mono text-[10px] tabular-nums text-slate-500">n={accuracy?.canonicalEvaluatedCount ?? 0}/{accuracy?.canonicalPredictionCount ?? 0}</div>
+            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-100">{metric(accuracy, (a) => a.canonicalWinRatePct, (v) => `${v}%`)}</div>
+            <div className="font-mono text-[10px] tabular-nums text-slate-500">n={metric(accuracy, (a) => a.canonicalEvaluatedCount)}/{metric(accuracy, (a) => a.canonicalPredictionCount)}</div>
           </div>
           <div className="rounded border border-slate-800 bg-slate-950/60 px-3 py-2">
             <div className="text-[10px] text-slate-400">Canonical đúng / sai / chờ</div>
-            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-200">{accuracy?.canonicalTrueCount ?? 0} / {accuracy?.canonicalFalseCount ?? 0} / {(accuracy?.canonicalPredictionCount ?? 0) - (accuracy?.canonicalEvaluatedCount ?? 0)}</div>
+            <div className="mt-0.5 font-mono text-base font-semibold tabular-nums text-slate-200">{metric(accuracy, (a) => a.canonicalTrueCount)} / {metric(accuracy, (a) => a.canonicalFalseCount)} / {metric(accuracy, (a) => a.canonicalPredictionCount - a.canonicalEvaluatedCount)}</div>
           </div>
         </div>
       </div>
@@ -395,7 +421,7 @@ export function PredictionScreen() {
           <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             Lịch sử dự đoán
-            {history.length > 0 && <span className="font-mono text-[10px] font-normal text-slate-500">({history.length} phiên gần nhất)</span>}
+            {historyItems.length > 0 && <span className="font-mono text-[10px] font-normal text-slate-500">({historyItems.length} phiên gần nhất)</span>}
           </h3>
           <label className="flex items-center gap-1.5 text-xs text-slate-400">
             <input type="checkbox" checked={includeLegacy} onChange={(event) => setIncludeLegacy(event.target.checked)} className="accent-teal-500" />
@@ -403,7 +429,8 @@ export function PredictionScreen() {
           </label>
         </div>
 
-        {history.length === 0 ? (
+        <LoadNotice state={history} what="lịch sử dự đoán" />
+        {historyView === "loading" || historyView === "error" ? null : historyView === "empty" ? (
           <div className="px-3 py-4 text-center text-xs text-slate-400">
             {includeLegacy ? "Chưa có dự đoán nào" : "Không có dự đoán Valid. Bật bộ lọc Lab để xem Legacy/Invalid."}
           </div>
@@ -423,7 +450,7 @@ export function PredictionScreen() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {history.map((item) => (
+                  {historyItems.map((item) => (
                     <tr key={item.id} className={`hover:bg-slate-800/30 ${rowTint(item)}`}>
                       <td className="whitespace-nowrap px-3 py-2 font-mono tabular-nums text-slate-300">{formatTime(item.windowEndMs)}</td>
                       <td className="px-2 py-2 font-mono text-slate-400">{item.timeframe}</td>
@@ -450,7 +477,7 @@ export function PredictionScreen() {
 
             {/* Mobile: stacked flat rows */}
             <div className="divide-y divide-slate-800/60 md:hidden">
-              {history.map((item) => (
+              {historyItems.map((item) => (
                 <div key={item.id} className={`space-y-1.5 px-3 py-2.5 ${rowTint(item)}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-1.5">

@@ -227,7 +227,7 @@ test.describe("/co-phieu equity screen", () => {
     await expect(page.getByRole("heading", { name: "BID — BIDV" })).toBeVisible();
   });
 
-  test("legacy /mbb renders the MBB screen; selecting BID moves to /co-phieu?symbol=BID; nav entry works", async ({ page }) => {
+  test("legacy /mbb renders the MBB screen; selecting BID moves to /co-phieu?symbol=BID; nav keeps BID", async ({ page }) => {
     const requests: string[] = [];
     await mockBackend(page, requests);
     await page.goto("/mbb");
@@ -238,11 +238,23 @@ test.describe("/co-phieu equity screen", () => {
     await page.waitForURL((url) => url.pathname === "/co-phieu" && url.searchParams.get("symbol") === "BID");
     await expect(page.getByRole("heading", { name: "BID — BIDV" })).toBeVisible();
 
-    await openMainTab(page, "MBB");
-    await page.waitForURL("**/mbb");
-    await expect(page.getByRole("heading", { name: "MBB — MB Bank" })).toBeVisible();
+    // F06: leaving the market group and coming back restores the symbol being analysed.
+    await openMainTab(page, "Tin tức");
+    await page.waitForURL((url) => url.pathname === "/tin-tuc");
     await openMainTab(page, "Cổ phiếu");
-    await page.waitForURL((url) => url.pathname === "/co-phieu");
+    await page.waitForURL((url) => url.pathname === "/co-phieu" && url.searchParams.get("symbol") === "BID");
+    await expect(page.getByRole("heading", { name: "BID — BIDV" })).toBeVisible();
+
+    // Back/forward stay URL-driven.
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/tin-tuc");
+    await page.goForward();
+    await page.waitForURL((url) => url.pathname === "/co-phieu" && url.searchParams.get("symbol") === "BID");
+    await expect(page.getByRole("heading", { name: "BID — BIDV" })).toBeVisible();
+
+    // The /mbb alias still works by direct link and has no separate nav entry.
+    await page.goto("/mbb");
     await expect(page.getByRole("heading", { name: "MBB — MB Bank" })).toBeVisible();
+    await expect(page.getByTestId("nav-sub-row").getByRole("button", { name: "MBB", exact: true })).toHaveCount(0);
   });
 });

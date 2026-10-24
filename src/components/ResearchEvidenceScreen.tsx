@@ -47,6 +47,8 @@ import { DataQualityAdministration } from "./DataQualityAdministration";
 import { StatisticalEvidencePanel } from "./StatisticalEvidencePanel";
 import { CurrentConditionsPanel } from "./CurrentConditionsPanel";
 import { GlossaryTerm } from "./GlossaryTerm";
+import { LoadNotice } from "./LoadNotice";
+import { begin, idle, isStale, loadView, settle, type Loaded } from "@/lib/loadState";
 
 type Section = "overview" | ResearchEvidenceKind;
 const EVIDENCE_READ_TIMEOUT_MS = 60_000;
@@ -298,22 +300,22 @@ function EvidenceDetailPanel({ detail, loading, error }: { detail: ResearchEvide
   );
 }
 
-function EconomicStatus({ runs }: { runs: BacktestRunSummary[] | null }) {
+function EconomicStatus({ runs, pending }: { runs: BacktestRunSummary[] | null; pending: boolean }) {
   const valid = (runs ?? []).filter((run) => run.validityStatus === "Valid" && run.archivedAtUtc == null);
   const latest = valid[0] ?? null;
   return <section className="min-w-0 rounded-md border border-slate-800 bg-slate-900/50 p-4 text-xs">
     <h3 className="text-[13px] font-semibold text-slate-200"><GlossaryTerm term="economic-simulation">Bằng chứng kinh tế · mô phỏng lịch sử</GlossaryTerm></h3>
-    {!runs ? <p className="mt-2 text-slate-400">Endpoint backtest không khả dụng; không suy diễn <GlossaryTerm term="pnl">PnL</GlossaryTerm>.</p> : !latest ? <p className="mt-2 text-slate-400">Chưa có backtest hợp lệ theo <GlossaryTerm term="research-contract">research contract</GlossaryTerm>.</p> : <><dl className="mt-2 grid grid-cols-2 gap-x-3 text-xs sm:grid-cols-[repeat(4,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-slate-800/50 [&>div]:py-1.5 [&>div]:sm:block [&>div]:sm:border-b-0 [&>div]:sm:border-l [&>div]:sm:border-slate-800/60 [&>div]:sm:pl-3"><div><dt className="text-slate-500">Số lệnh</dt><dd className="font-mono tabular-nums text-slate-200">{latest.totalTrades}</dd></div><div><dt className="text-slate-500">Lợi suất</dt><dd className="font-mono tabular-nums text-slate-200">{latest.totalReturnPct.toFixed(2)}%</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="sharpe">Sharpe</GlossaryTerm></dt><dd className="font-mono tabular-nums text-slate-200">{latest.sharpeRatio.toFixed(2)}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="drawdown">Drawdown</GlossaryTerm></dt><dd className="font-mono tabular-nums text-slate-200">{latest.maxDrawdownPct.toFixed(2)}%</dd></div></dl><p className="mt-1.5 text-slate-500">{latest.modelName} · {latest.timeframe} · mô phỏng lịch sử, chưa phải forward/live.</p></>}
+    {!runs ? <p className="mt-2 text-slate-400">{pending ? "Đang tải kết quả backtest…" : <>Chưa tải được kết quả backtest; không hiển thị lãi/lỗ (<GlossaryTerm term="pnl">PnL</GlossaryTerm>) khi chưa có dữ liệu.</>}</p> : !latest ? <p className="mt-2 text-slate-400">Chưa có backtest hợp lệ theo <GlossaryTerm term="research-contract">research contract</GlossaryTerm>.</p> : <><dl className="mt-2 grid grid-cols-2 gap-x-3 text-xs sm:grid-cols-[repeat(4,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-slate-800/50 [&>div]:py-1.5 [&>div]:sm:block [&>div]:sm:border-b-0 [&>div]:sm:border-l [&>div]:sm:border-slate-800/60 [&>div]:sm:pl-3"><div><dt className="text-slate-500">Số lệnh</dt><dd className="font-mono tabular-nums text-slate-200">{latest.totalTrades}</dd></div><div><dt className="text-slate-500">Lợi suất</dt><dd className="font-mono tabular-nums text-slate-200">{latest.totalReturnPct.toFixed(2)}%</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="sharpe">Sharpe</GlossaryTerm></dt><dd className="font-mono tabular-nums text-slate-200">{latest.sharpeRatio.toFixed(2)}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="drawdown">Drawdown</GlossaryTerm></dt><dd className="font-mono tabular-nums text-slate-200">{latest.maxDrawdownPct.toFixed(2)}%</dd></div></dl><p className="mt-1.5 text-slate-500">{latest.modelName} · {latest.timeframe} · mô phỏng lịch sử, chưa phải forward/live.</p></>}
   </section>;
 }
 
-function ForwardStatus({ observations }: { observations: PaperObservationListResponse | null }) {
+function ForwardStatus({ observations, pending }: { observations: PaperObservationListResponse | null; pending: boolean }) {
   const items = observations?.items ?? [];
   const fills = items.filter((item) => item.fillPrice != null).length;
   const outcomes = items.filter((item) => item.outcomeReturn != null).length;
   return <section className="min-w-0 rounded-md border border-slate-800 bg-slate-900/50 p-4 text-xs">
     <h3 className="text-[13px] font-semibold text-slate-200"><GlossaryTerm term="forward-journal">Bằng chứng forward · nhật ký BTCUSDT 4h</GlossaryTerm></h3>
-    {!observations ? <p className="mt-2 text-slate-400">Forward journal không khả dụng; không dùng replay thay thế.</p> : !observations.available ? <p className="mt-2 text-slate-300">{observations.reason ?? "Forward journal chưa khả dụng."}</p> : <><dl className="mt-2 grid grid-cols-2 gap-x-3 text-xs sm:grid-cols-[repeat(3,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-slate-800/50 [&>div]:py-1.5 [&>div]:sm:block [&>div]:sm:border-b-0 [&>div]:sm:border-l [&>div]:sm:border-slate-800/60 [&>div]:sm:pl-3"><div><dt className="text-slate-500">Quyết định</dt><dd className="font-mono tabular-nums text-slate-200">{items.length}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="fill">Fill</GlossaryTerm> quan sát được</dt><dd className="font-mono tabular-nums text-slate-200">{fills}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="outcome">Outcome</GlossaryTerm> quan sát được</dt><dd className="font-mono tabular-nums text-slate-200">{outcomes}</dd></div></dl><p className="mt-1.5 text-slate-500">Thiếu fill/outcome được giữ nguyên là thiếu; UI không backfill từ dữ liệu tương lai.</p></>}
+    {!observations ? <p className="mt-2 text-slate-400">{pending ? "Đang tải nhật ký forward…" : "Chưa tải được nhật ký forward; không dùng dữ liệu replay để thay thế."}</p> : !observations.available ? <p className="mt-2 text-slate-300">{observations.reason ?? "Forward journal chưa khả dụng."}</p> : <><dl className="mt-2 grid grid-cols-2 gap-x-3 text-xs sm:grid-cols-[repeat(3,minmax(0,1fr))] [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-slate-800/50 [&>div]:py-1.5 [&>div]:sm:block [&>div]:sm:border-b-0 [&>div]:sm:border-l [&>div]:sm:border-slate-800/60 [&>div]:sm:pl-3"><div><dt className="text-slate-500">Quyết định</dt><dd className="font-mono tabular-nums text-slate-200">{items.length}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="fill">Fill</GlossaryTerm> quan sát được</dt><dd className="font-mono tabular-nums text-slate-200">{fills}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="outcome">Outcome</GlossaryTerm> quan sát được</dt><dd className="font-mono tabular-nums text-slate-200">{outcomes}</dd></div></dl><p className="mt-1.5 text-slate-500">Thiếu fill/outcome được giữ nguyên là thiếu; UI không backfill từ dữ liệu tương lai.</p></>}
   </section>;
 }
 
@@ -387,7 +389,7 @@ function TechnicalDataCoverage({ audit, workers, error, pending }: {
   const summary = useMemo(() => buildTechnicalCoverageSummary(audit, workers), [audit, workers]);
   return <section className="min-w-0 max-w-full overflow-hidden rounded-md border border-slate-800 bg-slate-900/50" aria-labelledby="technical-data-coverage-title">
     <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-800/60 px-4 py-3">
-      <div className="min-w-0"><h3 id="technical-data-coverage-title" className="text-[13px] font-semibold text-slate-200">Độ phủ dữ liệu kiểm định · technical <GlossaryTerm term="coverage">coverage</GlossaryTerm></h3><p className="mt-0.5 text-xs leading-5 text-slate-500">BTCUSDT 1h/4h/1d; gaps, quality và inventory dẫn xuất được báo riêng. <GlossaryTerm term="legacy">Legacy</GlossaryTerm> không được tính vào <GlossaryTerm term="coverage">coverage</GlossaryTerm> đang hoạt động.</p></div>
+      <div className="min-w-0"><h3 id="technical-data-coverage-title" className="text-[13px] font-semibold text-slate-200">Độ phủ dữ liệu kiểm định · technical <GlossaryTerm term="coverage">coverage</GlossaryTerm></h3><p className="mt-0.5 text-xs leading-5 text-slate-500">Dữ liệu nến BTCUSDT 1h/4h/1d mà các kết luận dựa vào: có từ khi nào, tới khi nào và còn thiếu bao nhiêu nến. <GlossaryTerm term="legacy">Legacy</GlossaryTerm> không được tính vào <GlossaryTerm term="coverage">coverage</GlossaryTerm> đang hoạt động.</p></div>
       <span className="rounded bg-slate-800/40 px-2 py-1 font-mono text-[11px] tabular-nums text-slate-400">{audit ? formatDate(audit.generatedAtUtc) : pending && !error ? "đang tải…" : <GlossaryTerm term="audit">audit không khả dụng</GlossaryTerm>}</span>
     </div>
     {error && <div role="alert" className="mx-4 mt-3 rounded bg-rose-950/30 p-3 text-xs text-rose-300">{error}</div>}
@@ -417,7 +419,7 @@ function TechnicalDataCoverage({ audit, workers, error, pending }: {
           </dl>
           {row.reasons.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[11px] leading-4 text-amber-200/80">{row.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           {row.source.derivedTables && <details className="mt-2 text-[11px] text-slate-400"><summary className="cursor-pointer text-slate-500">Pipeline inventory ({row.source.derivedTables.length})</summary><ul className="mt-1.5 space-y-1">{row.source.derivedTables.map((table) => <li key={table.table} className="flex justify-between gap-2"><span className="truncate">{table.table}</span><span className={`font-mono tabular-nums ${(table.missingRows ?? 0) > 0 ? "text-slate-300" : "text-slate-500"}`}>{table.rows.toLocaleString("vi-VN")} rows{table.missingRows == null ? "" : ` · thiếu ${table.missingRows.toLocaleString("vi-VN")}`}</span></li>)}</ul></details>}
-          </details> : <p className="mt-2 text-xs text-rose-300">Không có audit row; mọi pipeline của khung này phải coi là <GlossaryTerm term="unavailable">unavailable</GlossaryTerm>.</p>}
+          </details> : <p className="mt-2 text-xs text-rose-300">{audit ? <>Không có audit row; mọi pipeline của khung này phải coi là <GlossaryTerm term="unavailable">unavailable</GlossaryTerm>.</> : "Chưa đọc được audit cho khung này — chưa biết độ phủ, không phải đã đo là thiếu."}</p>}
         </article>;
       })}
       {summary.legacyTimeframes.map((row) => {
@@ -436,16 +438,18 @@ function TechnicalDataCoverage({ audit, workers, error, pending }: {
       </>}
     </div>
     <div className="grid gap-3 border-t border-slate-800/60 px-4 py-3 lg:grid-cols-2">
-      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="worker">Worker</GlossaryTerm> của <GlossaryTerm term="pipeline">pipeline</GlossaryTerm></div>{summary.technicalWorkers.length ? <ul className="mt-2 divide-y divide-slate-800/40">{summary.technicalWorkers.map((worker) => <li key={worker.name} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-slate-400"><span className="font-mono text-[10px]">{worker.name}</span><span className={worker.status === "healthy" ? "text-slate-300" : worker.status === "stale" ? "text-amber-300" : "text-rose-300"}><GlossaryTerm term={worker.status}>{WORKER_STATUS_LABEL[worker.status] ?? worker.status}</GlossaryTerm> · <span className="font-mono tabular-nums">{ageLabel(worker.ageSeconds)}</span> trước</span></li>)}</ul> : <p className="mt-2 text-slate-500"><GlossaryTerm term="worker">Worker</GlossaryTerm> health chưa công bố; không suy ra <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> đang chạy chỉ từ inventory.</p>}</div>
-      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="legacy">Legacy</GlossaryTerm> & exclusions</div>{summary.legacyTimeframes.length ? <p className="mt-2 text-slate-400">{summary.legacyTimeframes.map((row) => row.timeframe).join(", ")} · chỉ giữ để audit lịch sử, không thuộc scope replay 1h/4h/1d.</p> : <p className="mt-2 text-slate-500">Không có timeframe <GlossaryTerm term="legacy">legacy</GlossaryTerm> trong phản hồi audit.</p>}<p className="mt-2 text-amber-300/80"><GlossaryTerm term="unavailable">Unavailable</GlossaryTerm> và <GlossaryTerm term="partial">partial</GlossaryTerm> vẫn là thiếu bằng chứng; UI không đổi chúng thành “đủ” bằng fallback realtime.</p></div>
+      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="worker">Worker</GlossaryTerm> của <GlossaryTerm term="pipeline">pipeline</GlossaryTerm></div>{summary.technicalWorkers.length ? <ul className="mt-2 divide-y divide-slate-800/40">{summary.technicalWorkers.map((worker) => <li key={worker.name} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-slate-400"><span className="font-mono text-[10px]">{worker.name}</span><span className={worker.status === "healthy" ? "text-slate-300" : worker.status === "stale" ? "text-amber-300" : "text-rose-300"}><GlossaryTerm term={worker.status}>{WORKER_STATUS_LABEL[worker.status] ?? worker.status}</GlossaryTerm> · <span className="font-mono tabular-nums">{ageLabel(worker.ageSeconds)}</span> trước</span></li>)}</ul> : <p className="mt-2 text-slate-500">{workers == null ? (pending ? "Đang tải trạng thái worker" : "Chưa tải được trạng thái worker") : <><GlossaryTerm term="worker">Worker</GlossaryTerm> health chưa công bố</>}; không suy ra <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> đang chạy chỉ từ inventory.</p>}</div>
+      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="legacy">Legacy</GlossaryTerm> & exclusions</div>{summary.legacyTimeframes.length ? <p className="mt-2 text-slate-400">{summary.legacyTimeframes.map((row) => row.timeframe).join(", ")} · chỉ giữ để audit lịch sử, không thuộc scope replay 1h/4h/1d.</p> : !audit ? <p className="mt-2 text-slate-500">Chưa có phản hồi audit nên chưa biết timeframe <GlossaryTerm term="legacy">legacy</GlossaryTerm> nào.</p> : <p className="mt-2 text-slate-500">Không có timeframe <GlossaryTerm term="legacy">legacy</GlossaryTerm> trong phản hồi audit.</p>}<p className="mt-2 text-amber-300/80"><GlossaryTerm term="unavailable">Unavailable</GlossaryTerm> và <GlossaryTerm term="partial">partial</GlossaryTerm> vẫn là thiếu bằng chứng; UI không đổi chúng thành “đủ” bằng fallback realtime.</p></div>
     </div>
   </section>;
 }
 
-function EvidencePipelineStatus({ pipeline }: { pipeline: ResearchEvidenceCatalog["pipeline"] }) {
+function EvidencePipelineStatus({ catalogState }: { catalogState: Loaded<ResearchEvidenceCatalog> }) {
+  const pipeline = catalogState.data?.pipeline ?? null;
+  const known = catalogState.data !== null;
   return <section className="min-w-0 max-w-full overflow-hidden rounded-md border border-slate-800 bg-slate-900/50 p-4" aria-label="Trạng thái pipeline evidence kỹ thuật">
-    <div className="flex min-w-0 flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h3 className="text-[13px] font-semibold text-slate-200">Pipeline bằng chứng mô tả</h3><p className="mt-0.5 text-xs text-slate-500"><GlossaryTerm term="coverage">Coverage</GlossaryTerm> <GlossaryTerm term="artifact">artifact</GlossaryTerm> mô tả theo 1h/4h/1d; không phải xác suất dự báo.</p></div><span className={`min-w-0 break-all rounded px-1.5 py-0.5 text-[11px] font-medium ${pipeline?.state === "succeeded" && pipeline.integrityVerified ? "bg-slate-800/50 text-slate-300" : pipeline?.state === "running" ? "bg-teal-950/50 text-teal-300" : pipeline?.state === "failed" ? "bg-rose-950/50 text-rose-300" : "bg-slate-800/50 text-slate-300"}`}>{pipeline?.state ? (PIPELINE_STATE_LABEL[pipeline.state] ?? pipeline.state) : "chưa báo cáo"}</span></div>
-    {!pipeline ? <p className="mt-3 text-xs text-slate-400">Catalog chưa công bố <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> metadata; UI không suy ra trạng thái từ <GlossaryTerm term="artifact">artifact</GlossaryTerm> count.</p> : <>
+    <div className="flex min-w-0 flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h3 className="text-[13px] font-semibold text-slate-200">Pipeline bằng chứng mô tả</h3><p className="mt-0.5 text-xs text-slate-500"><GlossaryTerm term="coverage">Coverage</GlossaryTerm> <GlossaryTerm term="artifact">artifact</GlossaryTerm> mô tả theo 1h/4h/1d; không phải xác suất dự báo.</p></div><span className={`min-w-0 break-all rounded px-1.5 py-0.5 text-[11px] font-medium ${pipeline?.state === "succeeded" && pipeline.integrityVerified ? "bg-slate-800/50 text-slate-300" : pipeline?.state === "running" ? "bg-teal-950/50 text-teal-300" : pipeline?.state === "failed" ? "bg-rose-950/50 text-rose-300" : "bg-slate-800/50 text-slate-300"}`}>{!known ? "—" : pipeline?.state ? (PIPELINE_STATE_LABEL[pipeline.state] ?? pipeline.state) : "chưa báo cáo"}</span></div>
+    {!known ? <LoadNotice state={catalogState} what="trạng thái pipeline (từ catalog)"/> : !pipeline ? <p className="mt-3 text-xs text-slate-400">Catalog chưa công bố <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> metadata; UI không suy ra trạng thái từ <GlossaryTerm term="artifact">artifact</GlossaryTerm> count.</p> : <>
       <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]"><span className="rounded bg-slate-800/40 px-2 py-1 text-slate-400"><GlossaryTerm term="integrity">Toàn vẹn</GlossaryTerm>: {pipeline.integrityVerified ? "đã xác minh" : "chưa xác minh"}</span><span className="rounded bg-slate-800/40 px-2 py-1 text-slate-400">Đang chạy: {pipeline.running ? "có" : "không"}</span><span className="rounded bg-slate-800/40 px-2 py-1 text-slate-400"><GlossaryTerm term="lock">Khóa</GlossaryTerm>: {pipeline.locked ? "đang giữ" : "trống"}</span></div>
       <dl className="mt-3 grid min-w-0 gap-x-4 gap-y-1 text-xs sm:grid-cols-2 lg:grid-cols-5 [&>div]:min-w-0 [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-2 [&>div]:border-b [&>div]:border-slate-800/50 [&>div]:py-1 [&>div]:sm:block [&>div]:sm:border-b-0 [&_dd]:min-w-0 [&_dd]:break-words [&_dd]:font-mono [&_dd]:tabular-nums [&_dd]:text-slate-300"><div><dt className="text-slate-500">Bắt đầu gần nhất</dt><dd>{formatDate(pipeline.lastStartedAtUtc)}</dd></div><div><dt className="text-slate-500">Thành công gần nhất</dt><dd>{formatDate(pipeline.lastSucceededAtUtc)}</dd></div><div><dt className="text-slate-500">Thất bại gần nhất</dt><dd>{formatDate(pipeline.lastFailedAtUtc)}</dd></div><div><dt className="text-slate-500">Cập nhật gần nhất</dt><dd>{formatDate(pipeline.updatedAtUtc)}</dd></div><div><dt className="text-slate-500"><GlossaryTerm term="stale">Quá hạn sau</GlossaryTerm></dt><dd>{formatDate(pipeline.staleAfterUtc)}</dd></div></dl>
       {pipeline.lastError && <p role="alert" className="mt-3 max-w-full break-words rounded bg-rose-950/30 p-2 text-xs text-rose-200 [overflow-wrap:anywhere]">Lỗi gần nhất: {pipeline.lastError}</p>}
@@ -456,7 +460,9 @@ function EvidencePipelineStatus({ pipeline }: { pipeline: ResearchEvidenceCatalo
 
 export function ResearchEvidenceScreen() {
   const [section, setSection] = useState<Section>("overview");
-  const [catalog, setCatalog] = useState<Awaited<ReturnType<typeof getResearchEvidenceCatalog>> | null>(null);
+  const [catalogState, setCatalogState] = useState<Loaded<ResearchEvidenceCatalog>>(() => idle());
+  // Only a successful read populates `catalog`; a failed refresh keeps the last good catalog marked stale.
+  const catalog = catalogState.data;
   const [backtests, setBacktests] = useState<BacktestRunSummary[] | null>(null);
   const [observations, setObservations] = useState<PaperObservationListResponse | null>(null);
   const [capabilities, setCapabilities] = useState<TechnicalCapabilitiesResponse | null>(null);
@@ -467,7 +473,6 @@ export function ResearchEvidenceScreen() {
   const [detail, setDetail] = useState<ResearchEvidenceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const detailRequestRef = useRef(0);
   const router = useRouter();
@@ -477,7 +482,7 @@ export function ResearchEvidenceScreen() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setCatalogState((prev) => begin(prev));
     setCoverageError(null);
     const [catalogResult, backtestResult, observationResult, capabilityResult, auditResult, workersResult] = await Promise.allSettled([
       getResearchEvidenceCatalog(AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS)),
@@ -487,11 +492,7 @@ export function ResearchEvidenceScreen() {
       getDataAudit("BTCUSDT", AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS), true),
       getHealthWorkers(AbortSignal.timeout(EVIDENCE_READ_TIMEOUT_MS)),
     ]);
-    if (catalogResult.status === "fulfilled") setCatalog(catalogResult.value);
-    else {
-      setCatalog(null);
-      setError(catalogResult.reason instanceof Error ? catalogResult.reason.message : "Không tải được evidence catalog.");
-    }
+    setCatalogState((prev) => settle(prev, catalogResult));
     setBacktests(backtestResult.status === "fulfilled" ? backtestResult.value.items : null);
     setObservations(observationResult.status === "fulfilled" ? observationResult.value : null);
     setCapabilities(capabilityResult.status === "fulfilled" ? capabilityResult.value : null);
@@ -509,6 +510,7 @@ export function ResearchEvidenceScreen() {
     const items = catalog?.items ?? [];
     return section === "overview" ? items : items.filter((item) => item.kind === section);
   }, [catalog, section]);
+  const listView = loadView(catalogState, () => visibleItems.length === 0);
 
   const selectArtifact = useCallback(async (item: ResearchEvidenceSummary) => {
     const requestId = ++detailRequestRef.current;
@@ -589,6 +591,7 @@ export function ResearchEvidenceScreen() {
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold flex items-center gap-2 text-slate-100"><FileCheck2 className="h-4 w-4 text-slate-400"/>Nghiên cứu có thể kiểm chứng</h2>
+          <p className="text-xs leading-5 text-slate-400">Các kết luận nghiên cứu về BTC kèm dữ liệu đã dùng, nguồn và thời điểm cập nhật. Chọn một hồ sơ để đọc kết luận và giới hạn của nó.</p>
           <p className="hidden sm:block truncate text-xs text-slate-500">Mỗi kết luận nối được với <GlossaryTerm term="snapshot">snapshot</GlossaryTerm>, <GlossaryTerm term="protocol">protocol</GlossaryTerm>, <GlossaryTerm term="baseline">baseline</GlossaryTerm>, <GlossaryTerm term="coverage">coverage</GlossaryTerm> và hash <GlossaryTerm term="artifact">artifact</GlossaryTerm>.</p>
         </div>
         <button type="button" onClick={() => void load()} disabled={loading} className="shrink-0 inline-flex min-h-10 items-center gap-2 rounded px-2 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}/>Làm mới</button>
@@ -596,11 +599,12 @@ export function ResearchEvidenceScreen() {
       <div className="mt-1 flex gap-4 overflow-x-auto border-b border-slate-800/60 text-[13px]" role="tablist" aria-label="Nhóm bằng chứng">{SECTIONS.map((item) => <button type="button" role="tab" aria-selected={section === item.key} key={item.key} onClick={() => { detailRequestRef.current += 1; setDetailLoading(false); setDetailError(null); setSection(item.key); updateDossierParam(null, "replace"); }} className={`shrink-0 border-b-2 px-0.5 py-2.5 font-medium transition-colors ${section === item.key ? "border-teal-400 text-teal-300" : "border-transparent text-slate-500 hover:text-slate-300"}`}>{item.label}</button>)}</div>
     </header>
 
-    {error && <div role="alert" className="rounded-md border border-rose-900/60 bg-rose-950/20 p-4 text-[13px] text-rose-300">Evidence API chưa sẵn sàng: {error}. Các vùng economic/forward bên dưới vẫn giữ trạng thái độc lập.</div>}
+    {catalogState.error && !catalogState.pending && catalog == null && <div role="alert" className="rounded-md border border-rose-900/60 bg-rose-950/20 p-4 text-[13px] text-rose-300">Evidence API chưa sẵn sàng: {catalogState.error.replace(/[.\s]+$/, "")}. Chưa đọc được danh mục hồ sơ nên chưa biết có bao nhiêu kết luận — đây không phải kết quả rỗng. Phần mô phỏng kinh tế và forward bên dưới được tải riêng.</div>}
+    {isStale(catalogState) && <LoadNotice state={catalogState} what="danh mục hồ sơ bằng chứng" className="rounded-md border border-amber-900/60 bg-amber-950/10"/>}
     {catalog && catalog.integrity.rejectedArtifactCount > 0 && <div role="alert" className="rounded-md border border-amber-900/60 bg-amber-950/15 px-4 py-2.5 text-xs text-amber-200">Có {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> bị catalog loại do <GlossaryTerm term="integrity">integrity</GlossaryTerm>/contract không đạt; chúng không được dùng làm bằng chứng. Đã publish {catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/{catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")} <GlossaryTerm term="artifact">artifact</GlossaryTerm> đã quét.</div>}
-    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.length}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> trong catalog</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.integrityVerified).length}</strong> <GlossaryTerm term="integrity">hash hợp lệ</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : `${catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/${catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")}`}</strong> <GlossaryTerm term="artifact">artifact</GlossaryTerm> publish/đã quét{catalog != null && catalog.integrity.rejectedArtifactCount > 0 ? <span className="font-mono tabular-nums text-amber-300"> · {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} bị loại</span> : null}</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length}</strong> <GlossaryTerm term="predictive">artifact hỗ trợ predictive</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations == null ? "—" : observations.items.length}</strong> <GlossaryTerm term="forward-evidence">quyết định forward</GlossaryTerm></span></div>}
-    {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests}/>}
-    {(section === "overview" || section === "forward") && <ForwardStatus observations={observations}/>}
+    {section === "overview" && <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-800/60 pb-2 text-[11px] text-slate-500"><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.length}</strong> <GlossaryTerm term="artifact">hồ sơ bằng chứng</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.integrityVerified).length}</strong> <GlossaryTerm term="integrity">đã xác minh toàn vẹn</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : `${catalog.integrity.publishedArtifactCount.toLocaleString("vi-VN")}/${catalog.integrity.scannedArtifactCount.toLocaleString("vi-VN")}`}</strong> <GlossaryTerm term="artifact">đã công bố / đã quét</GlossaryTerm>{catalog != null && catalog.integrity.rejectedArtifactCount > 0 ? <span className="font-mono tabular-nums text-amber-300"> · {catalog.integrity.rejectedArtifactCount.toLocaleString("vi-VN")} bị loại</span> : null}</span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{catalog == null ? "—" : catalog.items.filter((item) => item.status === "supported" && item.integrityVerified && (item.tier === "validated-predictive" || item.tier === "predictive")).length}</strong> <GlossaryTerm term="predictive">hỗ trợ khả năng dự báo</GlossaryTerm></span><span><strong className="font-mono text-sm font-semibold tabular-nums text-slate-100">{observations == null ? "—" : observations.items.length}</strong> <GlossaryTerm term="forward-evidence">quyết định ghi nhận thực tế (forward)</GlossaryTerm></span></div>}
+    {(section === "overview" || section === "economic") && <EconomicStatus runs={backtests} pending={loading}/>}
+    {(section === "overview" || section === "forward") && <ForwardStatus observations={observations} pending={loading}/>}
 
     <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.6fr)]">
       <section className="min-w-0 self-start overflow-hidden rounded-md border border-slate-800 bg-slate-900/50" aria-label="Danh sách artifact">
@@ -608,10 +612,11 @@ export function ResearchEvidenceScreen() {
           <h3 className="text-[13px] font-semibold text-slate-200">Hồ sơ bằng chứng (Dossier)</h3>
           <span className="rounded bg-slate-800/40 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-slate-400">{catalog == null ? "—" : visibleItems.length}</span>
         </div>
-        {loading && !catalog && <div className="px-4 py-4 text-[13px] text-slate-400">Đang tải catalog…</div>}
-        {!loading && visibleItems.length === 0 && <div className="px-4 py-4 text-xs text-slate-400">Chưa có <GlossaryTerm term="artifact">artifact</GlossaryTerm> cho tầng này — hệ thống không nâng cấp evidence bằng suy đoán.</div>}
+        {listView === "loading" && <div className="px-4 py-4 text-[13px] text-slate-400">Đang tải catalog…</div>}
+        {listView === "error" && <div role="alert" className="px-4 py-4 text-xs text-rose-300">Chưa đọc được danh mục hồ sơ: {catalogState.error?.replace(/[.\s]+$/, "")}. Chưa biết nhóm này có hồ sơ nào — đây không phải kết quả rỗng.</div>}
+        {listView === "empty" && <div className="px-4 py-4 text-xs text-slate-400">Chưa có hồ sơ bằng chứng nào cho nhóm này. Khi thiếu bằng chứng, hệ thống không tự suy đoán kết luận.</div>}
         <div className="divide-y divide-slate-800/50">{visibleItems.map((item) => <ArtifactCard key={item.id} item={item} selected={selectedId === item.id} onSelect={() => updateDossierParam(item.id, "push")}/>)}</div>
-        {catalog && <p className="border-t border-slate-800/60 px-4 py-2 text-[11px] text-slate-500"><GlossaryTerm term="research-contract">Contract</GlossaryTerm> <span className="font-mono">{catalog.contractVersion}</span> · catalog <span className="font-mono tabular-nums">{formatDate(catalog.generatedAtUtc)}</span></p>}
+        {catalog && <p className="border-t border-slate-800/60 px-4 py-2 text-[11px] text-slate-500">Danh mục cập nhật lúc <span className="font-mono tabular-nums">{formatDate(catalog.generatedAtUtc)}</span> · <GlossaryTerm term="research-contract">contract</GlossaryTerm> <span className="font-mono">{catalog.contractVersion}</span></p>}
       </section>
       <EvidenceDetailPanel detail={detail} loading={detailLoading} error={detailError}/>
     </div>
@@ -619,13 +624,20 @@ export function ResearchEvidenceScreen() {
     {(section === "overview" || section === "event") && <CurrentConditionsPanel onOpenDossier={openDossierByManifest}/>}
 
     {section === "overview" && <div className="space-y-3 border-t border-slate-800/60 pt-3">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Vận hành & độ phủ dữ liệu</h3>
+      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Dữ liệu dùng cho các kết luận</h3>
       <TechnicalDataCoverage audit={dataAudit} workers={workers} error={coverageError} pending={loading}/>
-      <DataQualityAdministration/>
-      <EvidencePipelineStatus pipeline={catalog?.pipeline ?? null}/>
-      <TechnicalEvidenceAdministration/>
-      <CausalSmartMoneyAdministration/>
-      <CapabilityMatrix data={capabilities}/>
+      {/* Closed <details> still mounts its children, so admin reads, gating and refresh behave exactly as before. */}
+      <details className="group min-w-0 max-w-full rounded-md border border-slate-800 bg-slate-900/30" data-testid="research-technical-admin">
+        <summary className="flex min-h-10 cursor-pointer items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-300 hover:text-slate-100"><ChevronRight className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-90"/>Chi tiết kỹ thuật & thao tác quản trị</summary>
+        <div className="space-y-3 border-t border-slate-800/60 p-3">
+          <p className="text-xs leading-5 text-slate-500">Dành cho người vận hành: trạng thái pipeline, sửa dữ liệu nến, dựng lại sổ sự kiện và ma trận năng lực. Thao tác ghi đều cần admin key và bước ước tính (dry-run) trước.</p>
+          <EvidencePipelineStatus catalogState={catalogState}/>
+          <DataQualityAdministration/>
+          <TechnicalEvidenceAdministration/>
+          <CausalSmartMoneyAdministration/>
+          <CapabilityMatrix data={capabilities}/>
+        </div>
+      </details>
     </div>}
   </div>;
 }

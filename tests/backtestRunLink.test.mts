@@ -56,6 +56,24 @@ test("list reloads no longer clear the selection — the URL owns selection life
   assert.doesNotMatch(loadRuns[0], /setSelected/);
 });
 
+test("backtest empty copy only follows a successful empty list for the current Lab filter", () => {
+  // F02 live audit: HTTP 530 rendered "Không có backtest Valid…" as if the list were empty.
+  assert.match(screen, /const scope = `\$\{selectedSymbol\}\|\$\{includeLegacy \? "lab" : "valid"\}`;/);
+  assert.match(screen, /setRunsState\(\(prev\) => fail\(prev, e, Date\.now\(\), scope\)\)/);
+  assert.equal(screen.match(/\{runsView === "empty" && !loading && \(/g)?.length, 2);
+  assert.doesNotMatch(screen, /\{runs\.length === 0 && !loading && \(/);
+  assert.match(screen, /<LoadNotice state=\{runsState\} what="danh sách backtest" \/>/);
+});
+
+test("ensemble backtest form controls have programmatically associated labels (F08)", () => {
+  assert.match(screen, /const ensFieldId = useId\(\);/);
+  for (const [key, label] of [["tf", "Timeframe"], ["conf", "Min Conf"], ["fee", "Fee Bps"], ["capital", "Capital"]]) {
+    const fieldId = "{`${ensFieldId}-" + key + "`}";
+    assert.ok(screen.includes(`<label htmlFor=${fieldId} className="mb-1 block text-[11px] text-slate-400">${label}</label>`), `${label} label not associated`);
+    assert.ok(screen.includes(` id=${fieldId} value=`), `${label} control missing id`);
+  }
+});
+
 test("page wraps the screen in Suspense as required for useSearchParams prerendering", () => {
   assert.match(page, /<Suspense/);
   assert.match(page, /<BacktestScreen \/>/);

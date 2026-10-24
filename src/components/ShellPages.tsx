@@ -14,8 +14,8 @@ export function MarketPage() {
 }
 
 export function AiAnalysisPage() {
-  const { aiCapabilities } = useShellSignals();
-  return <AiAnalysisScreen capabilities={aiCapabilities} />;
+  const { aiCapabilities, capabilityCheckFailed } = useShellSignals();
+  return <AiAnalysisScreen capabilities={aiCapabilities} capabilityCheckFailed={capabilityCheckFailed} />;
 }
 
 export function AlertSettingsPage() {

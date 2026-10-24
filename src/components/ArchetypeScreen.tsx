@@ -31,6 +31,16 @@ import { ArchetypeDetailModal } from "./archetypes/ArchetypeDetailModal";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
+import { begin, fail, formatClock, idle, isStale, succeed, type Loaded } from "@/lib/loadState";
+
+// Banner copy for a list/matrix read: only claims "data below" when a previous
+// success for the same filters is actually on screen.
+function loadErrorText<T>(state: Loaded<T>, message: string): string | undefined {
+  if (state.error === null) return undefined;
+  return isStale(state)
+    ? `${message} Dữ liệu bên dưới là lần tải thành công gần nhất (${formatClock(state.succeededAt!)}).`
+    : message;
+}
 
 const TIMEFRAME_OPTIONS = [...ACTIVE_TIMEFRAMES];
 const WINDOW_SIZES = [10, 15, 20, 25];
@@ -45,16 +55,14 @@ export function ArchetypeScreen() {
   const [galleryTf, setGalleryTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [galleryWs, setGalleryWs] = useState(15);
   const [gallerySort, setGallerySort] = useState("memberCount");
-  const [archetypes, setArchetypes] = useState<ArchetypeDto[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [gallery, setGallery] = useState<Loaded<ArchetypeDto[]>>(() => idle());
 
   // Rankings State
   const [rankingsTf, setRankingsTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [rankingsWs, setRankingsWs] = useState(15);
   const [rankingsHorizon, setRankingsHorizon] = useState("4h");
   const rankingsSort = "winRate";
-  const [rankings, setRankings] = useState<ArchetypeRankingDto[]>([]);
-  const [rankingsLoading, setRankingsLoading] = useState(false);
+  const [rankings, setRankings] = useState<Loaded<ArchetypeRankingDto[]>>(() => idle());
 
   // Detail Modal State
   const [detail, setDetail] = useState<ArchetypeDetailDto | null>(null);
@@ -63,8 +71,7 @@ export function ArchetypeScreen() {
   // Transitions State
   const [transTf, setTransTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [transWs, setTransWs] = useState(15);
-  const [matrix, setMatrix] = useState<TransitionMatrixDto | null>(null);
-  const [transLoading, setTransLoading] = useState(false);
+  const [matrix, setMatrix] = useState<Loaded<TransitionMatrixDto>>(() => idle());
   const [selectedArcForTrans, setSelectedArcForTrans] = useState<number | null>(null);
   const [arcTransitions, setArcTransitions] = useState<ArchetypeTransitionDto[]>([]);
   const [arcTransLoading, setArcTransLoading] = useState(false);
@@ -72,9 +79,7 @@ export function ArchetypeScreen() {
   // Predict State
   const [predictTf, setPredictTf] = useState<string>(DEFAULT_TIMEFRAME);
   const [predictWs, setPredictWs] = useState(15);
-  const [predictLoading, setPredictLoading] = useState(false);
-  const [nextPred, setNextPred] = useState<TransitionPredictionDto | null>(null);
-  const [seqPred, setSeqPred] = useState<SequencePredictionDto | null>(null);
+  const [prediction, setPrediction] = useState<Loaded<{ next: TransitionPredictionDto; seq: SequencePredictionDto }>>(() => idle());
 
   // Deep-link params: ?arc=<id> = gallery detail modal, ?from=<id> =
   // transitions source archetype. The URL is the single source of truth
@@ -92,8 +97,8 @@ export function ArchetypeScreen() {
   const transFetchedRef = useRef<number | null>(null);
 
   const loadGallery = useCallback(async () => {
-    setGalleryLoading(true);
-    setTabErrors((prev) => ({ ...prev, gallery: undefined }));
+    const scope = `${selectedSymbol}|${galleryTf}|${galleryWs}|${gallerySort}`;
+    setGallery((prev) => begin(prev, scope));
     try {
       const res = await getArchetypes({
         symbol: selectedSymbol,
@@ -102,18 +107,16 @@ export function ArchetypeScreen() {
         sortBy: gallerySort,
         pageSize: 50,
       });
-      setArchetypes(res.items);
+      setGallery((prev) => succeed(prev, res.items, Date.now(), scope));
     } catch (e) {
       console.error(e);
-      setTabErrors((prev) => ({ ...prev, gallery: "Không thể tải thư viện mẫu nến." }));
-    } finally {
-      setGalleryLoading(false);
+      setGallery((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [gallerySort, galleryTf, galleryWs, selectedSymbol]);
 
   const loadRankings = useCallback(async () => {
-    setRankingsLoading(true);
-    setTabErrors((prev) => ({ ...prev, rankings: undefined }));
+    const scope = `${selectedSymbol}|${rankingsTf}|${rankingsWs}|${rankingsHorizon}|${rankingsSort}`;
+    setRankings((prev) => begin(prev, scope));
     try {
       const res = await getArchetypeRankings({
         symbol: selectedSymbol,
@@ -122,17 +125,16 @@ export function ArchetypeScreen() {
         horizon: rankingsHorizon,
         sortBy: rankingsSort,
       });
-      setRankings(res.items);
+      setRankings((prev) => succeed(prev, res.items, Date.now(), scope));
     } catch (e) {
       console.error(e);
-      setTabErrors((prev) => ({ ...prev, rankings: "Không thể tải bảng xếp hạng mẫu nến." }));
-    } finally {
-      setRankingsLoading(false);
+      setRankings((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [rankingsHorizon, rankingsSort, rankingsTf, rankingsWs, selectedSymbol]);
 
   const loadDetail = useCallback(async (id: number) => {
     const requestId = ++detailRequestRef.current;
+    setTabErrors((prev) => ({ ...prev, gallery: undefined }));
     try {
       const [resDetail, resOcc] = await Promise.all([
         getArchetypeDetail(id),
@@ -155,19 +157,17 @@ export function ArchetypeScreen() {
   }, []);
 
   const loadMatrix = useCallback(async () => {
-    setTransLoading(true);
-    setTabErrors((prev) => ({ ...prev, transitions: undefined }));
+    const scope = `${selectedSymbol}|${transTf}|${transWs}`;
+    setMatrix((prev) => begin(prev, scope));
     try {
       const res = await getTransitionMatrix({ symbol: selectedSymbol, timeframe: transTf, windowSize: transWs });
-      setMatrix(res);
+      setMatrix((prev) => succeed(prev, res, Date.now(), scope));
       // The from-archetype selection is owned by the ?from= URL param — a
       // matrix reload must not wipe it (the transitions list is
       // archetype-scoped and stays valid across timeframe/window changes).
     } catch (e) {
       console.error(e);
-      setTabErrors((prev) => ({ ...prev, transitions: "Không thể tải ma trận chuyển đổi. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
-    } finally {
-      setTransLoading(false);
+      setMatrix((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [selectedSymbol, transTf, transWs]);
 
@@ -187,7 +187,8 @@ export function ArchetypeScreen() {
       setSelectedArcForTrans(null);
       setArcTransitions([]);
       console.error(e);
-      setTabErrors((prev) => ({ ...prev, transitions: "Không thể tải chi tiết chuyển đổi. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
+      // The selection was just cleared, so no "last good data" is on screen.
+      setTabErrors((prev) => ({ ...prev, transitions: "Không thể tải chi tiết chuyển đổi." }));
     } finally {
       // Unconditional: a request invalidated by a param clear still has to
       // release the loading flag — guarding it would strand the spinner.
@@ -196,20 +197,17 @@ export function ArchetypeScreen() {
   }, []);
 
   const loadPredictions = useCallback(async () => {
-    setPredictLoading(true);
-    setTabErrors((prev) => ({ ...prev, predict: undefined }));
+    const scope = `${selectedSymbol}|${predictTf}|${predictWs}`;
+    setPrediction((prev) => begin(prev, scope));
     try {
       const [nextRes, seqRes] = await Promise.all([
         predictNextArchetype({ symbol: selectedSymbol, timeframe: predictTf, windowSize: predictWs }),
         predictSequence({ symbol: selectedSymbol, timeframe: predictTf, windowSize: predictWs }),
       ]);
-      setNextPred(nextRes);
-      setSeqPred(seqRes);
+      setPrediction((prev) => succeed(prev, { next: nextRes, seq: seqRes }, Date.now(), scope));
     } catch (e) {
       console.error(e);
-      setTabErrors((prev) => ({ ...prev, predict: "Không thể tải dự báo thử nghiệm. Dữ liệu bên dưới là lần tải thành công gần nhất." }));
-    } finally {
-      setPredictLoading(false);
+      setPrediction((prev) => fail(prev, e, Date.now(), scope));
     }
   }, [predictTf, predictWs, selectedSymbol]);
 
@@ -316,6 +314,16 @@ export function ArchetypeScreen() {
     } else void loadPredictions();
   };
 
+  // List/matrix read failures come from their load state; entity (detail,
+  // transitions-from) failures from tabErrors. Both can be true at once.
+  const loadErrors: Partial<Record<ArchetypeSubTab, string>> = {
+    gallery: loadErrorText(gallery, "Không thể tải thư viện mẫu nến."),
+    rankings: loadErrorText(rankings, "Không thể tải bảng xếp hạng mẫu nến."),
+    transitions: loadErrorText(matrix, "Không thể tải ma trận chuyển đổi."),
+    predict: loadErrorText(prediction, "Không thể tải dự báo thử nghiệm."),
+  };
+  const bannerMessages = [loadErrors[activeSubTab], tabErrors[activeSubTab]].filter((m): m is string => Boolean(m));
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -360,9 +368,13 @@ export function ArchetypeScreen() {
         ))}
       </div>
 
-      {tabErrors[activeSubTab] && (
+      {bannerMessages.length > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-sm border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
-          <span>{tabErrors[activeSubTab]}</span>
+          <span>
+            {bannerMessages.map((message) => (
+              <span key={message} className="block">{message}</span>
+            ))}
+          </span>
           <button
             type="button"
             onClick={retryActiveTab}
@@ -380,8 +392,8 @@ export function ArchetypeScreen() {
             windowSize={galleryWs}
             sortBy={gallerySort}
             windowSizes={WINDOW_SIZES}
-            archetypes={archetypes}
-            loading={galleryLoading}
+            archetypes={gallery.data}
+            loading={gallery.pending}
             onTimeframeChange={setGalleryTf}
             onWindowSizeChange={setGalleryWs}
             onSortByChange={setGallerySort}
@@ -404,8 +416,8 @@ export function ArchetypeScreen() {
             horizon={rankingsHorizon}
             timeframeOptions={TIMEFRAME_OPTIONS}
             windowSizes={WINDOW_SIZES}
-            rankings={rankings}
-            loading={rankingsLoading}
+            rankings={rankings.data}
+            loading={rankings.pending}
             onTimeframeChange={setRankingsTf}
             onWindowSizeChange={setRankingsWs}
             onHorizonChange={setRankingsHorizon}
@@ -418,8 +430,8 @@ export function ArchetypeScreen() {
             windowSize={transWs}
             timeframeOptions={TIMEFRAME_OPTIONS}
             windowSizes={WINDOW_SIZES}
-            matrix={matrix}
-            loading={transLoading}
+            matrix={matrix.data}
+            loading={matrix.pending}
             selectedArcForTrans={selectedArcForTrans}
             arcTransitions={arcTransitions}
             arcTransLoading={arcTransLoading}
@@ -435,9 +447,9 @@ export function ArchetypeScreen() {
             windowSize={predictWs}
             timeframeOptions={TIMEFRAME_OPTIONS}
             windowSizes={WINDOW_SIZES}
-            nextPred={nextPred}
-            seqPred={seqPred}
-            loading={predictLoading}
+            nextPred={prediction.data?.next ?? null}
+            seqPred={prediction.data?.seq ?? null}
+            loading={prediction.pending}
             onTimeframeChange={setPredictTf}
             onWindowSizeChange={setPredictWs}
             onPredict={loadPredictions}
