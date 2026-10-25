@@ -14,6 +14,7 @@ type HistoricalAnalogOutcome = {
 };
 
 type HistoricalAnalogItem = {
+  rank: number;
   endTimeMs: number;
   futureEndTimeMs: number;
   ohlc: Array<{ close: number }>;
@@ -182,9 +183,20 @@ test.describe("production dashboard", () => {
       await expect(analogExplorer.getByTestId("analog-summary")).toContainText("Sau 6 nến");
       await expect(analogExplorer.getByTestId("analog-card").first()).toBeVisible();
       if (analogData.total > 8) {
+        // Page 2 is a fresh server-side search (no result cache), seconds on a cold stack: wait for that response
+        // instead of a 5s default on the label, then prove the rendered rows are page 2 (ranks start at 9).
+        const page2ResponsePromise = page.waitForResponse(
+          (r) => new URL(r.url()).pathname === "/api/historical-analogs" && new URL(r.url()).searchParams.get("page") === "2",
+          { timeout: 60_000 },
+        );
         await analogExplorer.getByRole("button", { name: "Trang sau" }).click();
+        const page2Response = await page2ResponsePromise;
+        expect(page2Response.status()).toBe(200);
+        const page2Data = await page2Response.json() as HistoricalAnalogResponse;
+        expect(page2Data.page).toBe(2);
+        expect(page2Data.items[0]?.rank).toBe(9);
         await expect(analogExplorer.getByText(/Trang 2\//)).toBeVisible();
-        await expect(analogExplorer.getByTestId("analog-card").first()).toBeVisible();
+        await expect(analogExplorer.getByTestId("analog-card").first()).toContainText("#9");
       }
     }
 
