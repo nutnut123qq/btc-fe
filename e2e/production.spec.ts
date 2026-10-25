@@ -167,7 +167,8 @@ test.describe("production dashboard", () => {
     if (analogData.abstained === true) {
       // live data — the evaluator may legitimately abstain when similarity quality is below the declared threshold
       expect(analogData.total).toBe(0);
-      await expect(analogExplorer.getByRole("status")).toContainText(/abstain/i, { timeout: 30_000 });
+      // The explorer also renders a general "Kết quả tương tự lịch sử" status note; target the abstain one.
+      await expect(analogExplorer.getByRole("status").filter({ hasText: /abstain/i })).toBeVisible({ timeout: 30_000 });
       await expect(analogExplorer.getByTestId("analog-card")).toHaveCount(0);
       await expect(analogExplorer.getByTestId("analog-summary")).toHaveCount(0);
     } else if (analogData.total === 0) {
