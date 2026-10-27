@@ -173,6 +173,7 @@ export function CurrentConditionsPanel({ onOpenDossier }: { onOpenDossier?: (man
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on timeframe change: load() marks loading and drops other-timeframe data before awaiting; the request gate drops stale responses
   useEffect(() => { void load(timeframe); }, [timeframe, load]);
 
   const groups = (() => {

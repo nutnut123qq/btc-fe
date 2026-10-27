@@ -41,6 +41,7 @@ export function ConfluenceWidget({ symbol = "BTCUSDT" }: { symbol?: string }) {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount/symbol change: fetchConfluence() resets loading/error/data before awaiting
     fetchConfluence();
   }, [fetchConfluence]);
 

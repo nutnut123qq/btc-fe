@@ -34,6 +34,7 @@ export function TelegramSettingsPanel({
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount: the loader sets loading and clears the test result before the first await
     void load();
   }, []);
 

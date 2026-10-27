@@ -75,6 +75,7 @@ export function ExecutionPanel({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (then poll every 10 s): loadData() marks loading before awaiting
     void loadData();
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -88,6 +89,7 @@ export function ExecutionPanel({
   useEffect(() => {
     if (currentPrice && currentPrice > 0 && !stopPrice) {
       if (orderType === "take_profit") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- seed a default stop once a price is known and the field is empty; a derived value would follow the live price instead
         setStopPrice(orderSide === "BUY" ? (currentPrice * 1.02).toFixed(2) : (currentPrice * 0.98).toFixed(2));
       } else if (orderType === "stop_loss") {
         setStopPrice(orderSide === "BUY" ? (currentPrice * 0.98).toFixed(2) : (currentPrice * 1.02).toFixed(2));

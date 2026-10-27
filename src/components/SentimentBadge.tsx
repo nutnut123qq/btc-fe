@@ -43,6 +43,7 @@ export function SentimentBadge({ symbol = "BTCUSDT", compact = false }: Sentimen
   }, [symbol]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- false positive: loadSentiment() sets state only after its await
     void loadSentiment();
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {

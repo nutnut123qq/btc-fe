@@ -244,6 +244,7 @@ export function BinanceTradingScreen() {
   }, [asOfTimeMs, selectedSymbol, selectedTf]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on symbol/timeframe/as-of change: loadChartData() clears the stale chart before awaiting; the request gate drops stale responses
     void loadChartData();
     return () => chartAbortRef.current?.abort();
   }, [loadChartData]);

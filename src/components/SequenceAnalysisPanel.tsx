@@ -59,6 +59,7 @@ export function SequenceAnalysisPanel({
   }, [symbol]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on symbol/timeframe change: load() marks loading before awaiting
     void load(timeframe);
   }, [symbol, timeframe, load]);
 

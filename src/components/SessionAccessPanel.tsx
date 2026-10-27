@@ -17,6 +17,7 @@ export function SessionAccessPanel({
   // client render match, then sync the real state after mount.
   const [unlocked, setUnlocked] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage is client-only: sync the real unlock state after mount so SSR and the first client render match
     setUnlocked(Boolean(getSessionKey(kind)));
   }, [kind]);
 

@@ -112,6 +112,7 @@ export function BinanceTradeHistoryScreen() {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch when filters/page change: loadData() marks summary/trades loading before awaiting
     void loadData();
   }, [loadData]);
 

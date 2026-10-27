@@ -59,6 +59,7 @@ export function AlertSettingsScreen({ contractCompatible = false }: { contractCo
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount: the loader sets its loading/error flags before the first await
     void load();
   }, [load]);
 

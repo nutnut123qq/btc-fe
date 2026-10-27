@@ -325,6 +325,7 @@ function EquitySymbolView({
   const [adminRejected, setAdminRejected] = useState(false);
   const [accessPanelEpoch, setAccessPanelEpoch] = useState(0);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage is client-only: sync the real unlock state after mount so SSR and the first client render match
     setAdminUnlocked(Boolean(getSessionKey("admin")));
     setSessionChecked(true);
   }, []);
@@ -578,17 +579,23 @@ function EquitySymbolView({
   // Gates drop in-flight responses for the previous timeframe — the UI never
   // renders candles/conditions/observations from a stale selection.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on timeframe/reload: the loaders mark their panels loading before awaiting; request gates drop stale responses
     void loadCandles(timeframe);
     void loadConditions(timeframe);
   }, [timeframe, loadCandles, loadConditions, reloadEpoch]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on timeframe/unlock/reload: the loader marks the panel loading before awaiting; its request gate drops stale responses
   useEffect(() => { void loadObservations(timeframe); }, [timeframe, loadObservations, adminUnlocked, reloadEpoch]);
 
   // Unlocking the admin session (re)loads the personal endpoints; locking
   // clears their state through the loaders' fail-closed guard.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reload on unlock/lock/reload: the loader resets to the locked state or marks loading before awaiting; its request gate drops stale responses
   useEffect(() => { void loadDecision(); }, [loadDecision, decisionEpoch, adminUnlocked, reloadEpoch]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reload on unlock/lock/reload: the loader resets to the locked state or marks loading before awaiting; its request gate drops stale responses
   useEffect(() => { void loadPosition(); }, [loadPosition, adminUnlocked, reloadEpoch]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reload on unlock/lock/reload: the loader resets to the locked state or marks loading before awaiting; its request gate drops stale responses
   useEffect(() => { void loadResearchNotes(); }, [loadResearchNotes, adminUnlocked, reloadEpoch]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount/reload: the loaders mark their panels loading before awaiting; request gates drop stale responses
     void loadQuality();
     void loadBaseRates();
     void loadContext();
@@ -596,6 +603,7 @@ function EquitySymbolView({
     void loadSourceDocuments();
   }, [loadQuality, loadBaseRates, loadContext, loadJournal, loadSourceDocuments, reloadEpoch]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch LLM history once opened: the loader marks loading before awaiting; its request gate drops stale responses
     if (llmOpen) void loadLlmRuns();
   }, [llmOpen, loadLlmRuns, reloadEpoch]);
 

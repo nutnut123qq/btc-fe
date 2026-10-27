@@ -130,6 +130,7 @@ export function PaperTradeScreen() {
   }, [selectedSymbol, selectedTf]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on symbol/timeframe change: loadAll() marks loading and begins scoped loads before awaiting
     void loadAll(selectedSymbol, selectedTf);
   }, [loadAll, selectedSymbol, selectedTf]);
 

@@ -71,6 +71,7 @@ export function EnsembleDashboardWidget({
 
   useEffect(() => {
     if (!showExperimental) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch when the experimental view opens (then every 60 s): loadData() marks loading before awaiting
     void loadData();
     const interval = setInterval(() => void loadData(), 60000);
     return () => clearInterval(interval);

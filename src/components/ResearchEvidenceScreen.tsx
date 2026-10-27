@@ -569,6 +569,7 @@ export function ResearchEvidenceScreen() {
     if (dossierParam == null) {
       if (selectedId != null) {
         detailRequestRef.current += 1;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the ?dossier= URL param is the source of truth; this effect resolves it into selection state (handlers only update the URL)
         setSelectedId(null);
         setDetail(null);
         setDetailError(null);

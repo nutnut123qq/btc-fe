@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X, Trash2, Bell, Check } from "lucide-react";
 import { AlertItem } from "@/lib/types";
 import {
@@ -35,7 +35,10 @@ export function AlertsDrawer({ open, onClose }: { open: boolean; onClose: () => 
   const restoreFocusRef = useRef<Element | null>(null);
   // Latest loaded rows for fetch closures (interval/load-more) without stale state.
   const alertsRef = useRef<AlertItem[]>([]);
-  alertsRef.current = alerts;
+  // Mirror at commit (not during render), before any timer/handler can read it.
+  useLayoutEffect(() => {
+    alertsRef.current = alerts;
+  }, [alerts]);
   // Request-id: a response is applied only while it's still the latest call.
   // Prevents a stale-filter fetch or an older load-more from overwriting the list.
   const reqRef = useRef(0);

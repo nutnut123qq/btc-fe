@@ -134,6 +134,7 @@ export function ChartPanel({
   }, [symbol]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch on timeframe change: load() marks loading before awaiting; opTokenRef drops stale responses
     void load(timeframe);
   }, [load, timeframe]);
 
