@@ -219,9 +219,10 @@ export function requireGapRetry(value: unknown): Record<string, unknown> {
   return record;
 }
 
-export const EXPECTED_API_CONTRACT_VERSION = "2026-10-equity-lane-v1";
+export const EXPECTED_API_CONTRACT_VERSION = "2026-10-forward-journal-totals-v1";
 const ROLLOUT_COMPATIBLE_API_CONTRACT_VERSIONS = new Set([
   EXPECTED_API_CONTRACT_VERSION,
+  "2026-10-equity-lane-v1",
   "2026-10-mbb-position-decision-v1",
   "2026-10-evidence-symbol-scope-v1",
   "2026-10-instrument-catalog-v1",

@@ -551,6 +551,10 @@ export type PaperObservationListResponse = {
   available: boolean;
   reason: string | null;
   items: PaperObservationItem[];
+  /** Journal-wide counts; null when an older backend omits them (items is only the latest page). */
+  total: number | null;
+  filledTotal: number | null;
+  outcomeTotal: number | null;
 };
 
 export type BreakdownBySymbolItem = {

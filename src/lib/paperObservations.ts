@@ -83,6 +83,17 @@ function parseItem(value: unknown): PaperObservationItem {
   };
 }
 
+const hasFill = (item: PaperObservationItem) => item.fillPrice != null;
+const hasOutcome = (item: PaperObservationItem) => item.outcomeReturn != null;
+
+function count(record: Record<string, unknown>, key: string, min: number, max: number): number {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < min || value > max) {
+    throw new Error(`INVALID_API_RESPONSE: paper observations ${key} must be an integer in [${min}, ${max}]`);
+  }
+  return value;
+}
+
 export function parsePaperObservations(value: unknown): PaperObservationListResponse {
   if (!isRecord(value) || !Array.isArray(value.items) || typeof value.available !== "boolean") {
     throw new Error("INVALID_API_RESPONSE: paper observations response is malformed");
@@ -96,10 +107,38 @@ export function parsePaperObservations(value: unknown): PaperObservationListResp
   if (!value.available && items.length > 0) {
     throw new Error("INVALID_API_RESPONSE: unavailable paper observations cannot contain items");
   }
+  // Older backends omit the journal totals (AGENTS.md #30): degrade to null, never fail the panel.
+  let total: number | null = null, filledTotal: number | null = null, outcomeTotal: number | null = null;
+  if (value.total !== undefined) {
+    total = count(value, "total", items.length, Number.MAX_SAFE_INTEGER);
+    filledTotal = count(value, "filledTotal", items.filter(hasFill).length, total);
+    // An outcome requires a fill (recorder CHECK), so outcomes are bounded by fills.
+    outcomeTotal = count(value, "outcomeTotal", items.filter(hasOutcome).length, filledTotal);
+  }
   return {
     symbol,
     available: value.available,
     reason: nullableString(value, "reason"),
     items,
+    total,
+    filledTotal,
+    outcomeTotal,
+  };
+}
+
+/**
+ * Display counts for the forward journal. With journal totals they are exact; without them (older
+ * backend) a page filled up to `requested` may hide older rows, so counts read as "≥ n", never as totals.
+ */
+export function forwardJournalCounts(observations: PaperObservationListResponse, requested: number) {
+  const { items } = observations;
+  if (observations.total !== null) {
+    return { decisions: String(observations.total), fills: String(observations.filledTotal), outcomes: String(observations.outcomeTotal) };
+  }
+  const prefix = items.length >= requested ? "≥ " : "";
+  return {
+    decisions: `${prefix}${items.length}`,
+    fills: `${prefix}${items.filter(hasFill).length}`,
+    outcomes: `${prefix}${items.filter(hasOutcome).length}`,
   };
 }

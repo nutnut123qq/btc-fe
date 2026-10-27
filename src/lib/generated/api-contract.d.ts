@@ -10983,9 +10983,15 @@ export interface components {
         };
         PaperObservationListResponse: {
             available: boolean;
+            /** Format: int64 */
+            filledTotal: number;
             items: components["schemas"]["PaperObservationDto"][];
+            /** Format: int64 */
+            outcomeTotal: number;
             reason?: string | null;
             symbol: string;
+            /** Format: int64 */
+            total: number;
         };
         PatternSearchItem: {
             /** Format: double */

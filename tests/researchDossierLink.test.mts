@@ -10,9 +10,19 @@ test("overview counters never assert a numeric zero while catalog or observation
   // the response exists. `?? 0` fallbacks would fabricate "0 artifact" claims.
   assert.match(screen, /\{catalog == null \? "—" : catalog\.items\.length\}/);
   assert.match(screen, /\{catalog == null \? "—" : catalog\.items\.filter\(\(item\) => item\.integrityVerified\)\.length\}/);
-  assert.match(screen, /\{observations == null \? "—" : observations\.items\.length\}/);
+  assert.match(screen, /\{observations == null \? "—" : forwardJournalCounts\(observations, FORWARD_TAKE\)\.decisions\}/);
   assert.doesNotMatch(screen, /catalog\?\.items\.length \?\? 0/);
   assert.doesNotMatch(screen, /observations\?\.items\.length \?\? 0/);
+});
+
+test("forward decision counts come from the journal totals, never from the loaded page (FWDCOUNT-1)", () => {
+  // The page is capped by `take`; counting its rows froze the UI at 100 once the journal grew past it.
+  assert.match(screen, /getPaperObservations\("BTCUSDT", FORWARD_TAKE\)/);
+  assert.match(screen, /const counts = observations \? forwardJournalCounts\(observations, FORWARD_TAKE\) : null;/);
+  for (const field of ["decisions", "fills", "outcomes"]) assert.ok(screen.includes(`{counts?.${field}}`), field);
+  assert.doesNotMatch(screen, /observations\.items\.length/);
+  assert.doesNotMatch(screen, /item\.fillPrice != null\)\.length/);
+  assert.doesNotMatch(screen, /item\.outcomeReturn != null\)\.length/);
 });
 
 test("dossier deep-link resolves ?dossier=<id> through the catalog selectArtifact pipeline", () => {
