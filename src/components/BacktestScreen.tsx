@@ -8,6 +8,7 @@ import { getSessionKey } from "@/lib/sessionAuth";
 import { ACTIVE_TIMEFRAMES, DEFAULT_TIMEFRAME, type ActiveTimeframe } from "@/lib/timeframe";
 import { ACTIVE_SYMBOL } from "@/lib/marketScope";
 import { begin, fail, idle, isStale, loadView, succeed, type Loaded } from "@/lib/loadState";
+import { profitFactorView } from "@/lib/backtestMetrics";
 import { LoadNotice } from "./LoadNotice";
 import type { BacktestRunSummary, BacktestTradeItem, WeightOptimizationResultDto, EquityCurvePoint } from "@/lib/types";
 import { createChart, AreaSeries, LineSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
@@ -153,6 +154,7 @@ export function BacktestScreen() {
     return totalMs / selected.trades.length / 3_600_000;
   }, [selected]);
   const selectedStatus = selected ? runStatusOf(selected) : null;
+  const selectedPf = selected ? profitFactorView(selected.profitFactor, selected.trades) : null;
 
   const loadRuns = useCallback(async () => {
     const scope = `${selectedSymbol}|${includeLegacy ? "lab" : "valid"}`;
@@ -559,7 +561,8 @@ export function BacktestScreen() {
                     <span className="text-slate-200">{selected.sharpeRatio.toFixed(2)}</span>
                   </MetricRow>
                   <MetricRow label="Hệ số lợi nhuận (PF)">
-                    <span className="text-slate-200">{selected.profitFactor.toFixed(2)}</span>
+                    <span className="text-slate-200">{selectedPf?.text}</span>
+                    {selectedPf?.note && <span className="ml-1 text-[10px] text-slate-500">{selectedPf.note}</span>}
                   </MetricRow>
                   {selectedFeeBps !== null && (
                     <MetricRow label="Phí (feeBps)">
