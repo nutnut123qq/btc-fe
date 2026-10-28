@@ -6,12 +6,13 @@ import { getHealthFreshness, getHealthLive, getHealthReady, getHealthWorkers } f
 import type { FreshnessHealthDto, LiveHealthDto, ReadyHealthDto, WorkersHealthDto } from "@/lib/types";
 import { workerStatusDisplay } from "@/lib/workerStatus";
 
+// "trước" lives here, not at the call sites: a missing age must not read "chưa có dữ liệu trước".
 function ageLabel(seconds: number | null): string {
   if (seconds == null) return "chưa có dữ liệu";
-  if (seconds < 60) return `${Math.round(seconds)} giây`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)} phút`;
-  if (seconds < 86400) return `${(seconds / 3600).toFixed(1)} giờ`;
-  return `${(seconds / 86400).toFixed(1)} ngày`;
+  if (seconds < 60) return `${Math.round(seconds)} giây trước`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)} phút trước`;
+  if (seconds < 86400) return `${(seconds / 3600).toFixed(1)} giờ trước`;
+  return `${(seconds / 86400).toFixed(1)} ngày trước`;
 }
 
 function statusTextClass(status: string): string {
@@ -48,6 +49,7 @@ export function SystemStatusPanel() {
   const [workers, setWorkers] = useState<WorkersHealthDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -133,7 +135,7 @@ export function SystemStatusPanel() {
                       <span className="font-mono font-semibold text-slate-200">{item.timeframe}</span>
                       <span className={statusTextClass(item.status)}>{freshnessStatusLabel(item.status)}</span>
                     </div>
-                    <div className="mt-0.5 font-mono text-[11px] text-slate-500">nến cuối {ageLabel(item.ageSeconds)} trước</div>
+                    <div className="mt-0.5 font-mono text-[11px] text-slate-500">nến cuối {ageLabel(item.ageSeconds)}</div>
                   </div>
                 ))}
               </div>
@@ -151,6 +153,7 @@ export function SystemStatusPanel() {
                 {workers.workers.map((worker) => {
                   const delayed = worker.status === "stale";
                   const display = workerStatusDisplay(worker.status);
+                  const expanded = expandedWorker === worker.name;
                   return (
                     <div
                       key={worker.name}
@@ -165,10 +168,18 @@ export function SystemStatusPanel() {
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-3 font-mono text-[11px] text-slate-500">
                         <span className="min-w-0 truncate">{formatTimestamp(worker.lastSucceededAtUtc ?? worker.lastStartedAtUtc)}</span>
-                        <span className="shrink-0">{ageLabel(worker.ageSeconds)} trước</span>
+                        <span className="shrink-0">{ageLabel(worker.ageSeconds)}</span>
                       </div>
+                      {/* Clamped in CSS only: the full text stays in the DOM and the toggle shows it. */}
                       {worker.message && (
-                        <div className="mt-1 break-words text-[11px] text-slate-500">{worker.message}</div>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedWorker((current) => (current === worker.name ? null : worker.name))}
+                          aria-expanded={expanded}
+                          className={`mt-1 w-full break-words text-left text-[11px] text-slate-500 transition-colors hover:text-slate-300 ${expanded ? "block" : "line-clamp-2"}`}
+                        >
+                          {worker.message}
+                        </button>
                       )}
                     </div>
                   );

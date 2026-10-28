@@ -62,6 +62,34 @@ test("worker health sends the session admin key when present and renders the bac
   assert.match(panelSource, /\{worker\.message\}/);
 });
 
+test("a long worker message is clamped in CSS with a toggle that shows the full text", () => {
+  const panelSource = readFileSync(new URL("../src/components/SystemStatusPanel.tsx", import.meta.url), "utf8");
+  const start = panelSource.indexOf("{worker.message && (");
+  assert.ok(start > 0, "worker message block not found");
+  const block = panelSource.slice(start, panelSource.indexOf("{worker.message}", start));
+  assert.match(block, /<button\s+type="button"/);
+  assert.match(block, /onClick=\{\(\) => setExpandedWorker\(\(current\) => \(current === worker\.name \? null : worker\.name\)\)\}/);
+  assert.match(block, /aria-expanded=\{expanded\}/);
+  assert.match(block, /className=\{`[^`]*\bbreak-words\b[^`]*\$\{expanded \? "block" : "line-clamp-2"\}`\}/);
+  assert.match(panelSource, /const expanded = expandedWorker === worker\.name;/);
+  // Clamping is visual only: the DOM keeps the whole message (screen readers, the expanded view).
+  assert.doesNotMatch(panelSource, /message\.(slice|substring|substr)\(/);
+});
+
+test("a missing age reads 'chưa có dữ liệu', never 'chưa có dữ liệu trước'", () => {
+  const panelSource = readFileSync(new URL("../src/components/SystemStatusPanel.tsx", import.meta.url), "utf8");
+  // Call sites must not append "trước" themselves.
+  assert.doesNotMatch(panelSource, /ageLabel\([^)]*\)\}\s*trước/);
+  const body = panelSource.match(/function ageLabel\(seconds: number \| null\): string \{\r?\n([\s\S]*?)\r?\n\}/);
+  assert.ok(body, "ageLabel not found");
+  // The body is plain JavaScript, so run the shipped function instead of re-implementing it.
+  const ageLabel = new Function("seconds", body[1]) as (seconds: number | null) => string;
+  assert.deepEqual(
+    [null, 30, 600, 7_200, 172_800].map(ageLabel),
+    ["chưa có dữ liệu", "30 giây trước", "10 phút trước", "2.0 giờ trước", "2.0 ngày trước"],
+  );
+});
+
 test("safeApiErrorMessage hides provider details", () => {
   assert.equal(
     safeApiErrorMessage('{"code":"LLM_NOT_CONFIGURED","message":"BLACKBOX_API_KEY missing"}', 503),
