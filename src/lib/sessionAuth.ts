@@ -29,3 +29,13 @@ export async function authenticatedFetch(
   headers.set(kind === "admin" ? "X-Admin-Key" : "X-Execution-Key", key);
   return fetch(input, { ...init, headers });
 }
+
+// For public endpoints that reveal more to an admin (GET /api/health/workers): send the
+// session key when there is one, never prompt or throw when there is not.
+export function optionalAuthenticatedFetch(
+  kind: SessionKeyKind,
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  return getSessionKey(kind) ? authenticatedFetch(kind, input, init) : fetch(input, init);
+}

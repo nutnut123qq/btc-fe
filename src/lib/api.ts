@@ -3,7 +3,7 @@ import { parseAiSseLine } from "./aiStream";
 import { assertHistoricalAnalogEnvelope } from "./historicalAnalog";
 import { parseTechnicalCapabilities } from "./technicalCapabilities";
 import { parsePaperObservations } from "./paperObservations";
-import { authenticatedFetch } from "./sessionAuth";
+import { authenticatedFetch, optionalAuthenticatedFetch } from "./sessionAuth";
 import { DEFAULT_TIMEFRAME, isActiveTimeframe, type ActiveTimeframe } from "./timeframe";
 import { parseCurrentConditionsResponse } from "./currentConditions";
 import { parseResearchEvidenceCatalog, parseResearchEvidenceDetail } from "./researchEvidence";
@@ -1181,7 +1181,8 @@ export async function getHealthFreshness(symbol = "BTCUSDT", signal?: AbortSigna
 }
 
 export async function getHealthWorkers(signal?: AbortSignal): Promise<import("./types").WorkersHealthDto> {
-  const res = await fetch(`${API_BASE}/api/health/workers`, { signal });
+  // Worker messages are verbatim only with the admin key; without it the backend returns a fixed sentence.
+  const res = await optionalAuthenticatedFetch("admin", `${API_BASE}/api/health/workers`, { signal });
   const data: unknown = await getJson(res);
   return requireWorkersHealth(data) as import("./types").WorkersHealthDto;
 }

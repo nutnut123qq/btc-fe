@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { canUseApiMutations, EXPECTED_API_CONTRACT_VERSION, isApiContractCompatible, isCoreResearchRecord, requireAppMeta, requireArray, requireArrayField, requireDataAudit, requireExperimentalAccuracy, requireExperimentalEnsemble, requireExperimentalEnsembleSummary, requireFreshnessHealth, requireGapRetry, requireLiveHealth, requireMutationContract, requireReadyHealth, requireRecord, requireVersionedResearchItems, requireWorkersHealth, safeApiErrorMessage } from "../src/lib/apiContract.ts";
-import { authenticatedFetch } from "../src/lib/sessionAuth.ts";
+import { authenticatedFetch, optionalAuthenticatedFetch } from "../src/lib/sessionAuth.ts";
 
 test("requireArrayField accepts the expected API shape", () => {
   const result = requireArrayField<number>({ items: [1, 2] }, "items", "history");
@@ -25,6 +26,40 @@ test("authenticatedFetch fails closed outside an authenticated browser session",
     authenticatedFetch("admin", "https://example.invalid"),
     /ADMIN_AUTH_REQUIRED/,
   );
+});
+
+test("optionalAuthenticatedFetch sends the admin key only when the session has one, without prompting or throwing", async () => {
+  const sent: Headers[] = [];
+  const originalFetch = globalThis.fetch;
+  const scope = globalThis as { window?: unknown };
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    sent.push(new Headers(init?.headers));
+    return new Response("{}");
+  }) as typeof fetch;
+  try {
+    await optionalAuthenticatedFetch("admin", "https://example.invalid/api/health/workers");
+    const store = new Map([["btc.adminKey", " server-secret "]]);
+    scope.window = { sessionStorage: { getItem: (key: string) => store.get(key) ?? null } };
+    await optionalAuthenticatedFetch("admin", "https://example.invalid/api/health/workers");
+    store.clear();
+    await optionalAuthenticatedFetch("admin", "https://example.invalid/api/health/workers");
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete scope.window;
+  }
+  assert.deepEqual(sent.map((headers) => headers.get("X-Admin-Key")), [null, "server-secret", null]);
+});
+
+test("worker health sends the session admin key when present and renders the backend message as given", () => {
+  const apiSource = readFileSync(new URL("../src/lib/api.ts", import.meta.url), "utf8");
+  const panelSource = readFileSync(new URL("../src/components/SystemStatusPanel.tsx", import.meta.url), "utf8");
+  const getter = apiSource.slice(apiSource.indexOf("export async function getHealthWorkers"));
+  const body = getter.slice(0, getter.indexOf("\n}") + 2);
+  assert.match(body, /optionalAuthenticatedFetch\("admin", `\$\{API_BASE\}\/api\/health\/workers`/);
+  // authenticatedFetch would throw ADMIN_AUTH_REQUIRED without a key; a bare fetch would never send it.
+  assert.doesNotMatch(body, /\bauthenticatedFetch\(|\bfetch\(/);
+  // With the key the backend returns the worker's text, without it a fixed sentence: the panel shows either verbatim.
+  assert.match(panelSource, /\{worker\.message\}/);
 });
 
 test("safeApiErrorMessage hides provider details", () => {
