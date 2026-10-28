@@ -50,6 +50,7 @@ import { GlossaryTerm } from "./GlossaryTerm";
 import { LoadNotice } from "./LoadNotice";
 import { begin, idle, isStale, loadView, settle, type Loaded } from "@/lib/loadState";
 import { forwardJournalCounts } from "@/lib/paperObservations";
+import { workerStatusDisplay } from "@/lib/workerStatus";
 
 type Section = "overview" | ResearchEvidenceKind;
 const EVIDENCE_READ_TIMEOUT_MS = 60_000;
@@ -81,12 +82,6 @@ const PIPELINE_STATE_LABEL: Record<string, string> = {
   running: "đang chạy",
   failed: "thất bại",
   idle: "nhàn rỗi",
-};
-
-const WORKER_STATUS_LABEL: Record<string, string> = {
-  healthy: "khỏe",
-  stale: "quá hạn",
-  failed: "lỗi",
 };
 
 // Evidence-conclusion enum — Vietnamese display labels; raw value stays in title.
@@ -439,7 +434,7 @@ function TechnicalDataCoverage({ audit, workers, error, pending }: {
       </>}
     </div>
     <div className="grid gap-3 border-t border-slate-800/60 px-4 py-3 lg:grid-cols-2">
-      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="worker">Worker</GlossaryTerm> của <GlossaryTerm term="pipeline">pipeline</GlossaryTerm></div>{summary.technicalWorkers.length ? <ul className="mt-2 divide-y divide-slate-800/40">{summary.technicalWorkers.map((worker) => <li key={worker.name} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-slate-400"><span className="font-mono text-[10px]">{worker.name}</span><span className={worker.status === "healthy" ? "text-slate-300" : worker.status === "stale" ? "text-amber-300" : "text-rose-300"}><GlossaryTerm term={worker.status}>{WORKER_STATUS_LABEL[worker.status] ?? worker.status}</GlossaryTerm> · <span className="font-mono tabular-nums">{ageLabel(worker.ageSeconds)}</span> trước</span></li>)}</ul> : <p className="mt-2 text-slate-500">{workers == null ? (pending ? "Đang tải trạng thái worker" : "Chưa tải được trạng thái worker") : <><GlossaryTerm term="worker">Worker</GlossaryTerm> health chưa công bố</>}; không suy ra <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> đang chạy chỉ từ inventory.</p>}</div>
+      <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="worker">Worker</GlossaryTerm> của <GlossaryTerm term="pipeline">pipeline</GlossaryTerm></div>{summary.technicalWorkers.length ? <ul className="mt-2 divide-y divide-slate-800/40">{summary.technicalWorkers.map((worker) => { const display = workerStatusDisplay(worker.status); return <li key={worker.name} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-slate-400"><span className="font-mono text-[10px]">{worker.name}</span><span className={display.textClass}>{/* glossary "partial" means data coverage, not a worker cycle */}{worker.status === "partial" ? display.label : <GlossaryTerm term={worker.status}>{display.label}</GlossaryTerm>} · <span className="font-mono tabular-nums">{ageLabel(worker.ageSeconds)}</span> trước</span></li>; })}</ul> : <p className="mt-2 text-slate-500">{workers == null ? (pending ? "Đang tải trạng thái worker" : "Chưa tải được trạng thái worker") : <><GlossaryTerm term="worker">Worker</GlossaryTerm> health chưa công bố</>}; không suy ra <GlossaryTerm term="pipeline">pipeline</GlossaryTerm> đang chạy chỉ từ inventory.</p>}</div>
       <div className="min-w-0 text-xs"><div className="font-semibold text-slate-300"><GlossaryTerm term="legacy">Legacy</GlossaryTerm> & exclusions</div>{summary.legacyTimeframes.length ? <p className="mt-2 text-slate-400">{summary.legacyTimeframes.map((row) => row.timeframe).join(", ")} · chỉ giữ để audit lịch sử, không thuộc scope replay 1h/4h/1d.</p> : !audit ? <p className="mt-2 text-slate-500">Chưa có phản hồi audit nên chưa biết timeframe <GlossaryTerm term="legacy">legacy</GlossaryTerm> nào.</p> : <p className="mt-2 text-slate-500">Không có timeframe <GlossaryTerm term="legacy">legacy</GlossaryTerm> trong phản hồi audit.</p>}<p className="mt-2 text-amber-300/80"><GlossaryTerm term="unavailable">Unavailable</GlossaryTerm> và <GlossaryTerm term="partial">partial</GlossaryTerm> vẫn là thiếu bằng chứng; UI không đổi chúng thành “đủ” bằng fallback realtime.</p></div>
     </div>
   </section>;

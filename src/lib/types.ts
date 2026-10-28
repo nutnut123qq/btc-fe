@@ -1475,7 +1475,8 @@ export type FreshnessHealthDto = {
 
 export type WorkerHealthDto = {
   name: string;
-  status: "healthy" | "stale" | "failed" | "never";
+  // The parser also passes an unknown nonblank status through so one new backend value cannot blank the list.
+  status: "healthy" | "stale" | "failed" | "never" | "disabled" | "idle" | "partial";
   lastStartedAtUtc: string | null;
   lastSucceededAtUtc: string | null;
   lastFailedAtUtc: string | null;

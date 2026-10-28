@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, Database, RefreshCw } from "lucide-react";
 import { getHealthFreshness, getHealthLive, getHealthReady, getHealthWorkers } from "@/lib/api";
 import type { FreshnessHealthDto, LiveHealthDto, ReadyHealthDto, WorkersHealthDto } from "@/lib/types";
+import { workerStatusDisplay } from "@/lib/workerStatus";
 
 function ageLabel(seconds: number | null): string {
   if (seconds == null) return "chưa có dữ liệu";
@@ -149,14 +150,7 @@ export function SystemStatusPanel() {
               <div className="divide-y divide-slate-800 rounded border border-slate-800">
                 {workers.workers.map((worker) => {
                   const delayed = worker.status === "stale";
-                  const statusLabel =
-                    worker.status === "healthy"
-                      ? "đang chạy"
-                      : delayed
-                        ? `trễ ${ageLabel(worker.ageSeconds)}`
-                        : worker.status === "never"
-                          ? "chưa chạy"
-                          : worker.status;
+                  const display = workerStatusDisplay(worker.status);
                   return (
                     <div
                       key={worker.name}
@@ -164,9 +158,9 @@ export function SystemStatusPanel() {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-mono text-xs font-medium text-slate-100">{worker.name}</span>
-                        <span className={`flex items-center gap-1.5 text-[11px] ${statusTextClass(worker.status)}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${statusDotClass(worker.status)}`} aria-hidden="true" />
-                          {statusLabel}
+                        <span className={`flex items-center gap-1.5 text-[11px] ${display.textClass}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${display.dotClass}`} aria-hidden="true" />
+                          {display.label}
                         </span>
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-3 font-mono text-[11px] text-slate-500">

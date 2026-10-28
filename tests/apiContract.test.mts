@@ -203,6 +203,34 @@ test("worker heartbeat contract fails closed on missing nullable fields", () => 
   );
 });
 
+test("worker heartbeat contract keeps every backend status and an unknown one instead of dropping the list", () => {
+  const worker = {
+    name: "KlinesIngestionWorker", status: "healthy", lastStartedAtUtc: null, lastSucceededAtUtc: null,
+    lastFailedAtUtc: null, ageSeconds: null, maxAgeSeconds: 1800, lastDurationMs: null, message: null,
+  };
+  const statuses = ["healthy", "stale", "failed", "never", "disabled", "idle", "partial", "paused"];
+  const parsed = requireWorkersHealth({
+    checkedAtUtc: "2026-08-31T00:00:00Z",
+    workers: statuses.map((status, index) => ({ ...worker, name: `Worker${index}`, status })),
+  });
+  assert.deepEqual((parsed.workers as Array<Record<string, unknown>>).map((item) => item.status), statuses);
+  // Type checks stay fail-closed: status must be a nonblank string, other fields keep their checks.
+  for (const status of ["", " ", 42, null, undefined]) {
+    assert.throws(
+      () => requireWorkersHealth({ checkedAtUtc: "2026-08-31T00:00:00Z", workers: [{ ...worker, status }] }),
+      /workers\[0\]\.status must be a nonblank string/,
+    );
+  }
+  assert.throws(
+    () => requireWorkersHealth({ checkedAtUtc: "2026-08-31T00:00:00Z", workers: [{ ...worker, status: "disabled", maxAgeSeconds: "1800" }] }),
+    /maxAgeSeconds must be a finite number/,
+  );
+  assert.throws(
+    () => requireWorkersHealth({ checkedAtUtc: "2026-08-31T00:00:00Z", workers: [{ ...worker, status: "idle", message: 7 }] }),
+    /message must be null or a string/,
+  );
+});
+
 test("data audit requires classified gap state and latest candle age", () => {
   const timeframe = {
     timeframe: "1h", totalKlines: 10, minOpenTimeMs: 1, maxOpenTimeMs: 10, expectedBars: 12, missingBars: 2, gapRangeCount: 1,

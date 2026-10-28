@@ -105,9 +105,8 @@ export function requireWorkersHealth(value: unknown): Record<string, unknown> {
     const context = `health workers.workers[${index}]`;
     const worker = requireRecord(item, context);
     requireNonBlankString(worker.name, `${context}.name`);
-    if (!new Set(["healthy", "stale", "failed", "never"]).has(String(worker.status))) {
-      throw new Error(`INVALID_API_RESPONSE: ${context}.status is invalid`);
-    }
+    // Any nonblank status is kept: an unknown one renders raw (workerStatus.ts) instead of dropping every worker.
+    requireNonBlankString(worker.status, `${context}.status`);
     requireNullableString(worker.lastStartedAtUtc, `${context}.lastStartedAtUtc`);
     requireNullableString(worker.lastSucceededAtUtc, `${context}.lastSucceededAtUtc`);
     requireNullableString(worker.lastFailedAtUtc, `${context}.lastFailedAtUtc`);
