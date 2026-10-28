@@ -168,6 +168,17 @@ test("MBBSIZE-1: buy cost shown as an upper bound at the next ceiling only when 
   assert.deepEqual(buyQuantityGate({ reasons: ["trend-constructive", "buy-sized-at-next-session-ceiling"], buyMore }, declared), { show: true });
 });
 
+test("MBBSTALE-1: an action blocked by a stale 1d bar says which action and why, in Vietnamese", () => {
+  for (const [action, label] of [["sell", "Bán"], ["reduce", "Giảm"], ["conditional-sell", "Bán có điều kiện"], ["buy-more", "Mua thêm"]]) {
+    assert.equal(describeDecisionReason(`stale-data-blocked:${action}`),
+      `stale-data-blocked:${action} — theo giá đóng cửa 1d cũ, luật lẽ ra cho "${label}", nhưng nến 1d chưa cập nhật nên chưa đề xuất lệnh — chờ dữ liệu mới.`);
+  }
+  // An action this FE does not know is still named, verbatim.
+  assert.match(describeDecisionReason("stale-data-blocked:short"), /luật lẽ ra cho "short"/);
+  assert.match(describeDecisionReason("stale-data-blocked:constructor"), /luật lẽ ra cho "constructor"/);
+  assert.equal(describeDecisionReason("stale-data-blocked:"), "stale-data-blocked:");
+});
+
 test("source documents: metadata + extraction summary; unsafe links dropped; contract/symbol fail-closed", async () => {
   const { parseSourceDocuments } = await import("../src/lib/equityResearch.ts");
   const doc = {

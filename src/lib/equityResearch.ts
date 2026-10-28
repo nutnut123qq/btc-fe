@@ -4,7 +4,7 @@
 // notes are session output: never validated, probabilities only behind a declared
 // reproducible method.
 
-import type { MbbDecision, MbbPosition } from "./mbb.ts";
+import { MBB_ACTION_LABELS, type MbbDecision, type MbbDecisionAction, type MbbPosition } from "./mbb.ts";
 
 const ERR = "INVALID_EQUITY_RESPONSE";
 
@@ -29,6 +29,9 @@ export const BUY_SIZED_AT_CEILING = "buy-sized-at-next-session-ceiling";
 export function describeDecisionReason(code: string): string {
   if (CASH_REASON_COPY[code]) return `${code} — ${CASH_REASON_COPY[code]}`;
   if (code === BUY_SIZED_AT_CEILING) return `${code} — khối lượng mua thêm tính theo giá trần phiên kế (tham chiếu = giá đóng cửa gần nhất): tổng chi phí không vượt ngân sách kể cả khi khớp ở giá trần.`;
+  // MBBSTALE-1: the rules reached a trading action on a stale 1d close; the backend downgraded it to wait.
+  const blocked = /^stale-data-blocked:([a-z-]+)$/.exec(code);
+  if (blocked) return `${code} — theo giá đóng cửa 1d cũ, luật lẽ ra cho "${Object.hasOwn(MBB_ACTION_LABELS, blocked[1]) ? MBB_ACTION_LABELS[blocked[1] as MbbDecisionAction] : blocked[1]}", nhưng nến 1d chưa cập nhật nên chưa đề xuất lệnh — chờ dữ liệu mới.`;
   const converted = /^corporate-action-converted:([a-z0-9-]+)$/.exec(code);
   if (converted) return `${code} — lô mua trước GDKHQ đã được quy đổi theo sự kiện quyền "${converted[1]}" đã xác minh (số cổ phiếu/giá vốn sau quy đổi).`;
   const ca = CORPORATE_ACTION_UNCONVERTED.exec(code);
