@@ -19,9 +19,16 @@ export const CASH_REASON_COPY: Record<string, string> = {
 
 const CORPORATE_ACTION_UNCONVERTED = /^corporate-action-unconverted:([a-z0-9-]+)$/;
 
+/**
+ * MBBSIZE-1: buy quantity/cost priced at the next session's ceiling, so `buyMore.estimatedCostVnd`
+ * is an upper bound. Older backends price at the last close and omit this code (pitfall #30).
+ */
+export const BUY_SIZED_AT_CEILING = "buy-sized-at-next-session-ceiling";
+
 /** Human copy for one decision reason code; unknown codes are shown verbatim. */
 export function describeDecisionReason(code: string): string {
   if (CASH_REASON_COPY[code]) return `${code} — ${CASH_REASON_COPY[code]}`;
+  if (code === BUY_SIZED_AT_CEILING) return `${code} — khối lượng mua thêm tính theo giá trần phiên kế (tham chiếu = giá đóng cửa gần nhất): tổng chi phí không vượt ngân sách kể cả khi khớp ở giá trần.`;
   const converted = /^corporate-action-converted:([a-z0-9-]+)$/.exec(code);
   if (converted) return `${code} — lô mua trước GDKHQ đã được quy đổi theo sự kiện quyền "${converted[1]}" đã xác minh (số cổ phiếu/giá vốn sau quy đổi).`;
   const ca = CORPORATE_ACTION_UNCONVERTED.exec(code);

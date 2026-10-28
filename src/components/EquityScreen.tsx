@@ -27,6 +27,7 @@ import {
 } from "@/lib/api";
 import {
   BUY_GATE_COPY,
+  BUY_SIZED_AT_CEILING,
   CASH_REASON_COPY,
   buyQuantityGate,
   describeDecisionReason,
@@ -966,7 +967,10 @@ function EquitySymbolView({
                 )}
                 {decision.buyMore && buyGate?.show && (
                   <p className="rounded border border-slate-800 bg-slate-950/60 px-2.5 py-1.5 text-xs text-slate-300" data-testid={`${sym}-buy-quantity`}>
-                    Sức mua thêm trong ngân sách {formatVnd(position?.buyBudgetVnd ?? null)}: tối đa {formatShares(decision.buyMore.maxBuyableShares)} ({decision.buyMore.maxBuyableLots} lô 100) ≈ {formatVnd(decision.buyMore.estimatedCostVnd)}.
+                    Sức mua thêm trong ngân sách {formatVnd(position?.buyBudgetVnd ?? null)}: tối đa {formatShares(decision.buyMore.maxBuyableShares)} ({decision.buyMore.maxBuyableLots} lô 100)
+                    {decision.reasons.includes(BUY_SIZED_AT_CEILING)
+                      ? <>, chi phí tối đa {formatVnd(decision.buyMore.estimatedCostVnd)} nếu khớp ở giá trần phiên kế.</>
+                      : <> ≈ {formatVnd(decision.buyMore.estimatedCostVnd)}.</>}
                   </p>
                 )}
                 {buyGate && !buyGate.show && (decision.action === "buy-more" || decision.buyMore != null || buyGate.reason in CASH_REASON_COPY) && (

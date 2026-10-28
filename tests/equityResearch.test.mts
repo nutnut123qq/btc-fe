@@ -156,6 +156,18 @@ test("decision card: buy quantity rendered only through the budget gate; withhel
   assert.match(screen, /Quỹ tiền mặt chung \(MBB \+ BID\)/);
 });
 
+test("MBBSIZE-1: buy cost shown as an upper bound at the next ceiling only when the backend says it sized there", () => {
+  // Literal code (not the export) so this test also runs, and fails on the assertion, against the pre-MBBSIZE source.
+  assert.match(describeDecisionReason("buy-sized-at-next-session-ceiling"), /^buy-sized-at-next-session-ceiling — khối lượng mua thêm tính theo giá trần phiên kế .*không vượt ngân sách kể cả khi khớp ở giá trần/);
+  assert.match(screen, /decision\.reasons\.includes\(BUY_SIZED_AT_CEILING\)\s*\?\s*<>, chi phí tối đa \{formatVnd\(decision\.buyMore\.estimatedCostVnd\)\} nếu khớp ở giá trần phiên kế\.<\/>/);
+  // Older backend (no code, cost priced at the last close): keep the approximate copy, never claim an upper bound.
+  assert.match(screen, /:\s*<> ≈ \{formatVnd\(decision\.buyMore\.estimatedCostVnd\)\}\.<\/>\}/);
+  assert.doesNotMatch(screen, /\(\{decision\.buyMore\.maxBuyableLots\} lô 100\) ≈/);
+  // Not a cash/budget blocker: the gate still shows the quantity.
+  const declared = pos({ cashPoolReported: true, sharedCashVnd: 50_000_000, buyBudgetVnd: 20_000_000 });
+  assert.deepEqual(buyQuantityGate({ reasons: ["trend-constructive", "buy-sized-at-next-session-ceiling"], buyMore }, declared), { show: true });
+});
+
 test("source documents: metadata + extraction summary; unsafe links dropped; contract/symbol fail-closed", async () => {
   const { parseSourceDocuments } = await import("../src/lib/equityResearch.ts");
   const doc = {
